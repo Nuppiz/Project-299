@@ -39,7 +39,7 @@
 #define SCREEN_SIZE         64000
 #define SQUARE_ROWS         SCREEN_HEIGHT / SQUARE_SIZE
 #define SQUARE_COLUMNS      SCREEN_WIDTH / SQUARE_SIZE
-#define degToRad(degree)    ((degree) * (M_PI / 180.0))
+#define degToRad(degree)    ((degree) * M_PI / 180.0)
 
 #define WALL                7
 #define COLOUR_RED          40
@@ -332,6 +332,22 @@ void draw_square(int x, int y, uint8_t colour)
     }
 }
 
+void draw_dot(Object* obj)
+{
+    int offset_y = 0;
+    int offset_x = 0;
+    float radians;
+    
+    // calculate angle
+    radians = atan2(obj->direction.y, obj->direction.x);
+    
+    // directional dot's offsets from the center of the circle
+    offset_y = sin(radians) * obj->radius;
+    offset_x = cos(radians) * obj->radius;
+    // center of the circle has to be cast into int, otherwise the draw function doesn't work
+    SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, obj->color + 64);
+}
+
 void player_grid_loc() // player circle's location on the grid
 {   
     // calculated by dividing the player's x/y location by square size
@@ -345,9 +361,6 @@ void draw_stuff()
     int a = 0; // square drawing "index"
     int x;
     int y;
-    
-    int offset_y;
-    int offset_x;
     
     // draw 160 20x20 squares (maximum that can fit on the 320x200 screen)
     while (a < SQUARE_ROWS * SQUARE_COLUMNS)
@@ -369,14 +382,9 @@ void draw_stuff()
     {
         // draw all circles in their current locations
         draw_circle(&object_array[i].position, object_array[i].radius, object_array[i].color);
+        draw_dot(&object_array[i]);
         i++;
     }
-    
-    // directional dot's offsets from the center of the circle
-    offset_y = (sin(radians)) * player.radius;
-    offset_x = (cos(radians)) * player.radius;
-    // center of the circle has to be cast into int, otherwise the draw function doesn't work
-    SET_PIXEL((int)player.position.x + offset_x, (int)player.position.y + offset_y, COLOUR_RED);
     
     // copy off-screen buffer to VGA memory
     memcpy(VGA,screen_buf,SCREEN_SIZE);
@@ -453,8 +461,9 @@ void move_circle(Object* obj, Vec2 movement)
         // if the movement would result in the object moving inside of a wall...
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
-            // ...cancel movement
+            // ...cancel movement and set velocity to 0
             obj->position.x -= movement.x;
+            obj->velocity.x = 0.0;
         }
     }
     else if (movement.x < 0) // if moving to the left
@@ -470,6 +479,7 @@ void move_circle(Object* obj, Vec2 movement)
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
             obj->position.x -= movement.x;
+            obj->velocity.x = 0.0;
         }
     }
 
@@ -486,6 +496,7 @@ void move_circle(Object* obj, Vec2 movement)
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
             obj->position.y -= movement.y;
+            obj->velocity.y = 0.0;
         }
     }
     else if (movement.y > 0) // if moving towards the bottom
@@ -501,6 +512,7 @@ void move_circle(Object* obj, Vec2 movement)
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
             obj->position.y -= movement.y;
+            obj->velocity.y = 0.0;
         }
     }
 }
@@ -537,17 +549,10 @@ void chase(Object* object_a, Object* object_b)
     object_b->direction.y = sin(ai_radians);
     
     // if close enough, initiate "chase"
-    if(distance_squared < CHASE_DISTANCE_SQ)
+    if(distance_squared < CHASE_DISTANCE_SQ && distance_squared > CHASE_DISTANCE * 10)
     {
         object_b->velocity.x += object_b->direction.x / 2;
         object_b->velocity.y += object_b->direction.y / 2;
-    }
-    
-    // otherwise stop gradually
-    else
-    {
-        object_b->direction.x = 0;
-        object_b->direction.y = 0;
     }
 }
 
