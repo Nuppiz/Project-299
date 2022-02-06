@@ -75,6 +75,7 @@ typedef struct
 typedef struct
 {
     Vec2 position;
+    Vec2_int grid_loc; // location on the grid
     Vec2 direction; // direction
     Vec2 velocity; // velocity
     float magnitude; // magnitude of velocity
@@ -84,10 +85,10 @@ typedef struct
 
 // array which holds all objects (circles in this case)
 Object object_array[Num_Objects] = {
-//    pos_x  pos_y     direction    velocity   magnitude     radius  colour
-    {{120.0, 40.0,},  {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      14},
-    {{40.0,  110.0,}, {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,       3},
-    {{120.0, 110.0,}, {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      12}
+//    pos_x  pos_y    grid_x grid_y    direction    velocity   magnitude     radius  colour
+    {{120.0, 40.0,}, {6,     2,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      14},
+    {{40.0,  110.0,},{2,     6,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,       3},
+    {{120.0, 110.0,},{6,     6,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      12}
 };
 
 // array which determines the colour of each square on the grid
@@ -348,11 +349,11 @@ void draw_dot(Object* obj)
     SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, obj->color + 64);
 }
 
-void player_grid_loc() // player circle's location on the grid
+void check_grid_loc(Object* obj) // circle's location on the grid
 {   
-    // calculated by dividing the player's x/y location by square size
-    pl_grid.x = player.position.x / SQUARE_SIZE;
-    pl_grid.y = player.position.y / SQUARE_SIZE;
+    // calculated by dividing the circle's x/y location by square size
+    obj->grid_loc.x = obj->position.x / SQUARE_SIZE;
+    obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }
 
 void draw_stuff()
@@ -375,8 +376,8 @@ void draw_stuff()
         }
     }
     
-    player_grid_loc(); // check where the player circle is
-    draw_square(pl_grid.x * SQUARE_SIZE, pl_grid.y * SQUARE_SIZE, COLOUR_PEACH); // change that square to a lovely peach colour
+    // change player square to a lovely peach colour
+    draw_square(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);
     
     while (i < Num_Objects)
     {
@@ -448,6 +449,8 @@ void move_circle(Object* obj, Vec2 movement)
     Vec2 test_point_a;
     Vec2 test_point_b;
     
+    check_grid_loc(obj);
+    
     if (movement.x > 0) // if moving to the right
     {
         obj->position.x += movement.x; // temporarily move the object
@@ -462,7 +465,7 @@ void move_circle(Object* obj, Vec2 movement)
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
             // ...cancel movement and set velocity to 0
-            obj->position.x -= movement.x;
+            obj->position.x = obj->grid_loc.x * SQUARE_SIZE + (obj->radius * 1.5 - 1);
             obj->velocity.x = 0.0;
         }
     }
@@ -478,7 +481,7 @@ void move_circle(Object* obj, Vec2 movement)
         
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
-            obj->position.x -= movement.x;
+            obj->position.x = obj->grid_loc.x * SQUARE_SIZE + obj->radius;
             obj->velocity.x = 0.0;
         }
     }
@@ -495,7 +498,7 @@ void move_circle(Object* obj, Vec2 movement)
         
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
-            obj->position.y -= movement.y;
+            obj->position.y = obj->grid_loc.y * SQUARE_SIZE + obj->radius;
             obj->velocity.y = 0.0;
         }
     }
@@ -511,10 +514,11 @@ void move_circle(Object* obj, Vec2 movement)
         
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
-            obj->position.y -= movement.y;
+            obj->position.y = obj->grid_loc.y * SQUARE_SIZE + (obj->radius * 1.5 - 1);
             obj->velocity.y = 0.0;
         }
     }
+    check_grid_loc(obj);
 }
 
 void calculate_movement()
@@ -629,6 +633,7 @@ void main()
         calculate_movement();
         collision();
         draw_stuff();
+        //printf("Pl_g_x:%d Pl_g_y:%d", object_array[0].grid_loc.x, object_array[0].grid_loc.y);
         delay(50);
     }
     quit();
