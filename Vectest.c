@@ -86,9 +86,9 @@ typedef struct
 // array which holds all objects (circles in this case)
 Object object_array[Num_Objects] = {
 //    pos_x  pos_y    grid_x grid_y    direction    velocity   magnitude     radius  colour
-    {{120.0, 40.0,}, {6,     2,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      14},
-    {{40.0,  110.0,},{2,     6,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,       3},
-    {{120.0, 110.0,},{6,     6,},      {0.0, 0.0}, {0.0, 0.0}, 0.0,          8,      12}
+    {{120.0, 40.0,}, {6,     2,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      14},
+    {{40.0,  110.0,},{1,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,       3},
+    {{120.0, 110.0,},{6,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      12}
 };
 
 // array which determines the colour of each square on the grid
@@ -337,14 +337,14 @@ void draw_dot(Object* obj)
 {
     int offset_y = 0;
     int offset_x = 0;
-    float radians;
+    float dot_radians;
     
     // calculate angle
-    radians = atan2(obj->direction.y, obj->direction.x);
+    dot_radians = atan2(obj->direction.y, obj->direction.x);
     
     // directional dot's offsets from the center of the circle
-    offset_y = sin(radians) * obj->radius;
-    offset_x = cos(radians) * obj->radius;
+    offset_y = sin(dot_radians) * obj->radius;
+    offset_x = cos(dot_radians) * obj->radius;
     // center of the circle has to be cast into int, otherwise the draw function doesn't work
     SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, obj->color + 64);
 }
@@ -465,7 +465,7 @@ void move_circle(Object* obj, Vec2 movement)
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
             // ...cancel movement and set velocity to 0
-            obj->position.x = obj->grid_loc.x * SQUARE_SIZE + (obj->radius * 1.5 - 1);
+            obj->position.x = (obj->grid_loc.x + 1) * SQUARE_SIZE - obj->radius - 1;
             obj->velocity.x = 0.0;
         }
     }
@@ -514,7 +514,7 @@ void move_circle(Object* obj, Vec2 movement)
         
         if (tile_detect(test_point_a) == WALL || tile_detect(test_point_b) == WALL)
         {
-            obj->position.y = obj->grid_loc.y * SQUARE_SIZE + (obj->radius * 1.5 - 1);
+            obj->position.y = (obj->grid_loc.y + 1) * SQUARE_SIZE - obj->radius - 1;
             obj->velocity.y = 0.0;
         }
     }
