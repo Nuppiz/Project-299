@@ -40,6 +40,7 @@
 #define SQUARE_ROWS         SCREEN_HEIGHT / SQUARE_SIZE
 #define SQUARE_COLUMNS      SCREEN_WIDTH / SQUARE_SIZE
 #define degToRad(degree)    ((degree) * M_PI / 180.0)
+#define MAX_VISION_ANGLE    60
 
 #define WALL                7
 #define COLOUR_RED          40
@@ -88,7 +89,7 @@ Object object_array[Num_Objects] = {
 //    pos_x  pos_y    grid_x grid_y    direction    velocity   magnitude     radius  colour
     {{120.0, 40.0,}, {6,     2,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      14},
     {{40.0,  110.0,},{1,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,       3},
-    {{120.0, 110.0,},{6,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      12}
+    {{120.0, 160.0,},{6,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      12}
 };
 
 // array which determines the colour of each square on the grid
@@ -536,6 +537,30 @@ void calculate_movement()
     }
 }
 
+int field_of_vision(Object* object_a, Object* object_b)
+{
+    float distance_x = 0.0;
+    float distance_y = 0.0;
+    float distance_magnitude = 0.0;
+    float dot_product = 0.0;
+    float vector_angle = 0.0;
+    int fov_degrees = 0;
+    
+    distance_x = object_b->position.x - object_a->position.x;
+    distance_y = object_b->position.y - object_a->position.y;
+
+    distance_magnitude = sqrt((distance_x * distance_x) + (distance_y * distance_y));
+    // dot product is the result of two vectors combined into a single number
+    dot_product = (distance_x * object_b->direction.x) + (distance_y * object_b->direction.y);
+    // to calculate the angle between two vectors, we first multiply the directional vector magnitudes with each other...
+    // then divide the dot product with that...
+    // and take arc cosine from the end result, this will give us the angle
+    vector_angle = acos(dot_product / distance_magnitude);
+    // finally, since trigonometric functions in C return radian values, we convert that to degrees
+    fov_degrees = ((vector_angle * 180) / M_PI);
+    return fov_degrees;
+}
+
 void chase(Object* object_a, Object* object_b)
 {
     float ai_radians;
@@ -548,13 +573,14 @@ void chase(Object* object_a, Object* object_b)
     // calculate angle between the two objects - atan2 allows for both positive and negative angles
     ai_radians = atan2(distance_y, distance_x);
     
-    // calculated the directional vector of the "chasing" object
-    object_b->direction.x = cos(ai_radians);
-    object_b->direction.y = sin(ai_radians);
-    
-    // if close enough, initiate "chase"
-    if(distance_squared < CHASE_DISTANCE_SQ && distance_squared > CHASE_DISTANCE * 10)
+    // if object to be chased is close enough and inside field of view, initiate "chase"
+    if(distance_squared < CHASE_DISTANCE_SQ && distance_squared > CHASE_DISTANCE * 10
+    && field_of_vision(object_a, object_b) > MAX_VISION_ANGLE)
     {
+        // calculate the directional vector of the "chasing" object
+        object_b->direction.x = cos(ai_radians);
+        object_b->direction.y = sin(ai_radians);
+        
         object_b->velocity.x += object_b->direction.x / 2;
         object_b->velocity.y += object_b->direction.y / 2;
     }
@@ -633,7 +659,6 @@ void main()
         calculate_movement();
         collision();
         draw_stuff();
-        //printf("Pl_g_x:%d Pl_g_y:%d", object_array[0].grid_loc.x, object_array[0].grid_loc.y);
         delay(50);
     }
     quit();
