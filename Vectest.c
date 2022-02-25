@@ -40,7 +40,17 @@
 #define SQUARE_ROWS         SCREEN_HEIGHT / SQUARE_SIZE
 #define SQUARE_COLUMNS      SCREEN_WIDTH / SQUARE_SIZE
 #define degToRad(degree)    ((degree) * M_PI / 180.0)
-#define MAX_VISION_ANGLE    60
+
+#define RAD_360             (2*M_PI)
+#define RAD_270             (4.172)
+#define RAD_180             M_PI
+#define RAD_120             (M_PI/1.5)
+#define RAD_105             (M_PI-1.3)
+#define RAD_90              (M_PI/2)
+#define RAD_60              (M_PI/3)
+#define RAD_45              (M_PI/4)
+#define RAD_30              (M_PI/6)
+#define RAD_15              (M_PI/12)
 
 #define WALL                7
 #define COLOUR_RED          40
@@ -48,12 +58,23 @@
 
 #define player              object_array[0]
 #define MAX_SPEED           10.0
+#define ACCELERATION_RATE   2.0
 #define BRAKE_RATE          0.9
 #define SPEED_THRESHOLD     0.2
 #define TURN_RATE           5
 
 #define CHASE_DISTANCE      75
 #define CHASE_DISTANCE_SQ   CHASE_DISTANCE*CHASE_DISTANCE
+#define CHASE_TIMEOUT       100
+
+#define TILE_WIDTH          8
+#define TILE_HEIGHT         8
+#define CHARACTER_SIZE      72
+
+#define IDLE                0
+#define CHASE_TARGET        1
+
+uint8_t alphabet [4240];
 
 enum Objects
 {
@@ -82,14 +103,17 @@ typedef struct
     float magnitude; // magnitude of velocity
     int radius; // circle radius
     uint8_t color;
+    uint8_t ai_mode;
+    int ai_timer;
+    Vec2* ai_target;
 } Object;
 
 // array which holds all objects (circles in this case)
 Object object_array[Num_Objects] = {
-//    pos_x  pos_y    grid_x grid_y    direction    velocity   magnitude     radius  colour
-    {{120.0, 40.0,}, {6,     2,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      14},
-    {{40.0,  110.0,},{1,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,       3},
-    {{120.0, 160.0,},{6,     5,},      {1.0, 1.0}, {0.0, 0.0}, 0.0,          8,      12}
+//    pos_x  pos_y    grid_x grid_y    direction    velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
+    {{28.0, 40.0,},  {1,     2,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      14,     IDLE,         0,        &object_array[2].position},
+    {{40.0,  110.0,}, {2,     5,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,       3,     IDLE, 100,      &object_array[2].position},
+    {{270.0, 160.0,},  {13,     9,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      12,     IDLE, 100,      &player.position}
 };
 
 // array which determines the colour of each square on the grid
@@ -139,6 +163,58 @@ void set_mode(uint8_t mode)
     regs.h.ah = SET_MODE;
     regs.h.al = mode;
     int86(VIDEO_INT, &regs, &regs);
+}
+
+void load_font()
+{
+    FILE* file_ptr;
+    file_ptr = fopen("FONT.7UP", "rb");
+    fread(alphabet, 1, 4240, file_ptr);
+    fclose(file_ptr);
+}
+
+void draw_text(int x, int y, int i, uint8_t color)
+{
+    uint8_t index_x = 0;
+    uint8_t index_y = 0;
+    i = i * CHARACTER_SIZE;
+
+    for (index_y=0;index_y<TILE_HEIGHT;index_y++)
+    {
+        for (index_x=0;index_x<TILE_WIDTH;index_x++)
+        {
+            if (alphabet[i] != 13)
+            {
+                SET_PIXEL(x, y, alphabet[i] + color);
+                i++;
+                x++;
+            }
+            else
+            {
+                i++;
+                x++;
+            }
+        }
+        index_x = 0;
+        x = x - TILE_WIDTH;
+        y++;
+    }
+    index_y = 0;
+    i= 0;
+}
+
+void render_text(int x, int y, char* string, uint8_t color)
+{
+    int i = 0;
+    char c;
+    
+    while (string[i] != 0)
+    {
+        c = string[i];
+        draw_text(x, y, c - 32, color);
+        x = x + 10;
+        i++;
+    }
 }
 
 // keyboard handling stuff until line 229
@@ -387,12 +463,6 @@ void draw_stuff()
         draw_dot(&object_array[i]);
         i++;
     }
-    
-    // copy off-screen buffer to VGA memory
-    memcpy(VGA,screen_buf,SCREEN_SIZE);
-    
-    // clear off-screen buffer so the screen updates properly
-    _fmemset(screen_buf, 0, SCREEN_SIZE);
 }
 
 int tile_detect(Vec2 pos)
@@ -493,7 +563,7 @@ void move_circle(Object* obj, Vec2 movement)
         // test_point_a = top right corner
         test_point_a.x = obj->position.x + obj->radius;
         test_point_a.y = obj->position.y - obj->radius;
-        // test_point_ba = top left corner
+        // test_point_b = top left corner
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y - obj->radius;
         
@@ -522,7 +592,7 @@ void move_circle(Object* obj, Vec2 movement)
     check_grid_loc(obj);
 }
 
-void calculate_movement()
+void calculate_movements()
 {
     int i = 0;
     
@@ -537,52 +607,132 @@ void calculate_movement()
     }
 }
 
-int field_of_vision(Object* object_a, Object* object_b)
+Vec2 getVec2(Vec2 p0, Vec2 p1)
 {
-    float distance_x = 0.0;
-    float distance_y = 0.0;
-    float distance_magnitude = 0.0;
-    float dot_product = 0.0;
-    float vector_angle = 0.0;
-    int fov_degrees = 0;
+    Vec2 v;
+    v.x = p1.x - p0.x;
+    v.y = p1.y - p0.y;
     
-    distance_x = object_b->position.x - object_a->position.x;
-    distance_y = object_b->position.y - object_a->position.y;
-
-    distance_magnitude = sqrt((distance_x * distance_x) + (distance_y * distance_y));
-    // dot product is the result of two vectors combined into a single number
-    dot_product = (distance_x * object_b->direction.x) + (distance_y * object_b->direction.y);
-    // to calculate the angle between two vectors, we first multiply the directional vector magnitudes with each other...
-    // then divide the dot product with that...
-    // and take arc cosine from the end result, this will give us the angle
-    vector_angle = acos(dot_product / distance_magnitude);
-    // finally, since trigonometric functions in C return radian values, we convert that to degrees
-    fov_degrees = ((vector_angle * 180) / M_PI);
-    return fov_degrees;
+    return v;
 }
 
-void chase(Object* object_a, Object* object_b)
+int dotVec2(Vec2 v1, Vec2 v2)
 {
-    float ai_radians;
+    // dot product is the result of two vectors combined into a single number
+    float dot_product = (v1.x * v2.x) + (v1.y * v2.y);
+    char ve_str[64];
+    char dp_str[24];
+    sprintf(ve_str, "DV: %.2f %.2f %.2f %.2f", v1.x, v1.y, v2.x, v2.y);
+    render_text(0, 0, ve_str, 0);
+    sprintf(dp_str, "DP: %f", dot_product);
+    render_text(0, 10, dp_str, 0);
     
-    float distance_x = object_a->position.x - object_b->position.x; // x-distance between the two objects
-    float distance_y = object_a->position.y - object_b->position.y; // y-distance between the two objects
-    // simplified total distance calculation (without sqrt)
-    float distance_squared = distance_x * distance_x + distance_y * distance_y;
+    return dot_product;
+}
+
+int getVec2Length(Vec2 v)
+{
+    float Vec2Length = sqrt((v.x * v.x) + (v.y * v.y));
+    char vl_str[24];
+    sprintf(vl_str, "VL: %f", Vec2Length);
+    render_text(0, 20, vl_str, 40);
     
-    // calculate angle between the two objects - atan2 allows for both positive and negative angles
-    ai_radians = atan2(distance_y, distance_x);
+    return Vec2Length;
+}
+
+int getVec2Angle(Vec2 v1, Vec2 v2)
+{
+    /*to calculate the angle between two vectors, we first multiply the directional vector
+    magnitudes with each other...
+    then divide the dot product with that...
+    and take arc cosine from the end result, this will give us the angle*/
     
-    // if object to be chased is close enough and inside field of view, initiate "chase"
-    if(distance_squared < CHASE_DISTANCE_SQ && distance_squared > CHASE_DISTANCE * 10
-    && field_of_vision(object_a, object_b) > MAX_VISION_ANGLE)
+    char cos_str[24];
+    char va_str[24];
+    float dot_product = dotVec2(v1, v2);
+    double cos = dot_product / getVec2Length(v1);
+    float vector_angle = acos(cos);
+    
+    sprintf(cos_str, "COS: %f", cos); 
+    sprintf(va_str, "VA: %f", vector_angle);
+    render_text(0, 30, cos_str, 40);
+    render_text(0, 40, va_str, 40);
+    
+    return vector_angle;
+}
+
+int testFieldOfView(Vec2 origin, Vec2 direction, Vec2* target)
+{
+    Vec2 origin_to_target = getVec2(*target, origin);
+    float distance = getVec2Length(origin_to_target);
+    float angle;
+    
+    if (distance < CHASE_DISTANCE)
     {
-        // calculate the directional vector of the "chasing" object
-        object_b->direction.x = cos(ai_radians);
-        object_b->direction.y = sin(ai_radians);
-        
-        object_b->velocity.x += object_b->direction.x / 2;
-        object_b->velocity.y += object_b->direction.y / 2;
+        angle = getVec2Angle(origin_to_target, direction);
+
+        if (angle > RAD_120)
+        {
+             return 1;
+        }
+    }
+    return 0;
+}
+
+Vec2 normalizeVec2(Vec2 v)
+{
+    Vec2 normalizedVec;
+    
+    float vec_length = getVec2Length(v);
+    
+    normalizedVec.x = v.x / vec_length;
+    normalizedVec.y = v.y / vec_length;
+    
+    return normalizedVec;
+}
+
+void chaseTarget(Object* chaser)
+{
+    Vec2 ObjectToTarget = getVec2(chaser->position, *chaser->ai_target);
+    chaser->direction = normalizeVec2(ObjectToTarget);    
+    chaser->magnitude = getVec2Length(chaser->velocity);
+    
+    if (chaser->magnitude <= MAX_SPEED)
+    {
+        chaser->velocity.x += chaser->direction.x * ACCELERATION_RATE;
+        chaser->velocity.y += chaser->direction.y * ACCELERATION_RATE;
+    }
+}
+
+void think(Object* obj)
+{
+    if (obj->ai_mode == CHASE_TARGET)
+    {
+        if (obj->ai_timer > 0)
+        {
+            chaseTarget(obj);
+            obj->ai_timer--;
+        }
+        else
+        {
+           obj->ai_mode = IDLE;
+        }
+    }
+    else if (testFieldOfView(obj->position, obj->direction, obj->ai_target) == 1)
+    {
+        obj->ai_mode = CHASE_TARGET;
+        obj->ai_timer = 100;
+    }
+}
+
+void ai_loop()
+{
+    int i = 2;
+    
+    while (i < Num_Objects)
+    {
+        think(&object_array[i]);
+        i++;
     }
 }
 
@@ -639,6 +789,15 @@ void collision()
     edge_detect();
 }
 
+void render()
+{     
+    // copy off-screen buffer to VGA memory
+    memcpy(VGA,screen_buf,SCREEN_SIZE);
+
+    // clear off-screen buffer so the screen updates properly
+    _fmemset(screen_buf, 0, SCREEN_SIZE);
+}
+
 void quit()
 {   
     deinit_keyboard();
@@ -649,15 +808,16 @@ void main()
 {    
     set_mode(VGA_256_COLOR_MODE);
     init_keyboard();
+    load_font();
     
     while (running == 1)
     {
         process_input();
         radians = degToRad(heading);
-        chase(&object_array[0], &object_array[2]);
-        chase(&object_array[2], &object_array[1]);
-        calculate_movement();
+        ai_loop();
+        calculate_movements();
         collision();
+        render();
         draw_stuff();
         delay(50);
     }
