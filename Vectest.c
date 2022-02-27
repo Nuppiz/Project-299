@@ -58,13 +58,14 @@
 
 #define player              object_array[0]
 #define MAX_SPEED           10.0
-#define ACCELERATION_RATE   2.0
+#define ACCELERATION_RATE   0.3
 #define BRAKE_RATE          0.9
 #define SPEED_THRESHOLD     0.2
 #define TURN_RATE           5
 
 #define CHASE_DISTANCE      75
 #define CHASE_DISTANCE_SQ   CHASE_DISTANCE*CHASE_DISTANCE
+#define CHASE_THRESHOLD     15
 #define CHASE_TIMEOUT       100
 
 #define TILE_WIDTH          8
@@ -110,10 +111,10 @@ typedef struct
 
 // array which holds all objects (circles in this case)
 Object object_array[Num_Objects] = {
-//    pos_x  pos_y    grid_x grid_y    direction    velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
+//    pos_x  pos_y    grid_x grid_y   direction    velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
     {{28.0, 40.0,},  {1,     2,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      14,     IDLE,         0,        &object_array[2].position},
-    {{40.0,  110.0,}, {2,     5,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,       3,     IDLE, 100,      &object_array[2].position},
-    {{270.0, 160.0,},  {13,     9,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      12,     IDLE, 100,      &player.position}
+    {{40.0,  110.0,}, {2,    5,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,       3,     IDLE,         100,      &object_array[2].position},
+    {{250.0, 120.0,},  {12,  7,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      12,     IDLE,         100,      &player.position}
 };
 
 // array which determines the colour of each square on the grid
@@ -152,7 +153,6 @@ static void interrupt (far *old_keyhandler)(void);
 
 int running = 1;
 float drag = 1.05;
-float thrust = 0.3;
 int heading = 0; // current direction in degrees
 float radians = 0.0; // current direction in radians, as that's what the math functions use
 
@@ -325,8 +325,8 @@ void control_ingame()
     
     if (KEY_IS_PRESSED(KEY_UP) && player.magnitude <= MAX_SPEED)
     {
-        player.velocity.x += player.direction.x * thrust;
-        player.velocity.y += player.direction.y * thrust;
+        player.velocity.x += player.direction.x * ACCELERATION_RATE;
+        player.velocity.y += player.direction.y * ACCELERATION_RATE;
         // calculate the player's current movement speed
         player.magnitude = sqrt((player.velocity.x * player.velocity.x) + (player.velocity.y * player.velocity.y));
     }
@@ -633,9 +633,6 @@ int dotVec2(Vec2 v1, Vec2 v2)
 int getVec2Length(Vec2 v)
 {
     float Vec2Length = sqrt((v.x * v.x) + (v.y * v.y));
-    char vl_str[24];
-    sprintf(vl_str, "VL: %f", Vec2Length);
-    render_text(0, 20, vl_str, 40);
     
     return Vec2Length;
 }
@@ -667,11 +664,15 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2* target)
     float distance = getVec2Length(origin_to_target);
     float angle;
     
+    char vl_str[24];
+    sprintf(vl_str, "DI: %f", distance);
+    render_text(0, 20, vl_str, 40);
+    
     if (distance < CHASE_DISTANCE)
     {
         angle = getVec2Angle(origin_to_target, direction);
 
-        if (angle > RAD_120)
+        if (angle > RAD_60)
         {
              return 1;
         }
@@ -694,6 +695,10 @@ Vec2 normalizeVec2(Vec2 v)
 void chaseTarget(Object* chaser)
 {
     Vec2 ObjectToTarget = getVec2(chaser->position, *chaser->ai_target);
+    float distance = getVec2Length(ObjectToTarget);
+    char vl_str[24];
+    sprintf(vl_str, "DI: %f", distance);
+    render_text(0, 20, vl_str, 40);
     chaser->direction = normalizeVec2(ObjectToTarget);    
     chaser->magnitude = getVec2Length(chaser->velocity);
     
@@ -701,6 +706,12 @@ void chaseTarget(Object* chaser)
     {
         chaser->velocity.x += chaser->direction.x * ACCELERATION_RATE;
         chaser->velocity.y += chaser->direction.y * ACCELERATION_RATE;
+        
+        if (distance <= CHASE_THRESHOLD)
+        {
+            chaser->velocity.x = 0;
+            chaser->velocity.y = 0;
+        }
     }
 }
 
