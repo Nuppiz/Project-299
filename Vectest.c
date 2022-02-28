@@ -53,8 +53,12 @@
 #define RAD_15              (M_PI/12)
 
 #define VIEW_ANGLE_COS      0.5
+#define LOS_STEP            10
+#define OUT_OF_SIGHT        0
+#define IN_SIGHT            1
 
 #define WALL                7
+#define COLOUR_WHITE        15
 #define COLOUR_RED          40
 #define COLOUR_PEACH        64
 
@@ -116,23 +120,25 @@ Object object_array[Num_Objects] = {
 //    pos_x  pos_y    grid_x grid_y   direction    velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
     {{28.0, 40.0,},   {1,    2,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      14,     IDLE,         0,        &object_array[2].position},
     {{40.0,  110.0,}, {2,    5,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      43,     IDLE,         100,      &object_array[2].position},
-    {{250.0, 120.0,}, {12,   7,},     {1.0, 1.0},  {0.0, 0.0}, 0.0,      8,      12,     IDLE,         100,      &player.position}
+    {{250.0, 120.0,}, {12,   7,},     {-1.0, -2.0},  {0.0, 0.0}, 0.0,      8,      12,     IDLE,         100,      &player.position}
 };
 
 // array which determines the colour of each square on the grid
-uint8_t grid_array [] = {7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7,
-                         7, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55,  7,
-                         7,  55, 7,  7, 7, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7, 54, 7, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55,  7,
-                         7,  55, 7, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55,  7,
+uint8_t grid_array [] = {7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
+                         7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 7,
+                         7,  55, 7,  7,  7,  55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
+                         7,  54, 7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 7,  7,  55, 7,
+                         7,  55, 7,  55, 54, 55, 54, 55, 54, 55, 7,  55, 54, 7,  54, 7,
+                         7,  54, 55, 54, 55, 54, 7,  7,  55, 54, 7,  54, 55, 7,  55, 7,
+                         7,  55, 54, 55, 54, 55, 7,  7,  54, 55, 7,  55, 54, 55, 54, 7,
+                         7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 7,
                          7,  55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55,  7,
-                         7,  55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7, 7,  7
+                         7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7
 };
 
 Vec2_int pl_grid; // vector to hold the player's grid location
+
+float getVec2Length();
 
 struct Input
 {
@@ -330,22 +336,14 @@ void control_ingame()
         player.velocity.x += player.direction.x * ACCELERATION_RATE;
         player.velocity.y += player.direction.y * ACCELERATION_RATE;
         // calculate the player's current movement speed
-        player.magnitude = sqrt((player.velocity.x * player.velocity.x) + (player.velocity.y * player.velocity.y));
+        player.magnitude = getVec2Length(player.velocity);
     }
-    if (KEY_IS_PRESSED(KEY_DOWN))
+    if (KEY_IS_PRESSED(KEY_DOWN) && player.magnitude <= MAX_SPEED)
     {
-        // reduce player velocity
-        player.velocity.x *= BRAKE_RATE;
-        player.velocity.y *= BRAKE_RATE;
-            // if player has slowed down to a crawl, stop them entirely
-            if (fabs(player.velocity.x) < SPEED_THRESHOLD)
-            {
-                player.velocity.x = 0.0;
-            }
-            if  (fabs(player.velocity.y) < SPEED_THRESHOLD)
-            {
-                player.velocity.y = 0.0;
-            }
+        player.velocity.x -= player.direction.x * ACCELERATION_RATE;
+        player.velocity.y -= player.direction.y * ACCELERATION_RATE;
+        // calculate the player's current movement speed
+        player.magnitude = getVec2Length(player.velocity);
     }
     if (KEY_IS_PRESSED(KEY_LEFT))
     {
@@ -422,10 +420,10 @@ void draw_dot(Object* obj)
     dot_radians = atan2(obj->direction.y, obj->direction.x);
     
     // directional dot's offsets from the center of the circle
-    offset_y = sin(dot_radians) * obj->radius;
-    offset_x = cos(dot_radians) * obj->radius;
+    offset_y = sin(dot_radians) * (obj->radius + 2);
+    offset_x = cos(dot_radians) * (obj->radius + 2);
     // center of the circle has to be cast into int, otherwise the draw function doesn't work
-    SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, obj->color + 64);
+    SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, COLOUR_WHITE);
 }
 
 void check_grid_loc(Object* obj) // circle's location on the grid
@@ -455,8 +453,8 @@ void draw_stuff()
         }
     }
     
-    // change player square to a lovely peach colour
-    draw_square(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);
+    /* change player square to a lovely peach colour
+    draw_square(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);*/
     
     while (i < Num_Objects)
     {
@@ -622,12 +620,6 @@ float dotVec2(Vec2 v1, Vec2 v2)
 {
     // dot product is the result of two vectors combined into a single number
     float dot_product = (v1.x * v2.x) + (v1.y * v2.y);
-    /*char ve_str[64];
-    char dp_str[24];
-    sprintf(ve_str, "DV: %.2f %.2f %.2f %.2f", v1.x, v1.y, v2.x, v2.y);
-    render_text(0, 0, ve_str, 0);
-    sprintf(dp_str, "DP: %f", dot_product);
-    render_text(0, 10, dp_str, 0);*/
     
     return dot_product;
 }
@@ -646,11 +638,7 @@ float getVec2Angle(Vec2 v1, Vec2 v2)
     then divide the dot product with that...
     and take arc cosine from the end result, this will give us the angle*/
     
-    /*char cos_str[24];*/
     float vector_angle = dotVec2(v1, v2) / (getVec2Length(v1) * getVec2Length(v2));
-    
-    /*sprintf(cos_str, "COS: %f", cosine); 
-    render_text(0, 30, cos_str, 40);*/
     
     return vector_angle;
 }
@@ -667,19 +655,26 @@ Vec2 normalizeVec2(Vec2 v)
     return normalizedVec;
 }
 
-/*int testLineOfSight(Vec2 origin, Vec2 distance, Vec2 direction)
+int testLineOfSight(Vec2 origin, Vec2 target)
 {
-    float los = normalizeVec2(distance);
-    Vec2 test_dot;
-    normalizeVec2(direction);
+    Vec2 origin_to_target = getVec2(origin, target);
+    Vec2 p = origin; // test point
+    Vec2 direction = normalizeVec2(origin_to_target);
+    float distance = getVec2Length(origin_to_target);
+    float los;
     
-    for (los = 0; los < distance; los + SQUARE_SIZE)
-    {
-        if (tile_detect(test_dot) == WALL)
-            return 0;
+    for (los = 0.0; los < distance; los += LOS_STEP)
+    {        
+        SET_PIXEL((int)p.x, (int)p.y, COLOUR_WHITE);
+        
+        if (tile_detect(p) == WALL)
+            return OUT_OF_SIGHT;
+        
+        p.x += (direction.x * LOS_STEP);
+        p.y += (direction.y * LOS_STEP);
     }
-    return 1;
-}*/
+    return IN_SIGHT;
+}
 
 int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
 {
@@ -687,33 +682,22 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
     float distance = getVec2Length(origin_to_target);
     float angle;
     
-    char va_str[24];
-    /*char vl_str[24];
-    sprintf(vl_str, "DI: %f", distance);
-    render_text(0, 20, vl_str, 40);*/
-    
     if (distance < CHASE_DISTANCE)
     {
         angle = getVec2Angle(origin_to_target, direction);
-        sprintf(va_str, "VA: %f", angle);
-        render_text(0, 40, va_str, 40);
         
-        // && testLineOfSight(origin, origin_to_target, direction) == 1
-        if (angle > VIEW_ANGLE_COS)
+        if (angle > VIEW_ANGLE_COS && testLineOfSight(origin, target) == IN_SIGHT)
         {
-             return 1;
+             return IN_SIGHT;
         }
     }
-    return 0;
+    return OUT_OF_SIGHT;
 }
 
 void chaseTarget(Object* chaser)
 {
     Vec2 ObjectToTarget = getVec2(chaser->position, *chaser->ai_target);
     float distance = getVec2Length(ObjectToTarget);
-    /*char vl_str[24];
-    sprintf(vl_str, "DI: %f", distance);
-    render_text(0, 20, vl_str, 40);*/
     chaser->direction = normalizeVec2(ObjectToTarget);    
     chaser->magnitude = getVec2Length(chaser->velocity);
     
@@ -744,7 +728,7 @@ void think(Object* obj)
            obj->ai_mode = IDLE;
         }
     }
-    else if (testFieldOfView(obj->position, obj->direction, *obj->ai_target) == 1)
+    else if (testFieldOfView(obj->position, obj->direction, *obj->ai_target) == IN_SIGHT)
     {
         obj->ai_mode = CHASE_TARGET;
         obj->ai_timer = 100;
