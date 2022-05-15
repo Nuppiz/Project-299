@@ -15,6 +15,14 @@ void checkGridLoc(Object* obj) // circle's location on the grid
     obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }
 
+Vec2_int checkPlayerLoc(Vec2 pos)
+{
+    // for camera offset
+    Vec2_int player_location;
+
+    return player_location;
+}
+
 int tileDetectColor(Vec2 pos)
 {
     int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
@@ -25,7 +33,7 @@ int tileDetectColor(Vec2 pos)
     pos.y /= SQUARE_SIZE;
     
     // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * SQUARE_COLUMNS + (int)pos.x;
+    object_tile = (int)pos.y * NUM_COLUMNS + (int)pos.x;
     
     tile_colour = grid_array[object_tile]; // check which colour is at that index
     

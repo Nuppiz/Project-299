@@ -19,6 +19,8 @@ void drawSprite(int x, int y, Texture* texture)
     int index_y = 0;
     int i = 0;
 
+    //x += offset.x;
+
     if (texture->transparent == TRUE)
     {
         for (index_y=0;index_y<texture->height;index_y++)
@@ -27,9 +29,12 @@ void drawSprite(int x, int y, Texture* texture)
             {
                 if (texture->pixels[i] != TRANSPARENT_COLOR)
                 {
-                    SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
-                    i++;
-                    pix_x++;
+                    if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
+                    {
+                        SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
+                        i++;
+                        pix_x++;
+                    }
                 }
                 else
                 {
@@ -48,9 +53,12 @@ void drawSprite(int x, int y, Texture* texture)
         {
             for (index_x=0;index_x<texture->width;index_x++)
             {
-                SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
-                i++;
-                pix_x++;
+                if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
+                {
+                    SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
+                    i++;
+                    pix_x++;
+                }
             }
             index_x = 0;
             pix_x = x;
@@ -63,8 +71,10 @@ void drawCircle(Vec2* position, int radius, uint8_t color)
 {
     int offset_x;
     int offset_y;
+
+    int camera_offset = 2;
     
-    int center_x = position->x;
+    int center_x = position->x + camera_offset * SQUARE_SIZE;
     int center_y = position->y;
 
     offset_y = 0;
@@ -102,35 +112,40 @@ void drawDot(Object* obj)
     int offset_y = 0;
     int offset_x = 0;
     float dot_radians;
+
+    int camera_offset = 2;
     
     // calculate angle
     dot_radians = atan2(obj->direction.y, obj->direction.x);
     
     // directional dot's offsets from the center of the circle
     offset_y = sin(dot_radians) * (obj->radius + 2);
-    offset_x = cos(dot_radians) * (obj->radius + 2);
+    offset_x = cos(dot_radians) * (obj->radius + 2) + camera_offset * SQUARE_SIZE;
     // center of the circle has to be cast into int, otherwise the draw function doesn't work
     SET_PIXEL((int)obj->position.x + offset_x, (int)obj->position.y + offset_y, COLOUR_WHITE);
 }
 
 void drawMap()
 {
-    int a = 0; // square drawing "index"
-    int x;
-    int y;
+    int camera_offset = 2;
+    int i = camera_offset; // square drawing "index" from array
+    int start_index = camera_offset;
+    int x_pixel;
+    int y_pixel;
+    int num_cols;
+    int num_rows = 0; // number of "rows" traversed in the array
     
     // draw 160 20x20 squares (maximum that can fit on the 320x200 screen)
-    while (a < SQUARE_ROWS * SQUARE_COLUMNS)
+    for (y_pixel = 0; y_pixel < SCREEN_HEIGHT; y_pixel += SQUARE_SIZE)
     {
-        for (y = 0; y < SCREEN_HEIGHT; y += SQUARE_SIZE)
+        for(x_pixel = 0, num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols < SQUARE_COLUMNS; x_pixel += SQUARE_SIZE, num_cols++)
         {
-            for(x = 0; x < SCREEN_WIDTH; x += SQUARE_SIZE)
-            {
-                //drawSquareColor(x, y, grid_array[a]); // old color-based drawing
-                drawSprite(x, y, &Textures[texture_array[a]]);
-                a++;
-            }
+            //drawSquareColor(x, y, grid_array[a]); // old color-based drawing
+            drawSprite(x_pixel, y_pixel, &Textures[texture_array[i]]);
+            i++;
         }
+        num_rows++;
+        i = start_index + NUM_COLUMNS * num_rows;
     }
 }
 
