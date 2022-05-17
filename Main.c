@@ -20,7 +20,7 @@ Object object_array[Num_Objects] = {
 //    pos_x  pos_y    grid_x grid_y   direction     velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
     {{170.0, 100.0,}, {9,    5,},     {1.0, 1.0},   {0.0, 0.0}, 0.0,      8,      14,     NULL,         0,        NULL},
     {{80.0,  110.0,}, {4,    5,},     {1.0, 1.0},   {0.0, 0.0}, 0.0,      8,      43,     IDLE,         100,      &object_array[2].position},
-    {{280.0, 120.0,}, {14,   6,},     {-1.0, -2.0}, {0.0, 0.0}, 0.0,      8,      12,     IDLE,         100,      &player.position}
+    {{280.0, 140.0,}, {14,   7,},     {-1.0, -2.0}, {0.0, 0.0}, 0.0,      8,      12,     IDLE,         100,      &player.position}
 };
 
 // array which determines the colour of each square on the grid
