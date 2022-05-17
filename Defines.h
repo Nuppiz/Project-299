@@ -39,7 +39,6 @@
 #define SCREEN_SIZE         64000
 #define SQUARE_ROWS         SCREEN_HEIGHT / SQUARE_SIZE
 #define SQUARE_COLUMNS      SCREEN_WIDTH / SQUARE_SIZE
-#define NUM_COLUMNS         19 // number of columns in map array
 #define degToRad(degree)    ((degree) * M_PI / 180.0)
 
 #define RAD_360             (2*M_PI)

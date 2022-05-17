@@ -9,6 +9,7 @@
 
 extern uint8_t far screen_buf [];
 extern Object object_array [];
+extern Map map1;
 
 int testLineOfSight(Vec2 origin, Vec2 target)
 {
@@ -20,9 +21,9 @@ int testLineOfSight(Vec2 origin, Vec2 target)
     
     for (los = 0.0; los < distance; los += LOS_STEP)
     {        
-        SET_PIXEL((int)p.x, (int)p.y, COLOUR_WHITE);
+        //SET_PIXEL((int)p.x - (CAMERA_OFFSET * SQUARE_SIZE), (int)p.y, COLOUR_WHITE);
         
-        if (tileDetectColor(p) == WALL)
+        if (tileDetectColor(p, &map1) == WALL)
             return OUT_OF_SIGHT;
         
         p.x += (direction.x * LOS_STEP);

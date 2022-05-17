@@ -21,7 +21,8 @@ void setMode(uint8_t mode)
 void loadPalette(char* filename, Palette* pal)
 {
     FILE *fp;
-    int i, x;
+    int i;
+    // int x;
     
     // Open the file
     fp = fopen(filename, "rb");
@@ -42,7 +43,7 @@ void loadPalette(char* filename, Palette* pal)
         pal->colors[i].g = fgetc(fp);
         pal->colors[i].r = fgetc(fp);
 
-        x = fgetc(fp); // discarded  value
+        // x = fgetc(fp); // discarded  value
     }
 
     fclose(fp);

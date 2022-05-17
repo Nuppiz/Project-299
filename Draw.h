@@ -4,7 +4,7 @@
 #include "Structs.h"
 
 void drawSprite(int x, int y, Texture* texture);
-void drawMap();
+void drawMap(Map* map);
 void drawStuff();
 
 #endif /* DRAW_H */

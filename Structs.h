@@ -43,4 +43,12 @@ typedef struct
     uint16_t transparent;
 } Texture;
 
+typedef struct
+{
+    int width; // width in tiles
+    int height; // height in tiles
+    uint8_t* collision; // array to store collision data
+    uint8_t* textures; // array to store texture pointers
+} Map;
+
 #endif

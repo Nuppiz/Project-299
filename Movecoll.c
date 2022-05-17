@@ -7,6 +7,8 @@
 
 extern Object object_array [];
 extern uint8_t grid_array [];
+extern Map map1;
+extern Vec2 camera_offset;
 
 void checkGridLoc(Object* obj) // circle's location on the grid
 {   
@@ -15,15 +17,24 @@ void checkGridLoc(Object* obj) // circle's location on the grid
     obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }
 
-Vec2_int checkPlayerLoc(Vec2 pos)
+Vec2 checkPlayerLoc(Vec2 pos, Map* map)
 {
     // for camera offset
-    Vec2_int player_location;
+    Vec2 camera_loc;
 
-    return player_location;
+    camera_loc.x = (pos.x / SQUARE_SIZE) - (map->width / 2);
+    camera_loc.y = pos.y / SQUARE_SIZE;
+
+    return camera_loc;
 }
 
-int tileDetectColor(Vec2 pos)
+void calcCameraOffset(Object* target, Map* map)
+{
+    camera_offset = checkPlayerLoc(target->position, map);
+    checkGridLoc(target);
+}
+
+int tileDetectColor(Vec2 pos, Map* map)
 {
     int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
     uint8_t tile_colour;
@@ -33,9 +44,9 @@ int tileDetectColor(Vec2 pos)
     pos.y /= SQUARE_SIZE;
     
     // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * NUM_COLUMNS + (int)pos.x;
+    object_tile = (int)pos.y * map->width + (int)pos.x;
     
-    tile_colour = grid_array[object_tile]; // check which colour is at that index
+    tile_colour = map->collision[object_tile]; // check which colour is at that index
     
     return tile_colour; // return said colour
 }
@@ -72,7 +83,7 @@ void edgeDetect()
     }
 }
 
-void moveCircle(Object* obj, Vec2 movement)
+void moveCircle(Object* obj, Vec2 movement, Map* map)
 {
     // collision box around the object
     Vec2 test_point_a;
@@ -91,7 +102,7 @@ void moveCircle(Object* obj, Vec2 movement)
         test_point_b.y = obj->position.y + obj->radius;
         
         // if the movement would result in the object moving inside of a wall...
-        if (tileDetectColor(test_point_a) == WALL || tileDetectColor(test_point_b) == WALL)
+        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
         {
             // ...cancel movement and set velocity to 0
             obj->position.x = (obj->grid_loc.x + 1) * SQUARE_SIZE - obj->radius - 1;
@@ -108,7 +119,7 @@ void moveCircle(Object* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (tileDetectColor(test_point_a) == WALL || tileDetectColor(test_point_b) == WALL)
+        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
         {
             obj->position.x = obj->grid_loc.x * SQUARE_SIZE + obj->radius;
             obj->velocity.x = 0.0;
@@ -125,7 +136,7 @@ void moveCircle(Object* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y - obj->radius;
         
-        if (tileDetectColor(test_point_a) == WALL || tileDetectColor(test_point_b) == WALL)
+        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
         {
             obj->position.y = obj->grid_loc.y * SQUARE_SIZE + obj->radius;
             obj->velocity.y = 0.0;
@@ -141,7 +152,7 @@ void moveCircle(Object* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (tileDetectColor(test_point_a) == WALL || tileDetectColor(test_point_b) == WALL)
+        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
         {
             obj->position.y = (obj->grid_loc.y + 1) * SQUARE_SIZE - obj->radius - 1;
             obj->velocity.y = 0.0;
@@ -150,14 +161,14 @@ void moveCircle(Object* obj, Vec2 movement)
     checkGridLoc(obj);
 }
 
-void calculateMovements()
+void calculateMovements(Map* map)
 {
     int i = 0;
     
     // iterate through the object array
     while (i < Num_Objects)
     {
-        moveCircle(&object_array[i], object_array[i].velocity); // check each circle for wall collisions
+        moveCircle(&object_array[i], object_array[i].velocity, map); // check each circle for wall collisions
         // reduce object velocity with aerial drag
         object_array[i].velocity.y /= DRAG;
         object_array[i].velocity.x /= DRAG;
@@ -165,7 +176,7 @@ void calculateMovements()
     }
 }
 
-void collisionDetect(Object* object_a, Object* object_b)
+void collisionDetect(Object* object_a, Object* object_b, Map* map)
 {
     float distance_x;
     float distance_y;
@@ -191,16 +202,16 @@ void collisionDetect(Object* object_a, Object* object_b)
         u.y = (distance_y/distance) * (collision_depth/2);
         
         // first object gets the values as is...
-        moveCircle(object_a, u);
+        moveCircle(object_a, u, map);
         
         // ...and for the second object they are flipped
         u.x = -u.x;
         u.y = -u.y;
-        moveCircle(object_b, u);
+        moveCircle(object_b, u, map);
     }
 }
 
-void collision()
+void collision(Map* map)
 {
     int x;
     int i;
@@ -210,10 +221,10 @@ void collision()
     {
         for (x = i; x < Num_Objects-1; x++)
         {
-            collisionDetect(&object_array[i], &object_array[x+1]);
+            collisionDetect(&object_array[i], &object_array[x+1], map);
         }
     }
     
     // also check that none of the objects are going beyond the screen boundaries
-    edgeDetect();
+    // edgeDetect();
 }
