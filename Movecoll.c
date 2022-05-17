@@ -6,7 +6,6 @@
 /* Object movement and collision detection */
 
 extern Object object_array [];
-extern uint8_t grid_array [];
 extern Map map1;
 extern Vec2 camera_offset;
 

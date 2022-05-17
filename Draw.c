@@ -7,8 +7,6 @@
 
 extern uint8_t far screen_buf [];
 extern Object object_array [];
-extern uint8_t grid_array [];
-extern uint8_t texture_array [];
 extern Texture Textures [];
 extern Map map1;
 extern Vec2 camera_offset;
@@ -149,19 +147,9 @@ void drawDot(Object* obj)
     // directional dot's offsets from the center of the circle
     offset_y = sin(dot_radians) * (obj->radius + 2);
     offset_x = cos(dot_radians) * (obj->radius + 2) - (int)camera_offset.x * SQUARE_SIZE;
-    if (camera_offset.x > 0)
+    if (boundaryCheck(pos_x + offset_x, pos_y + offset_y == TRUE))
     {
-        if (boundaryCheck(pos_x + offset_x, pos_y + offset_y == TRUE))
-        {
-            SET_PIXEL(pos_x + offset_x, pos_y + offset_y, COLOUR_WHITE);
-        }
-    }
-    else
-    {
-        if (boundaryCheck(pos_x - offset_x, pos_y - offset_y == TRUE))
-        {
-            SET_PIXEL(pos_x + offset_x, pos_y + offset_y, COLOUR_WHITE);
-        }
+        SET_PIXEL(pos_x + offset_x, pos_y + offset_y, COLOUR_WHITE);
     }
 }
 
@@ -196,7 +184,7 @@ void drawMap(Map* map)
     
     for (y_pixel = 0; y_pixel < SCREEN_HEIGHT; y_pixel += SQUARE_SIZE)
     {
-        if (camera_offset.x > -1)
+        if (camera_offset.x > 0)
         {
             for(x_pixel = 0, num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
@@ -207,10 +195,11 @@ void drawMap(Map* map)
         }
         else
         {
-            for(x_pixel = 0, num_cols = 0; x_pixel < SCREEN_WIDTH || num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
+            for(x_pixel = 0; x_pixel < SCREEN_WIDTH; x_pixel += SQUARE_SIZE)
             {
                 //drawSquareColor(x, y, grid_array[a]); // old color-based drawing
-                drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
+                if (x_pixel >= abs(camera_offset.x) * SQUARE_SIZE)
+                    drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
                 i++;
             }
         }
