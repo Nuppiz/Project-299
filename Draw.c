@@ -23,23 +23,26 @@ void drawSprite(int x, int y, Texture* texture)
 {
     int pix_x = x;
     int pix_y = y;
-    int index_x = 0;
-    int index_y = 0;
+    int index_x;
+    int index_y;
     int i = 0;
-
-    //x += offset.x;
 
     if (texture->transparent == TRUE)
     {
-        for (index_y=0;index_y<texture->height;index_y++)
+        for (index_y = 0; index_y < texture->height; index_y++)
         {
-            for (index_x=0;index_x<texture->width;index_x++)
+            for (index_x = 0; index_x < texture->width; index_x++)
             {
                 if (texture->pixels[i] != TRANSPARENT_COLOR)
                 {
                     if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
                     {
                         SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
+                        i++;
+                        pix_x++;
+                    }
+                    else
+                    {
                         i++;
                         pix_x++;
                     }
@@ -50,16 +53,81 @@ void drawSprite(int x, int y, Texture* texture)
                     pix_x++;
                 }
             }
-            index_x = 0;
             pix_x = x;
             pix_y++;
         }
     }
     else
     {
-        for (index_y=0;index_y<texture->height;index_y++)
+        for (index_y = 0; index_y < texture->height; index_y++)
         {
-            for (index_x=0;index_x<texture->width;index_x++)
+            for (index_x = 0; index_x < texture->width; index_x++)
+            {
+                if (pix_x < SCREEN_WIDTH && pix_x >= 0 && pix_y < SCREEN_HEIGHT && pix_y >= 0)
+                {
+                    SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
+                    i++;
+                    pix_x++;
+                }
+                else
+                {
+                    i++;
+                    pix_x++;
+                }
+            }
+            pix_x = x;
+            pix_y++;
+        }
+    }
+}
+
+/*void drawSpritePartial(int x, int y, int start_x, int start_y, Texture* texture)
+{
+    int pix_x = x;
+    int pix_y = y;
+    int index_x;
+    int index_y;
+    int i = start_x;
+
+    if (start_x < 0)
+        i = 0;
+
+    if (texture->transparent == TRUE)
+    {
+        for (index_y = 0; index_y < texture->height; index_y++)
+        {
+            for (index_x = 0; index_x < texture->width; index_x++)
+            {
+                if (texture->pixels[i] != TRANSPARENT_COLOR)
+                {
+                    if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
+                    {
+                        SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
+                        i++;
+                        pix_x++;
+                    }
+                    else
+                    {
+                        i++;
+                        pix_x++;
+                    }
+                }
+                else
+                {
+                    i++;
+                    pix_x++;
+                }
+            }
+            i += start_x;
+            pix_x = x;
+            pix_y++;
+        }
+    }
+    else
+    {
+        for (index_y = 0; index_y < texture->height; index_y++)
+        {
+            for (index_x = 0; index_x < texture->width; index_x++)
             {
                 if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
                 {
@@ -67,20 +135,24 @@ void drawSprite(int x, int y, Texture* texture)
                     i++;
                     pix_x++;
                 }
+                else
+                {
+                    i++;
+                    pix_x++;
+                }
             }
-            index_x = 0;
             pix_x = x;
             pix_y++;
         }
     }
-}
+}*/
 
 void drawCircle(Vec2* position, int radius, uint8_t color)
 {
     int offset_x;
     int offset_y;
     
-    int center_x = position->x - (int)camera_offset.x * SQUARE_SIZE;
+    int center_x = position->x - (int)camera_offset.x;
     int center_y = position->y;
 
     offset_y = 0;
@@ -146,7 +218,7 @@ void drawDot(Object* obj)
     
     // directional dot's offsets from the center of the circle
     offset_y = sin(dot_radians) * (obj->radius + 2);
-    offset_x = cos(dot_radians) * (obj->radius + 2) - (int)camera_offset.x * SQUARE_SIZE;
+    offset_x = cos(dot_radians) * (obj->radius + 2) - (int)camera_offset.x;
     if (boundaryCheck(pos_x + offset_x, pos_y + offset_y == TRUE))
     {
         SET_PIXEL(pos_x + offset_x, pos_y + offset_y, COLOUR_WHITE);
@@ -174,7 +246,7 @@ void drawRectangle(int x, int y, int w, int h, uint8_t color)
 
 void drawMap(Map* map)
 {
-    int i = (int)camera_offset.x; // square drawing "index" from array
+    int i = camera_offset.x / SQUARE_SIZE; // square drawing "index" from array
     int start_index = i;
     int x_pixel;
     int y_pixel;
@@ -186,19 +258,23 @@ void drawMap(Map* map)
     {
         if (camera_offset.x > 0)
         {
-            for(x_pixel = 0, num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
+            // old grid-based drawing
+            /*for(x_pixel = 0, num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
-                //drawSquareColor(x, y, grid_array[a]); // old color-based drawing
+                drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
+                i++;
+            }*/
+            for (x_pixel = 0 - (camera_offset.x - start_index * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
+            {
                 drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
                 i++;
             }
         }
         else
         {
-            for(x_pixel = 0; x_pixel < SCREEN_WIDTH; x_pixel += SQUARE_SIZE)
+            for (x_pixel = 0 - (camera_offset.x - start_index * SQUARE_SIZE); x_pixel < SCREEN_WIDTH; x_pixel += SQUARE_SIZE)
             {
-                //drawSquareColor(x, y, grid_array[a]); // old color-based drawing
-                if (x_pixel >= abs(camera_offset.x) * SQUARE_SIZE)
+                if (x_pixel >= abs(start_index) * SQUARE_SIZE)
                     drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
                 i++;
             }

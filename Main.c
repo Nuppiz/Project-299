@@ -80,7 +80,7 @@ void main()
         AILoop();
         calculateMovements(&map1);
         collision(&map1);
-        calcCameraOffset(&player, &map1);
+        calcCameraOffset(&player);
         render();
         drawStuff();
         delay(50);

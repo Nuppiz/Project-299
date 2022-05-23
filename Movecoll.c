@@ -16,20 +16,20 @@ void checkGridLoc(Object* obj) // circle's location on the grid
     obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }
 
-Vec2 checkPlayerLoc(Vec2 pos, Map* map)
+Vec2 checkPlayerLoc(Vec2 pos)
 {
     // for camera offset
     Vec2 camera_loc;
 
-    camera_loc.x = (pos.x / SQUARE_SIZE) - (map->width / 2);
-    camera_loc.y = pos.y / SQUARE_SIZE;
+    camera_loc.x = pos.x - (SCREEN_WIDTH / 2) - SQUARE_SIZE / 2;
+    camera_loc.y = pos.y;
 
     return camera_loc;
 }
 
-void calcCameraOffset(Object* target, Map* map)
+void calcCameraOffset(Object* target)
 {
-    camera_offset = checkPlayerLoc(target->position, map);
+    camera_offset = checkPlayerLoc(target->position);
     checkGridLoc(target);
 }
 
