@@ -86,4 +86,8 @@
 #define TRUE                1
 #define FALSE               0
 
+#define FULLY_OUT           0
+#define PARTIAL             1
+#define FULLY_IN            2
+
 #endif

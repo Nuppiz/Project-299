@@ -22,7 +22,7 @@ Vec2 checkPlayerLoc(Vec2 pos)
     Vec2 camera_loc;
 
     camera_loc.x = pos.x - (SCREEN_WIDTH / 2) - SQUARE_SIZE / 2;
-    camera_loc.y = pos.y;
+    camera_loc.y = pos.y - (SCREEN_HEIGHT / 2) - SQUARE_SIZE / 2;
 
     return camera_loc;
 }

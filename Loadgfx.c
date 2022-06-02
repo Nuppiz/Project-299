@@ -35,4 +35,6 @@ void loadAllTextures()
     loadTexture("BRICKS.7UP", BRICKS);
     loadTexture("GRASS.7UP", GRASS);
     loadTexture("SAND.7UP", SAND);
+    loadTexture("FLOOR1.7UP", FLOOR1);
+    loadTexture("FLOOR2.7UP", FLOOR2);
 }

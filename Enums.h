@@ -12,6 +12,8 @@ enum Objects
 enum TextureCount
 {
     BRICKS,
+    FLOOR1,
+    FLOOR2,
     GRASS,
     SAND,
     NUM_TEXTURES
