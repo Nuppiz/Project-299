@@ -37,4 +37,10 @@ void loadAllTextures()
     loadTexture("SAND.7UP", SAND);
     loadTexture("FLOOR1.7UP", FLOOR1);
     loadTexture("FLOOR2.7UP", FLOOR2);
+    loadTexture("DUDE1.7UP", DUDE1);
+    loadTexture("DUDE2.7UP", DUDE2);
+    loadTexture("DUDE3.7UP", DUDE3);
+    loadTexture("GRICKS.7UP", GRICKS);
+    loadTexture("GLOOR1.7UP", GLOOR1);
+    loadTexture("GLOOR2.7UP", GLOOR2);
 }

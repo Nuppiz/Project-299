@@ -16,18 +16,26 @@ void controlIngame()
     
     if (KEY_IS_PRESSED(KEY_UP) && player.magnitude <= MAX_SPEED)
     {
+
         player.velocity.x += player.direction.x * ACCELERATION_RATE;
         player.velocity.y += player.direction.y * ACCELERATION_RATE;
         // calculate the player's current movement speed
-        player.magnitude = getVec2Length(player.velocity);
+        //player.magnitude = getVec2Length(player.velocity);
     }
     else if (KEY_IS_PRESSED(KEY_DOWN) && player.magnitude <= MAX_SPEED)
     {
         player.velocity.x -= player.direction.x * ACCELERATION_RATE;
         player.velocity.y -= player.direction.y * ACCELERATION_RATE;
         // calculate the player's current movement speed
-        player.magnitude = getVec2Length(player.velocity);
+        //player.magnitude = getVec2Length(player.velocity);
     }
+    else if (player.magnitude > 0)
+    {
+        player.velocity.x /= DRAG;
+        player.velocity.y /= DRAG;
+        //player.magnitude = getVec2Length(player.velocity);
+    }
+
     if (KEY_IS_PRESSED(KEY_LEFT))
     {
         heading -= TURN_RATE;

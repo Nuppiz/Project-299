@@ -23,9 +23,10 @@ float dotVec2(Vec2 v1, Vec2 v2)
 
 float getVec2Length(Vec2 v)
 {
-    float Vec2Length = sqrt((v.x * v.x) + (v.y * v.y));
-    
-    return Vec2Length;
+    if (v.x == 0.0 && v.y == 0.0)
+        return 0;
+    else
+        return sqrt((v.x * v.x) + (v.y * v.y));
 }
 
 float getVec2Angle(Vec2 v1, Vec2 v2)

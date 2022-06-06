@@ -2,6 +2,7 @@
 #include "Defines.h"
 #include "Enums.h"
 #include "Structs.h"
+#include "Vectors.h"
 
 /* Object movement and collision detection */
 
@@ -163,15 +164,23 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
 void calculateMovements(Map* map)
 {
     int i = 0;
+
+    char VX_str [20];
+    char VY_str [20];
     
     // iterate through the object array
     while (i < Num_Objects)
     {
+        sprintf(VX_str, "VX: %f", player.velocity.x);
+        sprintf(VY_str, "VY: %f", player.velocity.y);
         moveCircle(&object_array[i], object_array[i].velocity, map); // check each circle for wall collisions
         // reduce object velocity with aerial drag
-        object_array[i].velocity.y /= DRAG;
-        object_array[i].velocity.x /= DRAG;
+        //object_array[i].velocity.y /= DRAG;
+        //object_array[i].velocity.x /= DRAG;
+        object_array[i].magnitude = getVec2Length(object_array[i].velocity);
         i++;
+        drawText(0, 0, VX_str, COLOUR_WHITE);
+        drawText(0, 10, VY_str, COLOUR_WHITE);
     }
 }
 

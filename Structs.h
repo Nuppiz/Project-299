@@ -13,6 +13,16 @@ typedef struct
 
 typedef struct
 {
+    uint8_t* pixels;
+    uint16_t height;
+    uint16_t width;
+    uint16_t transparent;
+    uint8_t mirrorFlip;
+    int offset_x, offset_y;
+} Texture;
+
+typedef struct
+{
     Vec2 position;
     Vec2_int grid_loc; // location on the grid
     Vec2 direction; // direction
@@ -23,6 +33,8 @@ typedef struct
     uint8_t ai_mode;
     int ai_timer;
     Vec2* ai_target;
+    Texture sprite;
+    Texture orig_sprite;
 } Object;
 
 typedef struct
@@ -34,14 +46,6 @@ typedef struct
 {
     Color colors[256];
 } Palette;
-
-typedef struct
-{
-    uint8_t* pixels;
-    uint16_t height;
-    uint16_t width;
-    uint16_t transparent;
-} Texture;
 
 typedef struct
 {

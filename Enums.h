@@ -16,6 +16,12 @@ enum TextureCount
     FLOOR2,
     GRASS,
     SAND,
+    DUDE1,
+    DUDE2,
+    DUDE3,
+    GRICKS,
+    GLOOR1,
+    GLOOR2,
     NUM_TEXTURES
 };
 

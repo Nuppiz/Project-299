@@ -65,7 +65,7 @@
 
 #define player              object_array[0]
 #define DRAG                1.05
-#define MAX_SPEED           10.0
+#define MAX_SPEED           5.0
 #define ACCELERATION_RATE   0.3
 #define BRAKE_RATE          0.9
 #define SPEED_THRESHOLD     0.2
