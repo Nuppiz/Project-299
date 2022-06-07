@@ -10,6 +10,10 @@
 #include "Text.h"
 #include "Video.h"
 
+static void interrupt (far *old_ISR)(void);
+
+long time = 0;
+
 int running = 1;
 int heading = 0; // current direction in degrees
 float radians = 0.0; // current direction in radians, as that's what the math functions use
@@ -60,16 +64,37 @@ uint8_t texture_array [] = {
 
 Map map1;
 
+void interrupt far Timer(void)
+{
+    time++;
+}
+
+void changeTime(uint16_t new_count)
+{
+    outportb(CONTROL_8253, CONTROL_WORD);
+    outportb(COUNTER_0, LOW_BYTE(new_count));
+    outportb(COUNTER_0, HIGH_BYTE(new_count));
+}
+
 void quit()
 {   
     deinitKeyboard();
+    changeTime(TIMER_18HZ);
+    _dos_setvect(TIME_KEEPER_INT, old_ISR);
     setMode(TEXT_MODE);
 }
 
 void main()
 {
+    uint32_t last_time = 0;
+    int seconds = 0;
+    char clock[20] = "TIME: 0";
+
+    old_ISR = _dos_getvect(TIME_KEEPER_INT);
+    _dos_setvect(TIME_KEEPER_INT, Timer);
     setMode(VGA_256_COLOR_MODE);
     initKeyboard();
+    changeTime(TIMER_1000HZ);
     loadFont();
     loadAllTextures();
 
@@ -85,15 +110,22 @@ void main()
     
     while (running == 1)
     {
-        processInput();
-        radians = degToRad(heading);
-        AILoop();
-        calculateMovements(&map1);
-        collision(&map1);
-        calcCameraOffset(&player);
-        render();
-        drawStuff();
-        delay(50);
+        if (last_time + 1000 < time)
+        {
+            last_time = time;
+            seconds++;
+            sprintf(clock, "TIME: %d", seconds);
+        }
+            processInput();
+            radians = degToRad(heading);
+            AILoop();
+            calculateMovements(&map1);
+            collision(&map1);
+            calcCameraOffset(&player);
+            drawText(220, 185, clock, COLOUR_WHITE);
+            render();
+            drawStuff();
+            delay(50);
     }
     quit();
 }

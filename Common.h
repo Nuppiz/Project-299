@@ -8,5 +8,6 @@
 #include <dos.h>
 #include <stdint.h>
 #include <math.h>
+#include <conio.h>
 
 #endif

@@ -13,7 +13,11 @@
 #define PALETTE_WRITE       0x03C8
 #define PALETTE_DATA        0x03C9
 
-#define SET_PIXEL(x,y,color)      screen_buf[(y)*SCREEN_WIDTH + (x)] = color
+#if SCREEN_WIDTH == 320
+#define SET_PIXEL(x,y,color) screen_buf[(((y)<<8)+((y)<<6)) + (x)] = color
+#else
+#define SET_PIXEL(x,y,color) screen_buf[(y)*SCREEN_WIDTH + (x)] = color
+#endif
 
 #define KB_ARRAY_LENGTH     256
 #define KB_QUEUE_LENGTH     256
@@ -89,5 +93,15 @@
 #define FULLY_OUT           0
 #define PARTIAL             1
 #define FULLY_IN            2
+
+#define CONTROL_8253        0x43
+#define CONTROL_WORD        0x3C
+#define COUNTER_0           0x40
+#define TIME_KEEPER_INT     0x1C 
+#define TIMER_18HZ          0xFFFF
+#define TIMER_1000HZ        1193
+
+#define LOW_BYTE(n)         (n & 0x00ff)
+#define HIGH_BYTE(n)        ((n>>8) & 0x00ff)
 
 #endif
