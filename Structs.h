@@ -17,7 +17,6 @@ typedef struct
     uint16_t height;
     uint16_t width;
     uint16_t transparent;
-    uint8_t mirrorFlip;
     int offset_x, offset_y;
 } Texture;
 

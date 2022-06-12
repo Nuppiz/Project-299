@@ -62,10 +62,10 @@
 #define IN_SIGHT            1
 
 #define WALL                7
-#define COLOUR_WHITE        15
+#define COLOUR_WHITE        4
 #define COLOUR_RED          40
 #define COLOUR_PEACH        64
-#define TRANSPARENT_COLOR   13
+#define TRANSPARENT_COLOR   251
 
 #define player              object_array[0]
 #define DRAG                1.05

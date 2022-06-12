@@ -14,6 +14,15 @@ void loadFont()
     fclose(file_ptr);
 }
 
+void loadFontNew()
+{
+    FILE* file_ptr;
+    file_ptr = fopen("FONTD.7UP", "rb");
+    fseek(file_ptr, 8, SEEK_SET); // skip header info
+    fread(alphabet, 1, 4240, file_ptr);
+    fclose(file_ptr);
+}
+
 void drawSymbol(int x, int y, int symbol_index, uint8_t color)
 {
     uint8_t index_x = 0;
@@ -24,7 +33,7 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
     {
         for (index_x=0;index_x<TILE_WIDTH;index_x++)
         {
-            if (alphabet[symbol_index] != 13)
+            if (alphabet[symbol_index] != TRANSPARENT_COLOR)
             {
                 SET_PIXEL(x, y, alphabet[symbol_index] + color);
                 symbol_index++;

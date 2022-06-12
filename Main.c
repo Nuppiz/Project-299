@@ -20,6 +20,7 @@ float radians = 0.0; // current direction in radians, as that's what the math fu
 Vec2 camera_offset;
 
 extern Texture Textures[];
+extern Palette NewPalette;
 
 // array which holds all objects (circles in this case)
 Object object_array[Num_Objects] = {
@@ -93,9 +94,11 @@ void main()
     old_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setMode(VGA_256_COLOR_MODE);
+    loadPalette("Pal.bmp", &NewPalette);
+    setPalette_VGA(&NewPalette);
     initKeyboard();
     changeTime(TIMER_1000HZ);
-    loadFont();
+    loadFontNew();
     loadAllTextures();
 
     map1.width = 19;

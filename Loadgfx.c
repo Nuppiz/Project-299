@@ -27,6 +27,8 @@ void loadTexture(char* filename, int texture_index)
 	fseek(file_ptr, 8, SEEK_SET);
     Textures[texture_index].pixels = malloc(Textures[texture_index].width * Textures[texture_index].height);
     fread(Textures[texture_index].pixels, 1, Textures[texture_index].width * Textures[texture_index].height, file_ptr);
+    Textures[texture_index].offset_x = 0;
+    Textures[texture_index].offset_y = 0;
     fclose(file_ptr);
 }
 

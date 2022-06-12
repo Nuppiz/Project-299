@@ -176,6 +176,9 @@ void drawSpritePartial(int x, int y, Texture* texture)
     int sprite_w = texture->width;
     int sprite_h = texture->height;
 
+    x -= texture->offset_x;
+    y -= texture->offset_y;
+
     start_x = x;
     start_y = y;
 
@@ -251,7 +254,7 @@ float rotateShearY(Vec2 source, double angle)
     return new_loc;
 }
 
-Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
+void rotateTexture(int x, int y, double angle, Texture* source, uint8_t bgcolor)
 {
     Texture rotated;
     Vec2 sheared;
@@ -262,6 +265,7 @@ Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
     int i = 0;
     float rot_i;
     int rotated_size;
+    uint8_t mirror_flip = FALSE;
 
     if (angle > RAD_270)
         angle -= RAD_360;
@@ -269,26 +273,26 @@ Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
     else if (angle < -RAD_270)
         angle += RAD_360;
 
-    /*if (angle > RAD_90)
+    if (angle > RAD_90)
     {
         angle -= RAD_180;
-        source->mirrorFlip = TRUE;
+        mirror_flip = TRUE;
     }
 
     else if (angle < -RAD_90)
     {
         angle += RAD_180;
-        source->mirrorFlip = TRUE;
-    }*/
+        mirror_flip = TRUE;
+    }
 
     if (source->transparent == TRUE)
-        rotated.transparent = TRUE;
+        rotated.transparent = FALSE;
 
-    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 2;
-    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 2;
+    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 3;
+    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 3;
 
-    source->offset_x = (rotated.width - source->width) / 2;
-    source->offset_y = (rotated.height - source->height) / 2;
+    rotated.offset_x = (rotated.width - source->width) / 2;
+    rotated.offset_y = (rotated.height - source->height) / 2;
 
     w_half = source->width / 2;
     h_half = source->height / 2;
@@ -297,7 +301,7 @@ Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
     rotated_size = rotated.width * rotated.height;
     memset(rotated.pixels, bgcolor, rotated_size);
 
-    if (source->mirrorFlip == TRUE)
+    if (mirror_flip == TRUE)
     {
         for (h = -h_half; h < h_half; h++)
         {
@@ -308,7 +312,7 @@ Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
                 sheared.x = rotateShearX(sheared, angle);
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
-                rot_i = ((rotated.height - ((int)sheared.y + source->offset_y + h_half))) * rotated.width + (rotated.width - (sheared.x + source->offset_x + w_half));
+                rot_i = ((rotated.height - ((int)sheared.y + rotated.offset_y + h_half))) * rotated.width + (rotated.width - (sheared.x + rotated.offset_x + w_half));
                 rotated.pixels[(int)rot_i] = source->pixels[i];
                 i++;
             }
@@ -325,14 +329,15 @@ Texture rotateTexture(double angle, Texture* source, uint8_t bgcolor)
                 sheared.x = rotateShearX(sheared, angle);
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
-                rot_i = ((int)sheared.y + source->offset_y + h_half) * rotated.width + (sheared.x + source->offset_x + w_half);
+                rot_i = ((int)sheared.y + rotated.offset_y + h_half) * rotated.width + (sheared.x + rotated.offset_x + w_half);
                 rotated.pixels[(int)rot_i] = source->pixels[i];
                 i++;
             }
         }
     }
+    drawSpritePartial(x, y, &rotated);
 
-    return rotated;
+    free(rotated.pixels);
 }
 
 void drawOctants(int center_x, int offset_x, int center_y, int offset_y, uint8_t color)
@@ -465,16 +470,29 @@ void drawMap(Map* map)
     }
 }
 
+void testColors()
+{
+    int i, x;
+    int y = 100;
+
+    for (i = 0, x = 31; i < NUM_COLORS; i++, x++)
+    {
+        SET_PIXEL(x, y, i);
+    }
+}
+
 void drawStuff()
 {
     int i = 0; // object array "index"
     int start_x;
     int start_y;
 
+    //testColors();
+
     drawMap(&map1);
     
-    /* change player square to a lovely peach colour
-    drawSquare(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);*/
+    // change player square to a lovely peach colour
+    // drawSquare(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);
     
     while (i < Num_Objects)
     {
@@ -482,8 +500,8 @@ void drawStuff()
         start_y = object_array[i].position.y - camera_offset.y - object_array[i].orig_sprite.height / 2;
         // draw all circles in their current locations
         //drawCircle(&object_array[i].position, object_array[i].radius, object_array[i].color);
-        //object_array->sprite = rotateTexture(atan2(object_array[i].direction.y, object_array[i].direction.x), &object_array->orig_sprite, TRANSPARENT_COLOR);
-        drawSpritePartial(start_x, start_y, &object_array[i].orig_sprite);
+        rotateTexture(start_x, start_y, atan2(object_array[i].direction.y, object_array[i].direction.x), &object_array[i].orig_sprite, TRANSPARENT_COLOR);
+        //drawSpritePartial(start_x, start_y, &object_array[i].orig_sprite);
         drawDot(&object_array[i]);
         i++;
     }

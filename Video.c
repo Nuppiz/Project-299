@@ -22,7 +22,6 @@ void loadPalette(char* filename, Palette* pal)
 {
     FILE *fp;
     int i;
-    // int x;
     
     // Open the file
     fp = fopen(filename, "rb");
@@ -43,7 +42,7 @@ void loadPalette(char* filename, Palette* pal)
         pal->colors[i].g = fgetc(fp);
         pal->colors[i].r = fgetc(fp);
 
-        // x = fgetc(fp); // discarded  value
+        fgetc(fp); // discarded  value
     }
 
     fclose(fp);
