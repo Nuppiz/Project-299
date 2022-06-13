@@ -273,20 +273,20 @@ void rotateTexture(int x, int y, double angle, Texture* source, uint8_t bgcolor)
     else if (angle < -RAD_270)
         angle += RAD_360;
 
-    if (angle > RAD_90)
+    if (angle >= RAD_90)
     {
         angle -= RAD_180;
         mirror_flip = TRUE;
     }
 
-    else if (angle < -RAD_90)
+    else if (angle <= -RAD_90)
     {
         angle += RAD_180;
         mirror_flip = TRUE;
     }
 
     if (source->transparent == TRUE)
-        rotated.transparent = FALSE;
+        rotated.transparent = TRUE;
 
     rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 3;
     rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 3;
@@ -486,6 +486,7 @@ void drawStuff()
     int i = 0; // object array "index"
     int start_x;
     int start_y;
+    double angle;
 
     //testColors();
 
@@ -498,10 +499,10 @@ void drawStuff()
     {
         start_x = object_array[i].position.x - camera_offset.x - object_array[i].orig_sprite.width / 2;
         start_y = object_array[i].position.y - camera_offset.y - object_array[i].orig_sprite.height / 2;
+        angle = atan2(object_array[i].direction.y, object_array[i].direction.x);
         // draw all circles in their current locations
         //drawCircle(&object_array[i].position, object_array[i].radius, object_array[i].color);
-        rotateTexture(start_x, start_y, atan2(object_array[i].direction.y, object_array[i].direction.x), &object_array[i].orig_sprite, TRANSPARENT_COLOR);
-        //drawSpritePartial(start_x, start_y, &object_array[i].orig_sprite);
+        rotateTexture(start_x, start_y, angle, &object_array[i].orig_sprite, TRANSPARENT_COLOR);
         drawDot(&object_array[i]);
         i++;
     }

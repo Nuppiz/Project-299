@@ -16,7 +16,7 @@ long time = 0;
 
 int running = 1;
 int heading = 0; // current direction in degrees
-float radians = 0.0; // current direction in radians, as that's what the math functions use
+double radians = 0.0; // current direction in radians, as that's what the math functions use
 Vec2 camera_offset;
 
 extern Texture Textures[];

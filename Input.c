@@ -6,7 +6,7 @@
 
 extern int running;
 extern int heading;
-extern float radians;
+extern double radians;
 extern Object object_array [];
 
 void controlIngame()
