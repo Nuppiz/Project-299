@@ -5,11 +5,20 @@
 
 /* Graphics drawing functions */
 
+extern System_t System;
 extern uint8_t far screen_buf [];
-extern Object object_array [];
-extern Texture Textures [];
-extern Map map1;
-extern Vec2 camera_offset;
+extern Texture_t Textures [];
+extern Object_t Objects [];
+extern Map_t* currentMap;
+extern uint8_t player_control;
+
+Vec2 camera_offset;
+#if DEBUG == 1
+char debug[8][64];
+#endif
+
+#define DOT_DISTANCE 30
+#define LOOK_DISTANCE 30
 
 int boundaryCheck(int x, int y)
 {
@@ -46,7 +55,7 @@ int boundaryCheck_Y(int y)
         return FALSE;
 }
 
-void drawSprite(int x, int y, Texture* texture)
+void drawTexture(int x, int y, Texture_t* texture)
 {
     int pix_x = x;
     int pix_y = y;
@@ -88,27 +97,14 @@ void drawSprite(int x, int y, Texture* texture)
     {
         for (index_y = 0; index_y < texture->height; index_y++)
         {
-            for (index_x = 0; index_x < texture->width; index_x++)
-            {
-                if (pix_x < SCREEN_WIDTH && pix_x >= 0 && pix_y < SCREEN_HEIGHT && pix_y >= 0)
-                {
-                    SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
-                    i++;
-                    pix_x++;
-                }
-                else
-                {
-                    i++;
-                    pix_x++;
-                }
-            }
-            pix_x = x;
-            pix_y++;
+            memcpy(&screen_buf[pix_y * SCREEN_WIDTH + pix_x],
+                   &texture->pixels[(index_y + index_y) * texture->width],
+                   texture->width);
         }
     }
 }
 
-void drawSpriteClipped(int x, int y, Texture* texture)
+void drawTextureClipped(int x, int y, Texture_t* texture)
 {
     int start_x;
     int start_y;
@@ -160,7 +156,7 @@ void drawSpriteClipped(int x, int y, Texture* texture)
     }
 }
 
-void drawSpritePartial(int x, int y, Texture* texture)
+void drawTexturePartial(int x, int y, Texture_t* texture)
 {
     int start_x;
     int start_y;
@@ -254,9 +250,9 @@ float rotateShearY(Vec2 source, double angle)
     return new_loc;
 }
 
-void rotateTexture(int x, int y, double angle, Texture* source, uint8_t bgcolor)
+void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t bgcolor)
 {
-    Texture rotated;
+    Texture_t rotated;
     Vec2 sheared;
     int w;
     int h;
@@ -288,8 +284,8 @@ void rotateTexture(int x, int y, double angle, Texture* source, uint8_t bgcolor)
     if (source->transparent == TRUE)
         rotated.transparent = TRUE;
 
-    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 3;
-    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 3;
+    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 4;
+    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 4;
 
     rotated.offset_x = (rotated.width - source->width) / 2;
     rotated.offset_y = (rotated.height - source->height) / 2;
@@ -335,7 +331,7 @@ void rotateTexture(int x, int y, double angle, Texture* source, uint8_t bgcolor)
             }
         }
     }
-    drawSpritePartial(x, y, &rotated);
+    drawTexturePartial(x, y, &rotated);
 
     free(rotated.pixels);
 }
@@ -386,26 +382,6 @@ void drawSquareColor(int x, int y, uint8_t colour)
     }
 }
 
-void drawDot(Object* obj)
-{
-    int offset_y = 0;
-    int offset_x = 0;
-    int pos_x = obj->position.x;
-    int pos_y = obj->position.y;
-    float dot_radians;
-    
-    // calculate angle
-    dot_radians = atan2(obj->direction.y, obj->direction.x);
-    
-    // directional dot's offsets from the center of the circle
-    offset_y = sin(dot_radians) * (obj->radius + 4) - (int)camera_offset.y;
-    offset_x = cos(dot_radians) * (obj->radius + 4) - (int)camera_offset.x;
-    if (boundaryCheck_X(pos_x + offset_x) == TRUE && boundaryCheck_Y(pos_y + offset_y) == TRUE)
-    {
-        SET_PIXEL(pos_x + offset_x, pos_y + offset_y, COLOUR_WHITE);
-    }
-}
-
 void drawRectangle(int x, int y, int w, int h, uint8_t color)
 {
     int index_x = 0;
@@ -425,18 +401,18 @@ void drawRectangle(int x, int y, int w, int h, uint8_t color)
     index_y = 0;
 }
 
-void drawMap(Map* map)
+void drawMap()
 {
     int xi = (int)camera_offset.x / SQUARE_SIZE; // first column in the array to be drawn
-    int yi = (int)camera_offset.y / SQUARE_SIZE; // first row in the array to be drawn
+    //int yi = (int)camera_offset.y / SQUARE_SIZE; // first row in the array to be drawn
     int i = xi; // square drawing "index" from array
     int start_index = i; // first index of the array that is drawn on screen
     int x_pixel; // x-coordinate of the currently drawn pixel
     int y_pixel; // y-coordinate of the currently drawn pixel
     int num_rows; // number of "rows" traversed in the array
     int num_cols; // number of "columns" traversed in the array
-    int max_cols = map->width - xi - 1; // max columns to draw
-    int max_rows = map->height; // max rows to draw
+    int max_cols = currentMap->width - xi - 1; // max columns to draw
+    int max_rows = currentMap->height; // max rows to draw
 
     // run loops until maximum number of squares is drawn and the edges of the screen have been reached
     for (y_pixel = 0 - camera_offset.y, num_rows = 0; y_pixel < SCREEN_HEIGHT && num_rows < max_rows; y_pixel += SQUARE_SIZE)
@@ -446,12 +422,12 @@ void drawMap(Map* map)
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
                 /*if (x_pixel >= SQUARE_SIZE && x_pixel < (SCREEN_WIDTH - SQUARE_SIZE) && y_pixel >= SQUARE_SIZE && y_pixel < (SCREEN_HEIGHT - SQUARE_SIZE))
-                    drawSprite(x_pixel, y_pixel, &Textures[map->textures[i]]);
+                    drawTexture(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
                 else
                 {
-                    drawSpritePartial(x_pixel, y_pixel, &Textures[map->textures[i] + 8]);
+                    drawSpritePartial(x_pixel, y_pixel, &Textures[currentMap->textures[i] + 8]);
                 }*/
-                drawSpriteClipped(x_pixel, y_pixel, &Textures[map->textures[i]]);
+                drawTextureClipped(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
                 i++;
             }
         }
@@ -461,12 +437,12 @@ void drawMap(Map* map)
             {
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
-                    drawSpriteClipped(x_pixel, y_pixel, &Textures[map->textures[i]]);
+                    drawTextureClipped(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
                 i++;
             }
         }
         num_rows++;
-        i = start_index + (map->width * num_rows); // jump in the texture array to the next "row"
+        i = start_index + (currentMap->width * num_rows); // jump in the texture array to the next "row"
     }
 }
 
@@ -481,29 +457,116 @@ void testColors()
     }
 }
 
-void drawStuff()
+void calcCameraOffset()
+{
+    Vec2 pos;
+    float angle;
+
+    int cam_min_x = SCREEN_WIDTH/2;
+    int cam_max_x = currentMap->width*SQUARE_SIZE - SCREEN_WIDTH/2;
+    int cam_min_y = SCREEN_HEIGHT/2;
+    int cam_max_y = currentMap->height*SQUARE_SIZE - SCREEN_HEIGHT/2;
+
+    angle = atan2(player.direction.y, player.direction.x);
+    pos.x = player.position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = player.position.y + sin(angle) * LOOK_DISTANCE;
+
+    if (pos.x < cam_min_x)
+        pos.x = cam_min_x;
+    else if (pos.x > cam_max_x)
+        pos.x = cam_max_x;
+
+    if (pos.y < cam_min_y)
+        pos.y = cam_min_y;
+    else if (pos.y > cam_max_y)
+        pos.y = cam_max_y;
+
+    camera_offset.x = pos.x - (SCREEN_WIDTH / 2);// - SQUARE_SIZE / 2;
+    camera_offset.y = pos.y - (SCREEN_HEIGHT / 2);// - SQUARE_SIZE / 2;
+}
+
+void drawDot(Object_t* obj)
+{
+    int offset_y;
+    int offset_x;
+    int pos_x;
+    int pos_y;
+    float dot_radians;
+    
+    // calculate angle
+    dot_radians = atan2(obj->direction.y, obj->direction.x);
+    
+    // directional dot's offsets from the center of the circle
+    offset_y = sin(dot_radians) * DOT_DISTANCE - (int)camera_offset.y;
+    offset_x = cos(dot_radians) * DOT_DISTANCE - (int)camera_offset.x;
+    pos_x = obj->position.x + offset_x;
+    pos_y = obj->position.y + offset_y;
+
+    if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
+    {
+        SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
+    }
+}
+
+void drawObjects()
 {
     int i = 0; // object array "index"
     int start_x;
     int start_y;
-    double angle;
 
-    //testColors();
-
-    drawMap(&map1);
-    
-    // change player square to a lovely peach colour
-    // drawSquare(object_array[0].grid_loc.x * SQUARE_SIZE, object_array[0].grid_loc.y * SQUARE_SIZE, COLOUR_PEACH);
-    
-    while (i < Num_Objects)
+    while (i < NUM_OBJECTS)
     {
-        start_x = object_array[i].position.x - camera_offset.x - object_array[i].orig_sprite.width / 2;
-        start_y = object_array[i].position.y - camera_offset.y - object_array[i].orig_sprite.height / 2;
-        angle = atan2(object_array[i].direction.y, object_array[i].direction.x);
+        start_x = Objects[i].position.x - camera_offset.x - Objects[i].orig_sprite.width / 2;
+        start_y = Objects[i].position.y - camera_offset.y - Objects[i].orig_sprite.height / 2;
         // draw all circles in their current locations
-        //drawCircle(&object_array[i].position, object_array[i].radius, object_array[i].color);
-        rotateTexture(start_x, start_y, angle, &object_array[i].orig_sprite, TRANSPARENT_COLOR);
-        drawDot(&object_array[i]);
+        //drawCircle(&Objects[i].position, Objects[i].radius, Objects[i].color);
+        drawTextureRotated(start_x, start_y, Objects[i].angle, &Objects[i].orig_sprite, TRANSPARENT_COLOR);
+        drawDot(&Objects[i]);
         i++;
     }
+}
+
+void drawDebug()
+{
+    int i;
+    int y = 60;
+
+    for (i = 0; i < 8; i++)
+    {
+        if (debug[i][0] != '\0')
+        {
+            drawText(0, y, debug[i], COLOUR_WHITE);
+            y += 10;
+        }
+    }
+}
+
+void draw()
+{
+    #if DEBUG == 1
+    char clock_string[100];
+    #endif
+
+    calcCameraOffset();
+    drawMap();
+    drawObjects();
+
+    #if DEBUG == 1
+    sprintf(clock_string, "TIME: %ld MINS, %ld SECS\nTICKS: %ld\nFPS: %d, AVERAGE: %.2f",
+        System.seconds/60, System.seconds%60, System.ticks, System.fps, System.fps_avg);
+    drawText(0, 0, clock_string, COLOUR_WHITE);
+    if (player.control & CONTROL_UP)
+        drawText(0, 190, "UP", COLOUR_WHITE);
+    if (player.control & CONTROL_DOWN)
+        drawText(30, 190, "DOWN", COLOUR_WHITE);
+    if (player.control & CONTROL_LEFT)
+        drawText(70, 190, "LEFT", COLOUR_WHITE);
+    if (player.control & CONTROL_RIGHT)
+        drawText(120, 190, "RIGHT", COLOUR_WHITE);
+        if (player.control & CONTROL_FAST)
+        drawText(180, 190, "FAST", COLOUR_WHITE);
+    drawDebug();
+    #endif
+
+    render();
 }

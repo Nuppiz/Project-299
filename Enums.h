@@ -1,12 +1,12 @@
-#ifndef ENUMS_H
-#define ENUMS_H
+#ifndef ENUMS
+#define ENUMS
 
 enum Objects
 {
-    Circle1,
-    Circle2,
-    Circle3,
-    Num_Objects
+    CIRCLE1,
+    CIRCLE2,
+    CIRCLE3,
+    NUM_OBJECTS
 };
 
 enum TextureCount
@@ -14,15 +14,11 @@ enum TextureCount
     BRICKS,
     FLOOR1,
     FLOOR2,
-    GRASS,
-    SAND,
     DUDE1,
     DUDE2,
     DUDE3,
-    GRICKS,
-    GLOOR1,
-    GLOOR2,
+    CAR,
     NUM_TEXTURES
 };
 
-#endif /* ENUMS_H */
+#endif/* ENUMS */

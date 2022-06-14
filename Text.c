@@ -56,13 +56,18 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
 void drawText(int x, int y, char* string, uint8_t color)
 {
     int i = 0;
+    int start_x = x;
     char c;
     
-    while (string[i] != 0)
+    while ((c = string[i++]) != 0)
     {
-        c = string[i];
+        if (c == '\n')
+        {
+            x = start_x;
+            y += 10;
+            continue;
+        }
         drawSymbol(x, y, c - 32, color);
-        x = x + 10;
-        i++;
+        x += 10;
     }
 }

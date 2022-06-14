@@ -6,9 +6,9 @@
 
 uint8_t *VGA=(uint8_t *)0xA0000000L;        /* this points to video memory. */
 uint8_t far screen_buf [64000];             // Double screen buffer
-Palette NewPalette;
+Palette_t NewPalette;
 
-void setMode(uint8_t mode)
+void setVideoMode(uint8_t mode)
 {
     union REGS regs;
 
@@ -18,7 +18,7 @@ void setMode(uint8_t mode)
 }
 
 // loads the palette from a 256-colour bitmap file
-void loadPalette(char* filename, Palette* pal)
+void loadPalette(char* filename, Palette_t* pal)
 {
     FILE *fp;
     int i;
@@ -48,7 +48,7 @@ void loadPalette(char* filename, Palette* pal)
     fclose(fp);
 }
 
-void setPalette_VGA(Palette* pal)
+void setPalette_VGA(Palette_t* pal)
 {
     unsigned i;
     outportb(PALETTE_WRITE, 0);

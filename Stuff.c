@@ -14,7 +14,7 @@
 };
 
 // array which determines the texture of each square on the grid
-uint8_t texture_array [] = {
+uint8_t TextureMap [] = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0,
             0, 2, 0, 0, 0, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0,

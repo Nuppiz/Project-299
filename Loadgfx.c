@@ -4,7 +4,8 @@
 
 /* Graphics loading functions */
 
-Texture Textures[NUM_TEXTURES];
+Texture_t Textures[NUM_TEXTURES];
+extern Object_t Objects[NUM_OBJECTS];
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -35,14 +36,17 @@ void loadTexture(char* filename, int texture_index)
 void loadAllTextures()
 {
     loadTexture("BRICKS.7UP", BRICKS);
-    loadTexture("GRASS.7UP", GRASS);
-    loadTexture("SAND.7UP", SAND);
     loadTexture("FLOOR1.7UP", FLOOR1);
     loadTexture("FLOOR2.7UP", FLOOR2);
     loadTexture("DUDE1.7UP", DUDE1);
     loadTexture("DUDE2.7UP", DUDE2);
     loadTexture("DUDE3.7UP", DUDE3);
-    loadTexture("GRICKS.7UP", GRICKS);
-    loadTexture("GLOOR1.7UP", GLOOR1);
-    loadTexture("GLOOR2.7UP", GLOOR2);
+    loadTexture("CAR.7UP", CAR);
+}
+
+void setTextures()
+{
+    Objects[0].orig_sprite = Textures[DUDE1];
+    Objects[1].orig_sprite = Textures[DUDE2];
+    Objects[2].orig_sprite = Textures[DUDE3];
 }

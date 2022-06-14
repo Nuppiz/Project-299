@@ -1,6 +1,11 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#define DEBUG               1
+
+#define FRAME_RATE          30
+#define TICK_RATE           30
+
 #define VIDEO_INT           0x10      /* the BIOS video interrupt. */
 #define SET_MODE            0x00      /* BIOS func to set the video mode. */
 #define VGA_256_COLOR_MODE  0x13      /* use to set 256-color mode. */
@@ -26,15 +31,12 @@
 #define KEY_PRESSED_FLAG    2
 #define KEY_RELEASED_FLAG   0x80 // 128, MSB
 #define KEY_SPECIAL_CODE    0xE0 // 224
-#define KEY_IS_PRESSED(k)   (g_Keyboard[k] & KEY_PRESSED_FLAG)
-#define KEY_WAS_HIT(k)      (g_Keyboard[k] & KEY_HIT_FLAG)
-#define KEY_WAS_RELEASED(k) (g_Keyboard[k] & KEY_RELEASED_FLAG)
-#define KEY_WAS_TOGGLED(k)  (g_Keyboard[k] & (KEY_HIT_FLAG|KEY_RELEASED_FLAG))
-#define KEY_LEFT            75
-#define KEY_RIGHT           77
-#define KEY_UP              72 
-#define KEY_DOWN            80
-#define KEY_F10             68
+#define KEY_IS_PRESSED(k)   (Keyboard.keystates[k] & KEY_PRESSED_FLAG)
+#define KEY_WAS_HIT(k)      (Keyboard.keystates[k] & KEY_HIT_FLAG)
+#define KEY_WAS_RELEASED(k) (Keyboard.keystates[k] & KEY_RELEASED_FLAG)
+#define KEY_WAS_TOGGLED(k)  (Keyboard.keystates[k] & (KEY_HIT_FLAG|KEY_RELEASED_FLAG))
+
+#define KEYHANDLER_INT      9
  
 #define X_AXIS              1
 #define Y_AXIS              2
@@ -55,6 +57,9 @@
 #define RAD_45              (M_PI/4)
 #define RAD_30              (M_PI/6)
 #define RAD_15              (M_PI/12)
+#define RAD_10              (M_PI/18)
+#define RAD_5               (M_PI/36)
+#define RAD_1               (M_PI/180)
 
 #define VIEW_ANGLE_COS      0.5
 #define LOS_STEP            10
@@ -67,18 +72,22 @@
 #define COLOUR_PEACH        64
 #define TRANSPARENT_COLOR   251
 
-#define player              object_array[0]
-#define DRAG                1.05
-#define MAX_SPEED           5.0
-#define ACCELERATION_RATE   0.3
-#define BRAKE_RATE          0.9
-#define SPEED_THRESHOLD     0.2
-#define TURN_RATE           10
+#define player              Objects[0]
+
+#define WALK_SPEED          2.0
+#define RUN_SPEED           3.5
+#define ACCELERATION_RATE   0.5
+#define DECELERATION_RATE   1.5
+#define BRAKE_RATE          0.9 // this is not used anywhere right now
+#define STOP_SPEED          0.2
+#define TURN_RATE           RAD_5
+#define FAST_TURN_RATE      RAD_10
 
 #define CHASE_DISTANCE      75
 #define CHASE_DISTANCE_SQ   CHASE_DISTANCE*CHASE_DISTANCE
-#define CHASE_THRESHOLD     15
-#define CHASE_TIMEOUT       100
+#define MIN_CHASE_DISTANCE  30
+#define CHASE_TIMEOUT       200
+#define TURN_THRESHOLD      5.0
 
 #define TILE_WIDTH          8
 #define TILE_HEIGHT         8
@@ -94,6 +103,9 @@
 #define PARTIAL             1
 #define FULLY_IN            2
 
+#define LEFT_SIDE           1
+#define RIGHT_SIDE          2
+
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
 #define COUNTER_0           0x40
@@ -104,4 +116,47 @@
 #define LOW_BYTE(n)         (n & 0x00ff)
 #define HIGH_BYTE(n)        ((n>>8) & 0x00ff)
 
-#endif
+#define BIT_0  1
+#define BIT_1  2
+#define BIT_2  4
+#define BIT_3  8
+#define BIT_4  16
+#define BIT_5  32
+#define BIT_6  64
+#define BIT_7  128
+#define BIT_8  256
+#define BIT_9  512
+#define BIT_10 1024
+#define BIT_11 2048
+#define BIT_12 4096
+#define BIT_13 8192
+#define BIT_14 16384
+#define BIT_15 32768
+#define BIT_16 65536
+#define BIT_17 131072
+#define BIT_18 262144
+#define BIT_19 524288
+#define BIT_20 1048576
+#define BIT_21 2097152
+#define BIT_22 4194304
+#define BIT_23 8388608
+#define BIT_24 16777216
+#define BIT_25 33554432
+#define BIT_26 67108864
+#define BIT_27 134217728
+#define BIT_28 268435456
+#define BIT_29 536870912
+#define BIT_30 1073741824
+#define BIT_31 2147483648
+
+#define CONTROL_UP    BIT_0
+#define CONTROL_DOWN  BIT_1
+#define CONTROL_LEFT  BIT_2
+#define CONTROL_RIGHT BIT_3
+#define CONTROL_FAST  BIT_4
+
+#define setBit(bitfield, bit)   (bitfield) |= (bit)
+#define clearBit(bitfield, bit) (bitfield) &= ~(bit)
+#define isBitSet(bitfield, bit) ((bitfield) & (bit))
+
+#endif/* DEFINES_H */

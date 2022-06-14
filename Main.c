@@ -9,126 +9,133 @@
 #include "Movecoll.h"
 #include "Text.h"
 #include "Video.h"
+#include "Game.h"
 
-static void interrupt (far *old_ISR)(void);
+System_t System;
+#if DEBUG == 1
+extern char debug[8][64];
+#endif
 
-long time = 0;
-
-int running = 1;
-int heading = 0; // current direction in degrees
-double radians = 0.0; // current direction in radians, as that's what the math functions use
-Vec2 camera_offset;
-
-extern Texture Textures[];
-extern Palette NewPalette;
-
-// array which holds all objects (circles in this case)
-Object object_array[Num_Objects] = {
-//    pos_x  pos_y    grid_x grid_y   direction     velocity    magnitude radius  colour  ai_mode       ai_timer  ai_target
-    {{170.0, 100.0,}, {9,    5,},     {1.0, 1.0},   {0.0, 0.0}, 0.0,      7,      14,     NULL,         0,        NULL},
-    {{80.0,  110.0,}, {4,    5,},     {1.0, 1.0},   {0.0, 0.0}, 0.0,      7,      43,     IDLE,         100,      &object_array[2].position},
-    {{280.0, 140.0,}, {14,   7,},     {-1.0, -2.0}, {0.0, 0.0}, 0.0,      7,      12,     IDLE,         100,      &player.position}
-};
-
-// array which determines the collision data of each square on the grid
-uint8_t collision_array [] = {7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,
-                         7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7,  55, 7,  7,  7,  55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 7,
-                         7,  54, 7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 7,  7,  55, 54, 55, 54, 7,
-                         7,  55, 7,  55, 54, 55, 54, 55, 54, 55, 7,  55, 54, 7,  54, 55, 54, 55, 7,
-                         7,  54, 55, 54, 55, 54, 7,  7,  55, 54, 7,  54, 55, 7,  55, 54, 55, 54, 7,
-                         7,  55, 54, 55, 54, 55, 7,  7,  54, 55, 7,  55, 54, 55, 54, 55, 54, 55, 7,
-                         7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7,  55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 7,
-                         7,  54, 55, 54, 55, 54, 7,  7,  55, 54, 7,  54, 55, 54, 55, 54, 55, 54, 7,
-                         7,  55, 54, 55, 54, 55, 7,  7,  54, 55, 7,  55, 54, 7,  54, 55, 54, 55, 7,
-                         7,  54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 55, 54, 7,
-                         7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7
-};
-
-/* array which determines the texture of each square on the grid */
-uint8_t texture_array [] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0,
-            0, 2, 0, 0, 0, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0,
-            0, 1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 0, 2, 1, 2, 1, 0,
-            0, 2, 0, 2, 1, 2, 1, 2, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0,
-            0, 1, 2, 1, 2, 1, 0, 0, 2, 1, 0, 1, 2, 0, 2, 1, 2, 1, 0,
-            0, 2, 1, 2, 1, 2, 0, 0, 1, 2, 0, 2, 1, 2, 1, 2, 1, 2, 0,
-            0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0,
-            0, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 0,
-            0, 1, 2, 1, 2, 1, 0, 0, 2, 1, 0, 1, 2, 1, 2, 1, 2, 1, 0,
-            0, 2, 1, 2, 1, 2, 0, 0, 1, 2, 0, 2, 1, 0, 1, 2, 1, 2, 0,
-            0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-Map map1;
+static void interrupt (far *old_Timer_ISR)(void);
 
 void interrupt far Timer(void)
 {
-    time++;
+    static long last_time = 0;
+
+    System.time++;
+
+    // keeps the PC clock ticking in the background
+    if (last_time + 182 < System.time)
+    {
+        last_time = System.time;
+        old_Timer_ISR();
+    }
 }
 
-void changeTime(uint16_t new_count)
+void setTimer(uint16_t new_count)
 {
     outportb(CONTROL_8253, CONTROL_WORD);
     outportb(COUNTER_0, LOW_BYTE(new_count));
     outportb(COUNTER_0, HIGH_BYTE(new_count));
 }
 
+void initSystem()
+{
+    System.running    = 1;
+    System.time       = 0;
+    System.seconds    = 0;
+    System.ticks      = 0;
+    System.tick_rate  = TICK_RATE; // not used yet
+    System.frames     = 0;
+    System.frame_rate = FRAME_RATE; // target FPS
+    System.frame_time = 1000/FRAME_RATE;
+    System.fps        = 0; // measured FPS
+    System.fps_avg    = 0;
+}
+
+void initDebug()
+{
+    int i;
+
+    for (i = 0; i > 8; i++)
+    {
+        debug[i][0] = '\0';
+    }
+}
+
+void init()
+{
+    extern Palette_t NewPalette;
+
+    //timer
+    old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
+    _dos_setvect(TIME_KEEPER_INT, Timer);
+    setTimer(TIMER_1000HZ);
+
+    // gfx
+    setVideoMode(VGA_256_COLOR_MODE);
+    loadPalette("Pal.bmp", &NewPalette);
+    setPalette_VGA(&NewPalette);
+    loadFontNew();
+    loadAllTextures();
+    setTextures();
+    
+    // the rest
+    initKeyboard();
+    initSystem();
+    initGame();
+    #if DEBUG == 1
+    initDebug();
+    #endif
+}
+
 void quit()
 {   
+    setTimer(TIMER_18HZ);
+    _dos_setvect(TIME_KEEPER_INT, old_Timer_ISR);
     deinitKeyboard();
-    changeTime(TIMER_18HZ);
-    _dos_setvect(TIME_KEEPER_INT, old_ISR);
-    setMode(TEXT_MODE);
+    setVideoMode(TEXT_MODE);
+}
+
+void gameLoop()
+{
+    time_t last_time  = 0;
+    time_t last_frame = 0;
+    int frame_count = 0; // Counts frames in a second so far
+
+    while (System.running == 1)
+    {  
+        if (last_frame + System.frame_time < System.time) // one game "tick"
+        {
+            last_frame = System.time;
+
+            input();   // input and physics should be tied to a tick rate, separate from frame rate, so that
+            AILoop();  // if a computer renders the scene too slowly, the game simulation will not slow down
+            physics(); // this is not done yet, hence System.ticks is commented out
+            //System.ticks++;
+
+            draw();
+            System.frames++;
+            frame_count++;
+        }
+
+        #if DEBUG == 1
+        if (last_time + 1000 < System.time) // FPS calculation; optional for debugging
+        {
+            last_time = System.time;
+
+            System.seconds++;
+            System.fps_avg = (float)System.frames/System.seconds;
+            System.fps = frame_count;
+            frame_count = 0;
+        }
+        #endif
+    }
 }
 
 void main()
 {
-    uint32_t last_time = 0;
-    int seconds = 0;
-    char clock[20] = "TIME: 0";
-
-    old_ISR = _dos_getvect(TIME_KEEPER_INT);
-    _dos_setvect(TIME_KEEPER_INT, Timer);
-    setMode(VGA_256_COLOR_MODE);
-    loadPalette("Pal.bmp", &NewPalette);
-    setPalette_VGA(&NewPalette);
-    initKeyboard();
-    changeTime(TIMER_1000HZ);
-    loadFontNew();
-    loadAllTextures();
-
-    map1.width = 19;
-    map1.height = 13;
-
-    map1.collision = collision_array;
-    map1.textures = texture_array;
-
-    object_array[0].orig_sprite = Textures[DUDE1];
-    object_array[1].orig_sprite = Textures[DUDE2];
-    object_array[2].orig_sprite = Textures[DUDE3];
-    
-    while (running == 1)
-    {
-        if (last_time + 1000 < time)
-        {
-            last_time = time;
-            seconds++;
-            sprintf(clock, "TIME: %d", seconds);
-        }
-            processInput();
-            radians = degToRad(heading);
-            AILoop();
-            calculateMovements(&map1);
-            collision(&map1);
-            calcCameraOffset(&player);
-            drawText(220, 185, clock, COLOUR_WHITE);
-            render();
-            drawStuff();
-            delay(50);
-    }
+    init();
+    gameLoop();
     quit();
 }

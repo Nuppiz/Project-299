@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-void controlIngame();
-void processInput();
+void processKeyEvents();
+void input();
 
-#endif /* INPUT_H */
+#endif/* INPUT_H */

@@ -3,8 +3,7 @@
 
 #include "Structs.h"
 
-void drawSprite(int x, int y, Texture* texture);
-void drawMap(Map* map);
-void drawStuff();
+void drawTexture(int x, int y, Texture_t* texture);
+void draw();
 
 #endif /* DRAW_H */

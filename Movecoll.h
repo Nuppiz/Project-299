@@ -3,10 +3,11 @@
 
 #include "Structs.h"
 
-void checkGridLoc(Object* obj);
-void calcCameraOffset(Object* target);
-int tileDetectColor(Vec2 pos, Map* map);
-void calculateMovements(Map* map);
-void collision(Map* map);
+//void checkGridLoc(Object_t* obj);
+//void calcCameraOffset(Object_t* target);
+//int getTileType(Vec2 pos);
+//void moveAllObjects();
+//void collideAllObjects();
+void physics();
 
-#endif /* MOVECOLL_H */
+#endif/* MOVECOLL_H */

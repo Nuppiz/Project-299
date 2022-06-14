@@ -3,87 +3,139 @@
 #include "Enums.h"
 #include "Structs.h"
 #include "Vectors.h"
+#include "Keyb.h"
 
-/* Object movement and collision detection */
+/* Object_t movement and collision detection */
 
-extern Object object_array [];
-extern Map map1;
-extern Vec2 camera_offset;
+extern Object_t Objects [];
+extern Map_t* currentMap;
+extern float game_speed;
 
-void checkGridLoc(Object* obj) // circle's location on the grid
+void checkGridLoc(Object_t* obj) // circle's location on the grid
 {   
     // calculated by dividing the circle's x/y location by square size
     obj->grid_loc.x = obj->position.x / SQUARE_SIZE;
     obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }
 
-Vec2 checkPlayerLoc(Vec2 pos)
-{
-    // for camera offset
-    Vec2 camera_loc;
-
-    camera_loc.x = pos.x - (SCREEN_WIDTH / 2) - SQUARE_SIZE / 2;
-    camera_loc.y = pos.y - (SCREEN_HEIGHT / 2) - SQUARE_SIZE / 2;
-
-    return camera_loc;
-}
-
-void calcCameraOffset(Object* target)
-{
-    camera_offset = checkPlayerLoc(target->position);
-    checkGridLoc(target);
-}
-
-int tileDetectColor(Vec2 pos, Map* map)
+int getTileType(Vec2 pos)
 {
     int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
-    uint8_t tile_colour;
+    uint8_t tile_type;
     
     // calculate current grid position
     pos.x /= SQUARE_SIZE;
     pos.y /= SQUARE_SIZE;
     
     // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * map->width + (int)pos.x;
+    object_tile = (int)pos.y * currentMap->width + (int)pos.x;
     
-    tile_colour = map->collision[object_tile]; // check which colour is at that index
+    tile_type = currentMap->collision[object_tile]; // check which colour is at that index
     
-    return tile_colour; // return said colour
+    return tile_type; // return said colour
 }
 
-void edgeDetect()
+void edgeDetectObject(Object_t* obj)
+{
+    if (obj->position.x - obj->radius <= 0) // left edge
+    {
+        obj->position.x = 0 + obj->radius;
+        obj->velocity.x = 0.0;
+    }
+    else if (obj->position.x + obj->radius >= (SCREEN_WIDTH - 1)) // right edge
+    {
+        obj->position.x = (SCREEN_WIDTH - 1) - obj->radius;
+        obj->velocity.x = 0.0;
+    }
+    
+    if (obj->position.y - obj->radius <= 0) // top edge
+    {
+        obj->position.y = 0 + obj->radius;
+        obj->velocity.y = 0.0;
+    }
+    else if (obj->position.y + obj->radius >= (SCREEN_HEIGHT - 1)) // bottom edge
+    {
+        obj->position.y = (SCREEN_HEIGHT - 1) - obj->radius;
+        obj->velocity.y = 0.0;
+    }
+}
+
+void edgeDetectAllObjects()
 {
     int i = 0;
-    while (i < Num_Objects)
+    while (i < NUM_OBJECTS)
     {
-        if (object_array[i].position.x - object_array[i].radius <= 0) // left edge
-        {
-            object_array[i].position.x = 0 + object_array[i].radius;
-            object_array[i].velocity.x = 0.0;
-        }
-        
-        if (object_array[i].position.y - object_array[i].radius <= 0) // top edge
-        {
-            object_array[i].position.y = 0 + object_array[i].radius;
-            object_array[i].velocity.y = 0.0;
-        }
-        
-        if (object_array[i].position.x + object_array[i].radius >= (SCREEN_WIDTH - 1)) // right edge
-        {
-            object_array[i].position.x = (SCREEN_WIDTH - 1) - object_array[i].radius;
-            object_array[i].velocity.x = 0.0;
-        }
-        
-        if (object_array[i].position.y + object_array[i].radius >= (SCREEN_HEIGHT - 1)) // bottom edge
-        {
-            object_array[i].position.y = (SCREEN_HEIGHT - 1) - object_array[i].radius;
-            object_array[i].velocity.y = 0.0;
-        }
+        edgeDetectObject(&Objects[i]);
         i++;
     }
 }
 
-void moveCircle(Object* obj, Vec2 movement, Map* map)
+void controlObject(Object_t* obj)
+{
+    float max_speed;
+    double turn_rate;
+
+    max_speed = (isBitSet(obj->control, CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
+    turn_rate = (isBitSet(obj->control, CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
+
+    obj->direction.x = cos(obj->angle); // calculate directional vector
+    obj->direction.y = sin(obj->angle);
+    
+    if (isBitSet(obj->control, CONTROL_UP) && obj->magnitude <= max_speed)
+    {
+        obj->velocity.x += obj->direction.x * ACCELERATION_RATE;
+        obj->velocity.y += obj->direction.y * ACCELERATION_RATE;
+    }
+    else if (isBitSet(obj->control, CONTROL_DOWN) && obj->magnitude <= max_speed)
+    {
+        obj->velocity.x -= obj->direction.x * ACCELERATION_RATE;
+        obj->velocity.y -= obj->direction.y * ACCELERATION_RATE;
+    }
+    else if (obj->magnitude > 0)
+    {
+        if (obj->magnitude < STOP_SPEED)
+        {
+            obj->velocity.x = 0;
+            obj->velocity.y = 0;
+        }
+        else
+        {
+            obj->velocity.x /= DECELERATION_RATE;
+            obj->velocity.y /= DECELERATION_RATE;
+        }
+    }
+
+    if (isBitSet(obj->control, CONTROL_LEFT))
+    {
+        obj->angle -= turn_rate;
+        if (obj->angle < 0)
+            obj->angle = RAD_360;
+    }
+    if (isBitSet(obj->control, CONTROL_RIGHT))
+    {
+        obj->angle += turn_rate;
+        if (obj->angle > RAD_360)
+            obj->angle = 0;
+    }
+}
+
+void controlAllObjects()
+{
+    int i = 0;
+    
+    // copy control variable from Input.c to the player object's control variable
+    // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
+    extern uint8_t player_control;
+    player.control = player_control;
+
+    while (i < NUM_OBJECTS)
+    {
+        controlObject(&Objects[i]);
+        i++;
+    }
+}
+
+void moveObject(Object_t* obj, Vec2 movement)
 {
     // collision box around the object
     Vec2 test_point_a;
@@ -102,7 +154,7 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
         test_point_b.y = obj->position.y + obj->radius;
         
         // if the movement would result in the object moving inside of a wall...
-        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
+        if (getTileType(test_point_a) == WALL || getTileType(test_point_b) == WALL)
         {
             // ...cancel movement and set velocity to 0
             obj->position.x = (obj->grid_loc.x + 1) * SQUARE_SIZE - obj->radius - 1;
@@ -119,7 +171,7 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
+        if (getTileType(test_point_a) == WALL || getTileType(test_point_b) == WALL)
         {
             obj->position.x = obj->grid_loc.x * SQUARE_SIZE + obj->radius;
             obj->velocity.x = 0.0;
@@ -136,7 +188,7 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y - obj->radius;
         
-        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
+        if (getTileType(test_point_a) == WALL || getTileType(test_point_b) == WALL)
         {
             obj->position.y = obj->grid_loc.y * SQUARE_SIZE + obj->radius;
             obj->velocity.y = 0.0;
@@ -152,7 +204,7 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (tileDetectColor(test_point_a, map) == WALL || tileDetectColor(test_point_b, map) == WALL)
+        if (getTileType(test_point_a) == WALL || getTileType(test_point_b) == WALL)
         {
             obj->position.y = (obj->grid_loc.y + 1) * SQUARE_SIZE - obj->radius - 1;
             obj->velocity.y = 0.0;
@@ -161,36 +213,26 @@ void moveCircle(Object* obj, Vec2 movement, Map* map)
     checkGridLoc(obj);
 }
 
-void calculateMovements(Map* map)
+void moveAllObjects()
 {
     int i = 0;
-
-    char VX_str [20];
-    char VY_str [20];
     
     // iterate through the object array
-    while (i < Num_Objects)
+    while (i < NUM_OBJECTS)
     {
-        sprintf(VX_str, "VX: %f", player.velocity.x);
-        sprintf(VY_str, "VY: %f", player.velocity.y);
-        moveCircle(&object_array[i], object_array[i].velocity, map); // check each circle for wall collisions
-        // reduce object velocity with aerial drag
-        //object_array[i].velocity.y /= DRAG;
-        //object_array[i].velocity.x /= DRAG;
-        object_array[i].magnitude = getVec2Length(object_array[i].velocity);
+        moveObject(&Objects[i], Objects[i].velocity);
+        Objects[i].magnitude = getVec2Length(Objects[i].velocity);
         i++;
-        drawText(0, 0, VX_str, COLOUR_WHITE);
-        drawText(0, 10, VY_str, COLOUR_WHITE);
     }
 }
 
-void collisionDetect(Object* object_a, Object* object_b, Map* map)
+void collideTwoObjects(Object_t* object_a, Object_t* object_b)
 {
     float distance_x;
     float distance_y;
     float distance;
     float collision_depth;
-    int tile_colour;
+    //int tile_type;
     Vec2 u; // how much each object moves in case of a collision
     
     distance_x = object_a->position.x - object_b->position.x;  // x-distance between the two objects
@@ -210,29 +252,44 @@ void collisionDetect(Object* object_a, Object* object_b, Map* map)
         u.y = (distance_y/distance) * (collision_depth/2);
         
         // first object gets the values as is...
-        moveCircle(object_a, u, map);
+        moveObject(object_a, u);
         
         // ...and for the second object they are flipped
         u.x = -u.x;
         u.y = -u.y;
-        moveCircle(object_b, u, map);
+        moveObject(object_b, u);
     }
 }
 
-void collision(Map* map)
+void collideAllObjects()
 {
     int x;
     int i;
     
     // iterate through each object pair to see if they collide
-    for (i = 0; i < Num_Objects; i++)
+    for (i = 0; i < NUM_OBJECTS; i++)
     {
-        for (x = i; x < Num_Objects-1; x++)
+        for (x = i; x < NUM_OBJECTS-1; x++)
         {
-            collisionDetect(&object_array[i], &object_array[x+1], map);
+            collideTwoObjects(&Objects[i], &Objects[x+1]);
         }
     }
     
     // also check that none of the objects are going beyond the screen boundaries
     // edgeDetect();
+}
+
+void debugText()
+{
+    char velocity_string[50];
+    sprintf(velocity_string, "V.X: %f\nV.Y %f", player.velocity.x, player.velocity.y);
+    drawText(0, 180, velocity_string, COLOUR_WHITE);
+}
+
+void physics()
+{
+    controlAllObjects();
+    moveAllObjects();
+    collideAllObjects();
+    debugText();
 }

@@ -10,4 +10,6 @@
 #include <math.h>
 #include <conio.h>
 
+typedef long time_t;
+
 #endif

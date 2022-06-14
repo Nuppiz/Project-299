@@ -21,6 +21,13 @@ float dotVec2(Vec2 v1, Vec2 v2)
     return dot_product;
 }
 
+float crossVec2(Vec2 v1, Vec2 v2)
+{
+    float cross_product = (v1.x * v2.y) - (v1.y * v2.x);
+    
+    return cross_product;
+}
+
 float getVec2Length(Vec2 v)
 {
     if (v.x == 0.0 && v.y == 0.0)
@@ -29,7 +36,7 @@ float getVec2Length(Vec2 v)
         return sqrt((v.x * v.x) + (v.y * v.y));
 }
 
-float getVec2Angle(Vec2 v1, Vec2 v2)
+float getVec2Angle2(Vec2 v1, Vec2 v2)
 {
     /*to calculate the angle between two vectors, we first multiply the directional vector
     magnitudes with each other...
