@@ -59,7 +59,6 @@ int whichSide(Vec2 object_direction, Vec2 object_to_target)
 void turnTowards(Object_t* object, Vec2 target)
 {
     Vec2 ObjectToTarget = getVec2(object->position, target);
-    float distance      = getVec2Length(ObjectToTarget);
     int side            = whichSide(object->direction, ObjectToTarget);
 
     if (side == LEFT_SIDE)

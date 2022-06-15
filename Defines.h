@@ -67,7 +67,7 @@
 #define OUT_OF_SIGHT        0
 #define IN_SIGHT            1
 
-#define WALL                7
+#define WALL                0
 #define COLOUR_WHITE        4
 #define COLOUR_RED          40
 #define COLOUR_PEACH        64

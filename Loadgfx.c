@@ -4,6 +4,7 @@
 /* Graphics loading functions */
 
 Texture_t Textures[NUM_TEXTURES];
+Texture_t Tiles[NUM_TILES];
 extern Object_t Objects[NUM_OBJECTS];
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
@@ -12,6 +13,22 @@ void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
     FILE* file_ptr;
     file_ptr = fopen(filename, "rb");
     fread(destination, 1, data_size, file_ptr);
+    fclose(file_ptr);
+}
+
+void loadTile(char* filename, int tile_index)
+{
+    // load static map tiles
+    FILE* file_ptr;
+    file_ptr = fopen(filename, "rb");
+    fread(&Tiles[tile_index].width, 2, 1, file_ptr);
+    fseek(file_ptr, 2, SEEK_SET);
+    fread(&Tiles[tile_index].height, 2, 1, file_ptr);
+	fseek(file_ptr, 8, SEEK_SET);
+    Tiles[tile_index].pixels = malloc(Tiles[tile_index].width * Tiles[tile_index].height);
+    fread(Tiles[tile_index].pixels, 1, Tiles[tile_index].width * Tiles[tile_index].height, file_ptr);
+    Tiles[tile_index].offset_x = 0;
+    Tiles[tile_index].offset_y = 0;
     fclose(file_ptr);
 }
 
@@ -34,15 +51,48 @@ void loadTexture(char* filename, int texture_index)
 
 void loadAllTextures()
 {
-    loadTexture("BRICKS.7UP", BRICKS);
-    //loadTexture("FLOOR1.7UP", FLOOR1);
-    //loadTexture("FLOOR2.7UP", FLOOR2);
-    loadTexture("SAND.7UP", FLOOR1);
-    loadTexture("SAND.7UP", FLOOR2);
-    loadTexture("DUDE1.7UP", DUDE1);
-    loadTexture("DUDE2.7UP", DUDE2);
-    loadTexture("DUDE3.7UP", DUDE3);
-    loadTexture("CAR.7UP", CAR);
+    loadTexture("SPRITES/DUDE1.7UP", DUDE1);
+    loadTexture("SPRITES/DUDE2.7UP", DUDE2);
+    loadTexture("SPRITES/DUDE3.7UP", DUDE3);
+    loadTexture("SPRITES/CAR.7UP", CAR);
+}
+
+void loadAllTiles()
+{
+    loadTile("TILES/DIRT.7UP", DIRT);
+    loadTile("TILES/GRASS.7UP", GRASS);
+    loadTile("TILES/GRAVEL.7UP", GRAVEL);
+    loadTile("TILES/WATER.7UP", WATER);
+    loadTile("TILES/BA_FLOOR.7UP", FLOOR_BATH);
+    loadTile("TILES/WO_FLOOR.7UP", FLOOR_WOOD);
+    loadTile("TILES/BRICKS.7UP", WALL_BRICKS);
+    loadTile("TILES/CON_H.7UP", WALL_C_HOR);
+    loadTile("TILES/CON_V.7UP", WALL_C_VER);
+    loadTile("TILES/CON_C_LL.7UP", WALL_C_LL);
+    loadTile("TILES/CON_C_LR.7UP", WALL_C_LR);
+    loadTile("TILES/CON_C_UL.7UP", WALL_C_UL);
+    loadTile("TILES/CON_C_UR.7UP", WALL_C_UR);
+    loadTile("TILES/CON_I.7UP", WALL_C_INTER);
+    loadTile("TILES/CON_T_D.7UP", WALL_C_T_DOWN);
+    loadTile("TILES/CON_T_L.7UP", WALL_C_T_LEFT);
+    loadTile("TILES/CON_T_R.7UP", WALL_C_T_RIGHT);
+    loadTile("TILES/CON_T_U.7UP", WALL_C_T_UP);
+    loadTile("TILES/DIRP_H.7UP", PATH_D_HOR);
+    loadTile("TILES/DIRP_V.7UP", PATH_D_VER);
+    loadTile("TILES/DIRP_UR.7UP", PATH_D_UR);
+    loadTile("TILES/DIRP_UL.7UP", PATH_D_UL);
+    loadTile("TILES/DIRP_DR.7UP", PATH_D_DR);
+    loadTile("TILES/DIRP_DL.7UP", PATH_D_DL);
+    loadTile("TILES/DIRP_I.7UP", PATH_D_INTER);
+    loadTile("TILES/DIRP_TD.7UP", PATH_D_T_DOWN);
+    loadTile("TILES/DIRP_TL.7UP", PATH_D_T_LEFT);
+    loadTile("TILES/DIRP_TR.7UP", PATH_D_T_RIGHT);
+    loadTile("TILES/DIRP_TU.7UP", PATH_D_T_UP);
+    loadTile("TILES/BA_TOILD.7UP", BA_TOILETD);
+    loadTile("TILES/BA_TOILL.7UP", BA_TOILETL);
+    loadTile("TILES/BA_TOILR.7UP", BA_TOILETR);
+    loadTile("TILES/BA_TOILU.7UP", BA_TOILETU);
+
 }
 
 void setTextures()

@@ -5,7 +5,7 @@
 
 extern System_t System;
 extern uint8_t far screen_buf [];
-extern Texture_t Textures [];
+extern Texture_t Tiles [];
 extern Object_t Objects [];
 extern Map_t* currentMap;
 extern uint8_t player_control;
@@ -422,7 +422,7 @@ void drawMap()
                 {
                     drawSpritePartial(x_pixel, y_pixel, &Textures[currentMap->textures[i] + 8]);
                 }*/
-                drawTextureClipped(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
+                drawTextureClipped(x_pixel, y_pixel, &Tiles[currentMap->tiles[i]]);
                 i++;
             }
         }
@@ -432,7 +432,7 @@ void drawMap()
             {
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
-                    drawTextureClipped(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
+                    drawTextureClipped(x_pixel, y_pixel, &Tiles[currentMap->tiles[i]]);
                 i++;
             }
         }

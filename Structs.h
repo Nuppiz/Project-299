@@ -84,7 +84,7 @@ typedef struct
     int width; // width in tiles
     int height; // height in tiles
     uint8_t* collision; // array to store collision data
-    uint8_t* textures; // array to store texture pointers
+    uint8_t* tiles; // array to store tile pointers
 } Map_t;
 
 #endif/* STRUCTS_H */

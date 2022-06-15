@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Game.h"
 #include "AI.h"
 #include "Draw.h"
 #include "Input.h"
@@ -7,7 +8,6 @@
 #include "Movecoll.h"
 #include "Text.h"
 #include "Video.h"
-#include "Game.h"
 
 System_t System;
 
@@ -77,6 +77,7 @@ void init()
     setPalette_VGA(&NewPalette);
     loadFontNew();
     loadAllTextures();
+    loadAllTiles();
     setTextures();
     
     // the rest
