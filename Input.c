@@ -35,6 +35,7 @@ void playerControl()
     else                                player_control &= ~CONTROL_FAST;
 
     #if DEBUG == 1
+    d[0] = '\0';
     if (player_control & CONTROL_UP)    d += sprintf(d, "UP ");
     if (player_control & CONTROL_DOWN)  d += sprintf(d, "DOWN ");
     if (player_control & CONTROL_LEFT)  d += sprintf(d, "LEFT ");
