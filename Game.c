@@ -1,6 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
-#include "Enums.h"
 #include "Structs.h"
 
 Map_t map1;
@@ -45,10 +43,10 @@ uint8_t TextureMap [] =
 
 // array which holds all objects
 Object_t Objects[NUM_OBJECTS] =
-{ // position         gridloc direction     angle velocity    magn rad ctrl aimode aitimer ai_target             color sprit osprite
-    {{170.0, 100.0,}, {0,0},  {1.0, 1.0},   0,    {0.0, 0.0}, 0,   7,  0,   NULL,  0,      NULL,                 14,   NULL, NULL},
-    {{80.0,  110.0,}, {0,0},  {1.0, 1.0},   0,    {0.0, 0.0}, 0,   7,  0,   IDLE,  100,    &Objects[2].position, 43,   NULL, NULL},
-    {{280.0, 140.0,}, {0,0},  {-1.0, -2.0}, 1,    {0.0, 0.0}, 0,   7,  0,   IDLE,  100,    &player.position,     12,   NULL, NULL}
+{ // position         gridloc direction     angle velocity    magn rad ctrl aimode aitimer ai_target             color sprite
+    {{170.0, 100.0,}, {0,0},  {1.0, 1.0},   0,    {0.0, 0.0}, 0,   7,  0,   NULL,  0,      NULL,                 14,   NULL},
+    {{80.0,  110.0,}, {0,0},  {1.0, 1.0},   0,    {0.0, 0.0}, 0,   7,  0,   IDLE,  100,    &Objects[2].position, 43,   NULL},
+    {{280.0, 140.0,}, {0,0},  {-1.0, -2.0}, 1,    {0.0, 0.0}, 0,   7,  0,   IDLE,  100,    &player.position,     12,   NULL}
 };
 
 void initGame()

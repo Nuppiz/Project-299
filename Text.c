@@ -1,5 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
 
 /* Text drawing functions */
 
@@ -53,9 +52,10 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
     symbol_index = 0;
 }
 
-void drawText(int x, int y, char* string, uint8_t color)
+int drawText(int x, int y, char* string, uint8_t color)
 {
     int i = 0;
+    int newlines = 0;
     int start_x = x;
     char c;
     
@@ -65,9 +65,24 @@ void drawText(int x, int y, char* string, uint8_t color)
         {
             x = start_x;
             y += 10;
+            newlines++;
             continue;
         }
         drawSymbol(x, y, c - 32, color);
         x += 10;
+    }
+
+    return newlines;
+}
+
+void drawDebug()
+{
+    int i;
+    int y = 0;
+
+    for (i = 0; i < NUM_DEBUG; i++)
+    {
+        if (debug[i][0] != '\0')
+            y += (drawText(0, y, debug[i], COLOUR_WHITE) + 1) * 10;
     }
 }

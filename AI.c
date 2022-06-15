@@ -1,6 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
-#include "Enums.h"
 #include "Movecoll.h"
 #include "Structs.h"
 #include "Vectors.h"
@@ -10,9 +8,6 @@
 extern uint8_t far screen_buf [];
 extern Object_t Objects [];
 extern Map_t map1;
-#if DEBUG == 1
-extern char debug [8][64];
-#endif
 
 int testLineOfSight(Vec2 origin, Vec2 target)
 {
@@ -55,11 +50,10 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
 
 int whichSide(Vec2 object_direction, Vec2 object_to_target)
 {
-    if (crossVec2(object_to_target, object_direction) > 0)
+    if (crossVec2(object_to_target, object_direction) >= 0)
         return LEFT_SIDE;
     
-    else if (crossVec2(object_to_target, object_direction) < 0)
-        return RIGHT_SIDE;
+    return RIGHT_SIDE;
 }
 
 void turnTowards(Object_t* object, Vec2 target)
@@ -87,11 +81,12 @@ void chaseTarget(Object_t* chaser)
     float cross_product = crossVec2(ObjectToTarget, chaser->direction);
 
     #if DEBUG == 1
-    sprintf(debug[0], "DISTANCE: %.2f", distance);
-    sprintf(debug[1], "ANGLE: %.2lf", chaser->angle);
-    sprintf(debug[2], "CP: %.2f", cross_product);
-    sprintf(debug[3], "DIR-X: %.2f", chaser->direction.x);
-    sprintf(debug[4], "DIR-Y: %.2f", chaser->direction.x);
+    char* d = debug[DEBUG_AICHASE];
+    d += sprintf(d, "DISTANCE: %.2f\n", distance);
+    d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
+    d += sprintf(d, "CP: %.2f\n", cross_product);
+    d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
+    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.x);
     #endif
     
     if (distance <= MIN_CHASE_DISTANCE)

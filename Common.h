@@ -10,6 +10,13 @@
 #include <math.h>
 #include <conio.h>
 
+#include "Defines.h"
+#include "Enums.h"
+
 typedef long time_t;
 
-#endif
+#if DEBUG == 1
+extern char debug[NUM_DEBUG][DEBUG_STR_LEN];
+#endif/* COMMON_H */
+
+#endif/* COMMON_H */

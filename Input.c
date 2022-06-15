@@ -1,5 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
 #include "Structs.h"
 #include "Vectors.h"
 #include "Keyb.h"
@@ -16,6 +15,10 @@ int control_fast = KEY_LSHIFT;
 
 void playerControl()
 {
+    #if DEBUG == 1
+    char* d = debug[DEBUG_AICHASE];
+    #endif
+
     if (KEY_IS_PRESSED(control_up))     player_control |= CONTROL_UP;
     else                                player_control &= ~CONTROL_UP;
 
@@ -30,6 +33,14 @@ void playerControl()
 
     if (KEY_IS_PRESSED(control_fast))   player_control |= CONTROL_FAST;
     else                                player_control &= ~CONTROL_FAST;
+
+    #if DEBUG == 1
+    if (player_control & CONTROL_UP)    d += sprintf(d, "UP ");
+    if (player_control & CONTROL_DOWN)  d += sprintf(d, "DOWN ");
+    if (player_control & CONTROL_LEFT)  d += sprintf(d, "LEFT ");
+    if (player_control & CONTROL_RIGHT) d += sprintf(d, "RIGHT ");
+    if (player_control & CONTROL_FAST)  d += sprintf(d, "FAST ");
+    #endif
 }
 
 void processKeyEvents() // unused right now

@@ -6,13 +6,14 @@ typedef struct
     int    running;
     time_t time;        // global timer
     time_t seconds;     // second timer (time/1000)
-    time_t ticks;       // game logic cycles
+    time_t ticks;       // total game ticks
     time_t frames;      // total frames drawn
-    int    tick_rate;   // not used yet
-    int    frame_rate;  // target fps
-    int    frame_time;  // time of a single frame in milliseconds
-    int    fps;         // measured fps
-    float  fps_avg;     // frames / seconds
+    time_t tick_time;   // target time interval of logic cycles
+    time_t frame_time;  // target time interval between draws
+    int    tick_rate;   // target rate of logic cycles
+    int    frame_rate;  // target frame rate
+    int    fps;         // actual measured fps
+    float  fps_avg;     // average fps (frames/seconds)
 } System_t;
 
 typedef struct
@@ -66,7 +67,6 @@ typedef struct
 
     uint8_t color;
     Texture_t sprite;
-    Texture_t orig_sprite;
 } Object_t;
 
 typedef struct

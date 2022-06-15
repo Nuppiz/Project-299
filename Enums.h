@@ -21,4 +21,13 @@ enum TextureCount
     NUM_TEXTURES
 };
 
+enum DebugIndex
+{
+    DEBUG_FPS,
+    DEBUG_INPUT,
+    DEBUG_VELOCITY,
+    DEBUG_AICHASE,
+    NUM_DEBUG
+};
+
 #endif/* ENUMS */

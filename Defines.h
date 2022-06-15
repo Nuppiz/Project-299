@@ -2,6 +2,7 @@
 #define DEFINES_H
 
 #define DEBUG               1
+#define DEBUG_STR_LEN       128
 
 #define FRAME_RATE          30
 #define TICK_RATE           30

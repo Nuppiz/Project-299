@@ -1,5 +1,4 @@
 #include "Common.h"
-#include "Enums.h"
 #include "Structs.h"
 
 /* Graphics loading functions */
@@ -36,8 +35,10 @@ void loadTexture(char* filename, int texture_index)
 void loadAllTextures()
 {
     loadTexture("BRICKS.7UP", BRICKS);
-    loadTexture("FLOOR1.7UP", FLOOR1);
-    loadTexture("FLOOR2.7UP", FLOOR2);
+    //loadTexture("FLOOR1.7UP", FLOOR1);
+    //loadTexture("FLOOR2.7UP", FLOOR2);
+    loadTexture("SAND.7UP", FLOOR1);
+    loadTexture("SAND.7UP", FLOOR2);
     loadTexture("DUDE1.7UP", DUDE1);
     loadTexture("DUDE2.7UP", DUDE2);
     loadTexture("DUDE3.7UP", DUDE3);
@@ -46,7 +47,7 @@ void loadAllTextures()
 
 void setTextures()
 {
-    Objects[0].orig_sprite = Textures[DUDE1];
-    Objects[1].orig_sprite = Textures[DUDE2];
-    Objects[2].orig_sprite = Textures[DUDE3];
+    Objects[0].sprite = Textures[DUDE1];
+    Objects[1].sprite = Textures[DUDE2];
+    Objects[2].sprite = Textures[DUDE3];
 }

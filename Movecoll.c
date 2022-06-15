@@ -1,6 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
-#include "Enums.h"
 #include "Structs.h"
 #include "Vectors.h"
 #include "Keyb.h"
@@ -279,17 +277,13 @@ void collideAllObjects()
     // edgeDetect();
 }
 
-void debugText()
-{
-    char velocity_string[50];
-    sprintf(velocity_string, "V.X: %f\nV.Y %f", player.velocity.x, player.velocity.y);
-    drawText(0, 180, velocity_string, COLOUR_WHITE);
-}
-
 void physics()
 {
     controlAllObjects();
     moveAllObjects();
     collideAllObjects();
-    debugText();
+
+    #if DEBUG == 1
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", player.velocity.x, player.velocity.y);
+    #endif
 }

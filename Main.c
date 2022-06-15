@@ -1,9 +1,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "AI.h"
-#include "Defines.h"
 #include "Draw.h"
-#include "Enums.h"
 #include "Input.h"
 #include "Loadgfx.h"
 #include "Movecoll.h"
@@ -12,22 +10,23 @@
 #include "Game.h"
 
 System_t System;
+
 #if DEBUG == 1
-extern char debug[8][64];
+char debug[NUM_DEBUG][DEBUG_STR_LEN];
 #endif
 
 static void interrupt (far *old_Timer_ISR)(void);
 
 void interrupt far Timer(void)
 {
-    static long last_time = 0;
+    static long last_clock_time = 0;
 
     System.time++;
 
     // keeps the PC clock ticking in the background
-    if (last_time + 182 < System.time)
+    if (last_clock_time + 182 < System.time)
     {
-        last_time = System.time;
+        last_clock_time = System.time;
         old_Timer_ISR();
     }
 }
@@ -39,28 +38,28 @@ void setTimer(uint16_t new_count)
     outportb(COUNTER_0, HIGH_BYTE(new_count));
 }
 
+#if DEBUG == 1
+void initDebug()
+{
+    int i;
+    for (i = 0; i > NUM_DEBUG; i++)
+        debug[i][0] = '\0';
+}
+#endif
+
 void initSystem()
 {
     System.running    = 1;
     System.time       = 0;
     System.seconds    = 0;
     System.ticks      = 0;
-    System.tick_rate  = TICK_RATE; // not used yet
     System.frames     = 0;
-    System.frame_rate = FRAME_RATE; // target FPS
+    System.tick_time  = 1000/TICK_RATE;
     System.frame_time = 1000/FRAME_RATE;
-    System.fps        = 0; // measured FPS
+    System.tick_rate  = TICK_RATE;
+    System.frame_rate = FRAME_RATE;
+    System.fps        = 0;
     System.fps_avg    = 0;
-}
-
-void initDebug()
-{
-    int i;
-
-    for (i = 0; i > 8; i++)
-    {
-        debug[i][0] = '\0';
-    }
 }
 
 void init()
@@ -99,35 +98,53 @@ void quit()
 
 void gameLoop()
 {
-    time_t last_time  = 0;
-    time_t last_frame = 0;
-    int frame_count = 0; // Counts frames in a second so far
+    time_t last_time   = 0; // Used for accumulating seconds & FPS calculation
+    time_t last_tick   = 0; // Tracks time elapsed since last tick started
+    time_t last_frame  = 0; // Tracks time elapsed since last draw started
+    time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
+    int frame_count    = 0; // Counts frames in a second so far; used by debug
 
     while (System.running == 1)
     {  
-        if (last_frame + System.frame_time < System.time) // one game "tick"
+
+        if (last_tick + System.tick_time < System.time) // tick
+        {
+            do
+            {
+                last_tick = System.time;
+
+                input();  
+                AILoop(); 
+                physics();
+
+                accumulator -= System.tick_time;
+                System.ticks++;
+            }
+            while (accumulator >= System.tick_time);
+        }
+
+        if (last_frame + System.frame_time < System.time) // frame
         {
             last_frame = System.time;
 
-            input();   // input and physics should be tied to a tick rate, separate from frame rate, so that
-            AILoop();  // if a computer renders the scene too slowly, the game simulation will not slow down
-            physics(); // this is not done yet, hence System.ticks is commented out
-            //System.ticks++;
-
             draw();
+
             System.frames++;
             frame_count++;
+            accumulator += System.time - last_frame;
         }
-
+           
         #if DEBUG == 1
         if (last_time + 1000 < System.time) // FPS calculation; optional for debugging
         {
-            last_time = System.time;
-
+            last_time += 1000;
             System.seconds++;
             System.fps_avg = (float)System.frames/System.seconds;
             System.fps = frame_count;
             frame_count = 0;
+
+            sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
+                System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
         }
         #endif
     }

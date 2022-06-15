@@ -1,6 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
-#include "Enums.h"
 #include "Structs.h"
 
 /* Graphics drawing functions */
@@ -13,9 +11,6 @@ extern Map_t* currentMap;
 extern uint8_t player_control;
 
 Vec2 camera_offset;
-#if DEBUG == 1
-char debug[8][64];
-#endif
 
 #define DOT_DISTANCE 30
 #define LOOK_DISTANCE 30
@@ -452,9 +447,7 @@ void testColors()
     int y = 100;
 
     for (i = 0, x = 31; i < NUM_COLORS; i++, x++)
-    {
         SET_PIXEL(x, y, i);
-    }
 }
 
 void calcCameraOffset()
@@ -503,9 +496,7 @@ void drawDot(Object_t* obj)
     pos_y = obj->position.y + offset_y;
 
     if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
-    {
         SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
-    }
 }
 
 void drawObjects()
@@ -516,55 +507,25 @@ void drawObjects()
 
     while (i < NUM_OBJECTS)
     {
-        start_x = Objects[i].position.x - camera_offset.x - Objects[i].orig_sprite.width / 2;
-        start_y = Objects[i].position.y - camera_offset.y - Objects[i].orig_sprite.height / 2;
+        start_x = Objects[i].position.x - camera_offset.x - Objects[i].sprite.width / 2;
+        start_y = Objects[i].position.y - camera_offset.y - Objects[i].sprite.height / 2;
         // draw all circles in their current locations
         //drawCircle(&Objects[i].position, Objects[i].radius, Objects[i].color);
-        drawTextureRotated(start_x, start_y, Objects[i].angle, &Objects[i].orig_sprite, TRANSPARENT_COLOR);
+        drawTextureRotated(start_x, start_y, Objects[i].angle, &Objects[i].sprite, TRANSPARENT_COLOR);
         drawDot(&Objects[i]);
         i++;
     }
 }
 
-void drawDebug()
-{
-    int i;
-    int y = 60;
-
-    for (i = 0; i < 8; i++)
-    {
-        if (debug[i][0] != '\0')
-        {
-            drawText(0, y, debug[i], COLOUR_WHITE);
-            y += 10;
-        }
-    }
-}
+void drawDebug();
 
 void draw()
 {
-    #if DEBUG == 1
-    char clock_string[100];
-    #endif
-
     calcCameraOffset();
     drawMap();
     drawObjects();
 
     #if DEBUG == 1
-    sprintf(clock_string, "TIME: %ld MINS, %ld SECS\nTICKS: %ld\nFPS: %d, AVERAGE: %.2f",
-        System.seconds/60, System.seconds%60, System.ticks, System.fps, System.fps_avg);
-    drawText(0, 0, clock_string, COLOUR_WHITE);
-    if (player.control & CONTROL_UP)
-        drawText(0, 190, "UP", COLOUR_WHITE);
-    if (player.control & CONTROL_DOWN)
-        drawText(30, 190, "DOWN", COLOUR_WHITE);
-    if (player.control & CONTROL_LEFT)
-        drawText(70, 190, "LEFT", COLOUR_WHITE);
-    if (player.control & CONTROL_RIGHT)
-        drawText(120, 190, "RIGHT", COLOUR_WHITE);
-        if (player.control & CONTROL_FAST)
-        drawText(180, 190, "FAST", COLOUR_WHITE);
     drawDebug();
     #endif
 

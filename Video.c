@@ -1,5 +1,4 @@
 #include "Common.h"
-#include "Defines.h"
 #include "Structs.h"
 
 /* Video mode and palette settings */
