@@ -96,6 +96,12 @@ void quit()
     setVideoMode(TEXT_MODE);
 }
 
+void updateStats()
+{
+    sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
+        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
+}
+
 void gameLoop()
 {
     time_t last_time   = 0; // Used for accumulating seconds & FPS calculation
@@ -106,7 +112,6 @@ void gameLoop()
 
     while (System.running == 1)
     {  
-
         if (last_tick + System.tick_time < System.time) // tick
         {
             do
@@ -132,6 +137,10 @@ void gameLoop()
             System.frames++;
             frame_count++;
             accumulator += System.time - last_frame;
+
+            #if DEBUG == 1
+            updateStats();
+            #endif
         }
            
         #if DEBUG == 1
@@ -142,9 +151,6 @@ void gameLoop()
             System.fps_avg = (float)System.frames/System.seconds;
             System.fps = frame_count;
             frame_count = 0;
-
-            sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
-                System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
         }
         #endif
     }
