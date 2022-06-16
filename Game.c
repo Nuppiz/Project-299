@@ -80,8 +80,7 @@ void createObject(float x, float y, double angle, int radius, uint8_t control, u
     Objects[object_count].radius = radius;
     Objects[object_count].control = control;
     Objects[object_count].ai_mode = ai_mode;
-    Objects[object_count].ai_timer = ai_timer;
-    Objects[object_count].ai_target = ai_target;
+    Objects[object_count].target_object_id = ai_target;
     Objects[object_count].sprite = *sprite;
 
     object_count++;
