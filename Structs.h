@@ -63,7 +63,7 @@ typedef struct
     uint8_t control;
     uint8_t ai_mode;
     int ai_timer;
-    Vec2* ai_target;
+    int target_object_id; // index number in the object array of the AI's target
 
     uint8_t color;
     Texture_t sprite;
