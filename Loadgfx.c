@@ -57,7 +57,7 @@ void loadAllTextures()
     loadTexture("SPRITES/CAR.7UP", CAR);
 }
 
-// load all map tiles into memory
+// Load all map tiles
 
 void loadAllTiles()
 {
