@@ -76,7 +76,7 @@ void turnTowards(Object_t* object, Vec2 target)
 
 void chaseTarget(Object_t* chaser)
 {
-    Vec2 ObjectToTarget = getVec2(chaser->position, *chaser->ai_target);
+    Vec2 ObjectToTarget = getVec2(chaser->position, chaser->move_target);
     float distance      = getVec2Length(ObjectToTarget);
     float cross_product = crossVec2(ObjectToTarget, chaser->direction);
 
@@ -88,6 +88,8 @@ void chaseTarget(Object_t* chaser)
     d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
     d += sprintf(d, "DIR-Y: %.2f", chaser->direction.x);
     #endif
+
+    chaser->move_target = Objects[chaser->target_object_id].position;
     
     if (distance <= MIN_CHASE_DISTANCE)
         clearBit(chaser->control, CONTROL_UP);
@@ -116,7 +118,7 @@ void chaseTarget(Object_t* chaser)
 void think(Object_t* obj)
 {
     // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
-    if (testFieldOfView(obj->position, obj->direction, *obj->ai_target) == IN_SIGHT)
+    if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
     {
         obj->ai_mode = CHASE_TARGET;
         obj->ai_timer = CHASE_TIMEOUT;
