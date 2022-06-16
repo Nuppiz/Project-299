@@ -65,7 +65,6 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
-
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
@@ -78,8 +77,7 @@ void init()
     loadFontNew();
     loadAllTextures();
     loadAllTiles();
-    setTextures();
-    
+    //setTextures();
     // the rest
     initKeyboard();
     initSystem();

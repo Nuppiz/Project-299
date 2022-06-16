@@ -5,7 +5,9 @@
 
 /* Object_t movement and collision detection */
 
-extern Object_t Objects [];
+extern Object_t* Objects;
+extern int object_count;
+extern int player;
 extern Map_t* currentMap;
 extern float game_speed;
 
@@ -61,7 +63,7 @@ void edgeDetectObject(Object_t* obj)
 void edgeDetectAllObjects()
 {
     int i = 0;
-    while (i < NUM_OBJECTS)
+    while (i < object_count)
     {
         edgeDetectObject(&Objects[i]);
         i++;
@@ -124,9 +126,9 @@ void controlAllObjects()
     // copy control variable from Input.c to the player object's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
     extern uint8_t player_control;
-    player.control = player_control;
+    Objects[player].control = player_control;
 
-    while (i < NUM_OBJECTS)
+    while (i < object_count)
     {
         controlObject(&Objects[i]);
         i++;
@@ -216,7 +218,7 @@ void moveAllObjects()
     int i = 0;
     
     // iterate through the object array
-    while (i < NUM_OBJECTS)
+    while (i < object_count)
     {
         moveObject(&Objects[i], Objects[i].velocity);
         Objects[i].magnitude = getVec2Length(Objects[i].velocity);
@@ -265,9 +267,9 @@ void collideAllObjects()
     int i;
     
     // iterate through each object pair to see if they collide
-    for (i = 0; i < NUM_OBJECTS; i++)
+    for (i = 0; i < object_count; i++)
     {
-        for (x = i; x < NUM_OBJECTS-1; x++)
+        for (x = i; x < object_count-1; x++)
         {
             collideTwoObjects(&Objects[i], &Objects[x+1]);
         }
@@ -284,6 +286,6 @@ void physics()
     collideAllObjects();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", player.velocity.x, player.velocity.y);
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", Objects[player].velocity.x, Objects[player].velocity.y);
     #endif
 }

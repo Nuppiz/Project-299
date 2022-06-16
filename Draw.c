@@ -6,8 +6,10 @@
 extern System_t System;
 extern uint8_t far screen_buf [];
 extern Texture_t Tiles [];
-extern Object_t Objects [];
+extern Object_t* Objects;
+extern int object_count;
 extern Map_t* currentMap;
+extern int player;
 extern uint8_t player_control;
 
 Vec2 camera_offset;
@@ -460,9 +462,9 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = currentMap->height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(player.direction.y, player.direction.x);
-    pos.x = player.position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = player.position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(Objects[player].direction.y, Objects[player].direction.x);
+    pos.x = Objects[player].position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = Objects[player].position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -505,7 +507,7 @@ void drawObjects()
     int start_x;
     int start_y;
 
-    while (i < NUM_OBJECTS)
+    while (i < object_count)
     {
         start_x = Objects[i].position.x - camera_offset.x - Objects[i].sprite.width / 2;
         start_y = Objects[i].position.y - camera_offset.y - Objects[i].sprite.height / 2;

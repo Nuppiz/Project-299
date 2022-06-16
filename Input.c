@@ -6,6 +6,7 @@
 uint8_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
+extern int object_count;
 
 int control_up = KEY_UP;
 int control_down = KEY_DOWN;
@@ -44,6 +45,16 @@ void playerControl()
     #endif
 }
 
+void testButtons()
+{
+    if (KEY_WAS_HIT(KEY_1))
+        deleteObject(1);
+    if (KEY_WAS_HIT(KEY_2))
+        deleteObject(2);
+    if (KEY_WAS_HIT(KEY_3))
+        deleteObject(object_count - 1);
+}
+
 void processKeyEvents() // unused right now
 {
     while (Keyboard.queue_head != Keyboard.queue_tail) 
@@ -66,6 +77,7 @@ void input()
 {
     processKeyEvents();
     playerControl();
+    testButtons();
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))

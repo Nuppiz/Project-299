@@ -6,7 +6,8 @@
 /* AI functions */
 
 extern uint8_t far screen_buf [];
-extern Object_t Objects [];
+extern Object_t* Objects;
+extern int object_count;
 extern Map_t map1;
 
 int testLineOfSight(Vec2 origin, Vec2 target)
@@ -142,7 +143,7 @@ void AILoop()
 {
     int i = 1;
     
-    while (i < NUM_OBJECTS)
+    while (i < object_count)
     {
         think(&Objects[i]);
         i++;

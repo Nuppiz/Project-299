@@ -5,7 +5,7 @@
 
 Texture_t Textures[NUM_TEXTURES];
 Texture_t Tiles[NUM_TILES];
-extern Object_t Objects[NUM_OBJECTS];
+//extern Object_t* Objects;
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -97,9 +97,9 @@ void loadAllTiles()
 
 }
 
-void setTextures()
+/*void setTextures()
 {
     Objects[0].sprite = Textures[DUDE1];
     Objects[1].sprite = Textures[DUDE2];
     Objects[2].sprite = Textures[DUDE3];
-}
+}*/

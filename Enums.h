@@ -1,6 +1,7 @@
 #ifndef ENUMS
 #define ENUMS
 
+/*
 enum Objects
 {
     CIRCLE1,
@@ -8,6 +9,7 @@ enum Objects
     CIRCLE3,
     NUM_OBJECTS
 };
+*/
 
 enum TextureCount
 {

@@ -73,7 +73,7 @@
 #define COLOUR_PEACH        64
 #define TRANSPARENT_COLOR   251
 
-#define player              Objects[0]
+//#define player              Objects[0]
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
