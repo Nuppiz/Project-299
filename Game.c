@@ -67,7 +67,7 @@ uint8_t TileMap [] =
     {{280.0,  90.0,}, {0,0},  {-1.0, -2.0}, 1,    {0.0, 0.0}, 0,   7,  0,   IDLE,  100,    &player.position,     12,   NULL}
 };*/
 
-void createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, Vec2* ai_target, Texture_t* sprite)
+void createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_target, Texture_t* sprite)
 {
     if (object_count >= object_capacity)
     {
@@ -80,6 +80,7 @@ void createObject(float x, float y, double angle, int radius, uint8_t control, u
     Objects[object_count].radius = radius;
     Objects[object_count].control = control;
     Objects[object_count].ai_mode = ai_mode;
+    Objects[object_count].ai_timer = ai_timer;
     Objects[object_count].ai_target = ai_target;
     Objects[object_count].sprite = *sprite;
 
@@ -103,26 +104,22 @@ void deleteObject(int object_index)
 void createInitialObjects()
 {   
     player = 0;
-    createObject(170, 350, 0, 7, 0, NULL, NULL, &Textures[DUDE1]);
-    createObject(280, 90,  1, 7, 0, IDLE, &Objects[player].position, &Textures[DUDE3]);
-    createObject(80,  110, 0, 7, 0, IDLE, &Objects[1].position, &Textures[DUDE2]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, &Objects[2].position, &Textures[DUDE1]);
+    createObject(170, 350, 0, 7, 0, NULL, 0, NULL, &Textures[DUDE1]);
+    createObject(280, 90,  1, 7, 0, IDLE, player, &Textures[DUDE3]);
+    createObject(80,  110, 0, 7, 0, IDLE, 1, &Textures[DUDE2]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
 }
 
 void initGame()
