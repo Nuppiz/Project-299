@@ -57,6 +57,8 @@ void loadAllTextures()
     loadTexture("SPRITES/CAR.7UP", CAR);
 }
 
+// load all map tiles into memory
+
 void loadAllTiles()
 {
     loadTile("TILES/DIRT.7UP", DIRT);
