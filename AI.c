@@ -76,20 +76,18 @@ void turnTowards(Object_t* object, Vec2 target)
 
 void chaseTarget(Object_t* chaser)
 {
-    Vec2 ObjectToTarget = getVec2(chaser->position, chaser->move_target);
-    float distance      = getVec2Length(ObjectToTarget);
-    float cross_product = crossVec2(ObjectToTarget, chaser->direction);
+    Vec2 ObjectToTarget;
+    float distance;
+    float cross_product;
 
     #if DEBUG == 1
-    char* d = debug[DEBUG_AICHASE];
-    d += sprintf(d, "DISTANCE: %.2f\n", distance);
-    d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
-    d += sprintf(d, "CP: %.2f\n", cross_product);
-    d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
-    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.x);
+    char* d;
     #endif
 
-    chaser->move_target = Objects[chaser->target_object_id].position;
+    
+    ObjectToTarget      = getVec2(chaser->position, chaser->move_target);
+    distance            = getVec2Length(ObjectToTarget);
+    cross_product       = crossVec2(ObjectToTarget, chaser->direction);
     
     if (distance <= MIN_CHASE_DISTANCE)
         clearBit(chaser->control, CONTROL_UP);
@@ -113,10 +111,20 @@ void chaseTarget(Object_t* chaser)
         clearBit(chaser->control, CONTROL_LEFT);
         clearBit(chaser->control, CONTROL_RIGHT);
     }
+
+    #if DEBUG == 1
+    d = debug[DEBUG_AICHASE];
+    d += sprintf(d, "DISTANCE: %.2f\n", distance);
+    d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
+    d += sprintf(d, "CP: %.2f\n", cross_product);
+    d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
+    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.x);
+    #endif
 }
 
 void think(Object_t* obj)
 {
+    obj->move_target = Objects[obj->target_object_id].position;
     // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
     if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
     {
