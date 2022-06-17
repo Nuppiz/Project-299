@@ -2,6 +2,7 @@
 #define GAME_H
 
 void deleteObject(int object_index);
-initGame();
+void deleteLastObject();
+void initGame();
 
 #endif/* GAME_H */

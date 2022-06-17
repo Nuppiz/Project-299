@@ -5,11 +5,7 @@
 
 /* Object_t movement and collision detection */
 
-extern Object_t* Objects;
-extern int object_count;
-extern int player;
-extern Map_t* currentMap;
-extern float game_speed;
+extern GameData_t Game;
 
 void checkGridLoc(Object_t* obj) // circle's location on the grid
 {   
@@ -28,9 +24,9 @@ int getTileType(Vec2 pos)
     pos.y /= SQUARE_SIZE;
     
     // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * currentMap->width + (int)pos.x;
+    object_tile = (int)pos.y * Game.Map.width + (int)pos.x;
     
-    tile_type = currentMap->collision[object_tile]; // check which colour is at that index
+    tile_type = Game.Map.collision[object_tile]; // check which colour is at that index
     
     return tile_type; // return said colour
 }
@@ -63,9 +59,9 @@ void edgeDetectObject(Object_t* obj)
 void edgeDetectAllObjects()
 {
     int i = 0;
-    while (i < object_count)
+    while (i < Game.object_count)
     {
-        edgeDetectObject(&Objects[i]);
+        edgeDetectObject(&Game.Objects[i]);
         i++;
     }
 }
@@ -126,11 +122,11 @@ void controlAllObjects()
     // copy control variable from Input.c to the player object's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
     extern uint8_t player_control;
-    Objects[player].control = player_control;
+    PlayerObject.control = player_control;
 
-    while (i < object_count)
+    while (i < Game.object_count)
     {
-        controlObject(&Objects[i]);
+        controlObject(&Game.Objects[i]);
         i++;
     }
 }
@@ -218,10 +214,10 @@ void moveAllObjects()
     int i = 0;
     
     // iterate through the object array
-    while (i < object_count)
+    while (i < Game.object_count)
     {
-        moveObject(&Objects[i], Objects[i].velocity);
-        Objects[i].magnitude = getVec2Length(Objects[i].velocity);
+        moveObject(&Game.Objects[i], Game.Objects[i].velocity);
+        Game.Objects[i].magnitude = getVec2Length(Game.Objects[i].velocity);
         i++;
     }
 }
@@ -267,11 +263,11 @@ void collideAllObjects()
     int i;
     
     // iterate through each object pair to see if they collide
-    for (i = 0; i < object_count; i++)
+    for (i = 0; i < Game.object_count; i++)
     {
-        for (x = i; x < object_count-1; x++)
+        for (x = i; x < Game.object_count-1; x++)
         {
-            collideTwoObjects(&Objects[i], &Objects[x+1]);
+            collideTwoObjects(&Game.Objects[i], &Game.Objects[x+1]);
         }
     }
     
@@ -286,6 +282,6 @@ void physics()
     collideAllObjects();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", Objects[player].velocity.x, Objects[player].velocity.y);
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject.velocity.x, PlayerObject.velocity.y);
     #endif
 }

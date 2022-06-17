@@ -4,18 +4,12 @@
 /* Graphics drawing functions */
 
 extern System_t System;
+extern GameData_t Game;
+
 extern uint8_t far screen_buf [];
 extern Texture_t Tiles [];
-extern Object_t* Objects;
-extern int object_count;
-extern Map_t* currentMap;
-extern int player;
-extern uint8_t player_control;
 
 Vec2 camera_offset;
-
-#define DOT_DISTANCE 30
-#define LOOK_DISTANCE 30
 
 int boundaryCheck(int x, int y)
 {
@@ -408,8 +402,8 @@ void drawMap()
     int y_pixel; // y-coordinate of the currently drawn pixel
     int num_rows; // number of "rows" traversed in the array
     int num_cols; // number of "columns" traversed in the array
-    int max_cols = currentMap->width - xi - 1; // max columns to draw
-    int max_rows = currentMap->height; // max rows to draw
+    int max_cols = Game.Map.width - xi - 1; // max columns to draw
+    int max_rows = Game.Map.height; // max rows to draw
 
     // run loops until maximum number of squares is drawn and the edges of the screen have been reached
     for (y_pixel = 0 - camera_offset.y, num_rows = 0; y_pixel < SCREEN_HEIGHT && num_rows < max_rows; y_pixel += SQUARE_SIZE)
@@ -419,12 +413,12 @@ void drawMap()
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
                 /*if (x_pixel >= SQUARE_SIZE && x_pixel < (SCREEN_WIDTH - SQUARE_SIZE) && y_pixel >= SQUARE_SIZE && y_pixel < (SCREEN_HEIGHT - SQUARE_SIZE))
-                    drawTexture(x_pixel, y_pixel, &Textures[currentMap->textures[i]]);
+                    drawTexture(x_pixel, y_pixel, &Textures[Game.Map.textures[i]]);
                 else
                 {
-                    drawSpritePartial(x_pixel, y_pixel, &Textures[currentMap->textures[i] + 8]);
+                    drawSpritePartial(x_pixel, y_pixel, &Textures[Game.Map.textures[i] + 8]);
                 }*/
-                drawTextureClipped(x_pixel, y_pixel, &Tiles[currentMap->tiles[i]]);
+                drawTextureClipped(x_pixel, y_pixel, &Tiles[Game.Map.tiles[i]]);
                 i++;
             }
         }
@@ -434,12 +428,12 @@ void drawMap()
             {
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
-                    drawTextureClipped(x_pixel, y_pixel, &Tiles[currentMap->tiles[i]]);
+                    drawTextureClipped(x_pixel, y_pixel, &Tiles[Game.Map.tiles[i]]);
                 i++;
             }
         }
         num_rows++;
-        i = start_index + (currentMap->width * num_rows); // jump in the texture array to the next "row"
+        i = start_index + (Game.Map.width * num_rows); // jump in the texture array to the next "row"
     }
 }
 
@@ -458,13 +452,13 @@ void calcCameraOffset()
     float angle;
 
     int cam_min_x = SCREEN_WIDTH/2;
-    int cam_max_x = currentMap->width*SQUARE_SIZE - SCREEN_WIDTH/2;
+    int cam_max_x = Game.Map.width*SQUARE_SIZE - SCREEN_WIDTH/2;
     int cam_min_y = SCREEN_HEIGHT/2;
-    int cam_max_y = currentMap->height*SQUARE_SIZE - SCREEN_HEIGHT/2;
+    int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(Objects[player].direction.y, Objects[player].direction.x);
-    pos.x = Objects[player].position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = Objects[player].position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(PlayerObject.direction.y, PlayerObject.direction.x);
+    pos.x = PlayerObject.position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = PlayerObject.position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -507,14 +501,14 @@ void drawObjects()
     int start_x;
     int start_y;
 
-    while (i < object_count)
+    while (i < Game.object_count)
     {
-        start_x = Objects[i].position.x - camera_offset.x - Objects[i].sprite.width / 2;
-        start_y = Objects[i].position.y - camera_offset.y - Objects[i].sprite.height / 2;
+        start_x = Game.Objects[i].position.x - camera_offset.x - Game.Objects[i].sprite.width / 2;
+        start_y = Game.Objects[i].position.y - camera_offset.y - Game.Objects[i].sprite.height / 2;
         // draw all circles in their current locations
-        //drawCircle(&Objects[i].position, Objects[i].radius, Objects[i].color);
-        drawTextureRotated(start_x, start_y, Objects[i].angle, &Objects[i].sprite, TRANSPARENT_COLOR);
-        drawDot(&Objects[i]);
+        //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
+        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Game.Objects[i].sprite, TRANSPARENT_COLOR);
+        drawDot(&Game.Objects[i]);
         i++;
     }
 }

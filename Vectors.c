@@ -35,6 +35,14 @@ float getVec2Length(Vec2 v)
         return sqrt((v.x * v.x) + (v.y * v.y));
 }
 
+float getVec2LengthSquared(Vec2 v)
+{
+    if (v.x == 0.0 && v.y == 0.0)
+        return 0;
+    else
+        return ((v.x * v.x) + (v.y * v.y));
+}
+
 float getVec2Angle2(Vec2 v1, Vec2 v2)
 {
     /*to calculate the angle between two vectors, we first multiply the directional vector
@@ -57,4 +65,14 @@ Vec2 normalizeVec2(Vec2 v)
     normalizedVec.y = v.y / vec_length;
     
     return normalizedVec;
+}
+
+float normalizeAndGetLength(Vec2* v)
+{
+    float vec_length = getVec2Length(*v);
+    
+    v->x /= vec_length;
+    v->y /= vec_length;
+    
+    return vec_length;
 }

@@ -14,6 +14,8 @@
 #include "Enums.h"
 
 typedef long time_t;
+typedef uint16_t id_t;
+typedef uint16_t flags_t;
 
 #if DEBUG == 1
 extern char debug[NUM_DEBUG][DEBUG_STR_LEN];

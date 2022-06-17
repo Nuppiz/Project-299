@@ -44,27 +44,38 @@ typedef struct
 typedef struct
 {
     uint8_t* pixels;
-    uint16_t height;
-    uint16_t width;
+    uint16_t width, height;
     uint16_t transparent;
     int offset_x, offset_y;
 } Texture_t;
 
+/*
 typedef struct
 {
-    Vec2 position;
-    Vec2_int grid_loc; // location on the grid
-    Vec2 direction; // direction
-    double angle; // current direction in radians
-    Vec2 velocity; // velocity
-    float magnitude; // magnitude of velocity
-    int radius; // collision box/circle radius
+    Texture_t texture;
+    uint16_t height;
+    uint16_t num_frames;
+    uint16_t frame;
+} Sprite_t;
+*/
+
+typedef struct
+{
+    id_t     id;
+    flags_t  flags;
+    Vec2     position;
+    Vec2_int grid_loc;  // location on the grid
+    Vec2     direction; // direction
+    double   angle;     // current direction in radians
+    Vec2     velocity;  // velocity
+    float    magnitude; // magnitude of velocity
+    int      radius;    // collision box/circle radius
     
     uint8_t control;
     uint8_t ai_mode;
-    int ai_timer;
-    int target_object_id; // index number in the object array of the AI's target
-    Vec2 move_target;
+    int     ai_timer;
+    int     target_id; // index number in the object array of the AI's target
+    Vec2    move_target;
 
     uint8_t color;
     Texture_t sprite;
@@ -87,5 +98,17 @@ typedef struct
     uint8_t* collision; // array to store collision data
     uint8_t* tiles; // array to store tile pointers
 } Map_t;
+
+typedef struct
+{
+    Map_t Map;
+    Object_t* Objects;
+    Object_t** ObjectsById; // not used yet
+    id_t object_count;
+    id_t object_capacity;
+    id_t max_id;
+    id_t id_capacity;
+    id_t player_id;
+} GameData_t;
 
 #endif/* STRUCTS_H */

@@ -1,16 +1,6 @@
 #ifndef ENUMS
 #define ENUMS
 
-/*
-enum Objects
-{
-    CIRCLE1,
-    CIRCLE2,
-    CIRCLE3,
-    NUM_OBJECTS
-};
-*/
-
 enum TextureCount
 {
     DUDE1,

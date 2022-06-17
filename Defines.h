@@ -44,9 +44,9 @@
 
 #define SQUARE_SIZE         20
 #define SCREEN_SIZE         64000
-#define SQUARE_ROWS         SCREEN_HEIGHT / SQUARE_SIZE
-#define SQUARE_COLUMNS      SCREEN_WIDTH / SQUARE_SIZE
-#define degToRad(degree)    ((degree) * M_PI / 180.0)
+#define SQUARE_ROWS         (SCREEN_HEIGHT/SQUARE_SIZE)
+#define SQUARE_COLUMNS      (SCREEN_WIDTH/SQUARE_SIZE)
+#define degToRad(degree)    ((degree)*M_PI/180.0)
 
 #define RAD_360             (2*M_PI)
 #define RAD_270             (4.172)
@@ -64,6 +64,7 @@
 
 #define VIEW_ANGLE_COS      0.5
 #define LOS_STEP            10
+#define LOS_STEP_SQ         (LOS_STEP*LOS_STEP)
 #define OUT_OF_SIGHT        0
 #define IN_SIGHT            1
 
@@ -73,7 +74,8 @@
 #define COLOUR_PEACH        64
 #define TRANSPARENT_COLOR   251
 
-//#define player              Objects[0]
+#define DOT_DISTANCE        30
+#define LOOK_DISTANCE       30
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
@@ -84,11 +86,12 @@
 #define TURN_RATE           RAD_5
 #define FAST_TURN_RATE      RAD_10
 
-#define CHASE_DISTANCE      75
-#define CHASE_DISTANCE_SQ   CHASE_DISTANCE*CHASE_DISTANCE
-#define MIN_CHASE_DISTANCE  30
-#define CHASE_TIMEOUT       200
-#define TURN_THRESHOLD      5.0
+#define CHASE_DISTANCE          75
+#define CHASE_DISTANCE_SQ       (CHASE_DISTANCE*CHASE_DISTANCE)
+#define MIN_CHASE_DISTANCE      30
+#define MIN_CHASE_DISTANCE_SQ   (MIN_CHASE_DISTANCE*MIN_CHASE_DISTANCE)
+#define CHASE_TIMEOUT           200
+#define TURN_THRESHOLD          5.0
 
 #define TILE_WIDTH          8
 #define TILE_HEIGHT         8
@@ -156,8 +159,13 @@
 #define CONTROL_RIGHT BIT_3
 #define CONTROL_FAST  BIT_4
 
+#define OBJ_FLAG_DEAD BIT_0
+
+/* should be removed, just use bitwise operations directly */
 #define setBit(bitfield, bit)   (bitfield) |= (bit)
 #define clearBit(bitfield, bit) (bitfield) &= ~(bit)
 #define isBitSet(bitfield, bit) ((bitfield) & (bit))
+
+#define PlayerObject Game.Objects[Game.player_id]
 
 #endif/* DEFINES_H */
