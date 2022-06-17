@@ -6,4 +6,4 @@
 void drawTexture(int x, int y, Texture_t* texture);
 void draw();
 
-#endif /* DRAW_H */
+#endif/* DRAW_H */

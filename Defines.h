@@ -97,9 +97,6 @@
 #define TILE_HEIGHT         8
 #define CHARACTER_SIZE      72
 
-#define IDLE                0
-#define CHASE_TARGET        1
-
 #define TRUE                1
 #define FALSE               0
 

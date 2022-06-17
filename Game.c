@@ -56,13 +56,35 @@ uint8_t TileMap [] =
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,19, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3
 };
 
-id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_target, Texture_t* sprite)
+id_t getNewId()
 {
+    id_t id;
+    // to do; optimize with a cached "free list" to avoid looping through really long id lists
+    for (id = 0; id <= Game.id_capacity; id++)
+        if (Game.ObjectsById[id] == NULL)
+            return id;
+    // no free IDs found; allocate more
+    Game.id_capacity += 16; // define as CHUNK or BLOCK or something
+    Game.ObjectsById = realloc(Game.ObjectsById, Game.id_capacity * sizeof(void*));
+    memset(Game.ObjectsById, 0, 16 * sizeof(void*)); // set new pointers to NULL
+    // to do later: ensure successful allocation
+    return id;
+}
+
+id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, id_t ai_target, Texture_t* sprite)
+{
+    id_t id = getNewId();
+
     if (Game.object_count >= Game.object_capacity)
     {
-        Game.object_capacity += 16;
+        Game.object_capacity += 16; // define as CHUNK or BLOCK or something
         Game.Objects = realloc(Game.Objects, Game.object_capacity * sizeof(Object_t));
+        // to do later: ensure successful allocation
     }
+    // set the ID entry in the hashmap (ObjectsById) to point to the newly created object
+    Game.ObjectsById = &Game.Objects[Game.object_count];
+
+    Game.Objects[Game.object_count].id = id;
     Game.Objects[Game.object_count].position.x = x;
     Game.Objects[Game.object_count].position.y = y;
     Game.Objects[Game.object_count].angle = angle;
@@ -74,14 +96,17 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
 
     Game.object_count++;
     
-    return Game.object_count - 1;
+    return id;
 }
 
-void deleteObject(int object_index)
+void deleteObject(id_t id)
 {
-    if (object_index != Game.object_count - 1)
-        Game.Objects[object_index] = Game.Objects[Game.object_count - 1];
+    // overwrite memory
+    if (Game.ObjectsById[id] != &Game.Objects[Game.object_count])
+        *Game.ObjectsById[id] = Game.Objects[Game.object_count-1];
     Game.object_count--;
+    // set hashmap value to NULL
+    Game.ObjectsById[id] = NULL;
 
     if (Game.object_count < Game.object_capacity - 16)
     {
@@ -98,22 +123,24 @@ void deleteLastObject()
 
 void createInitialObjects()
 {   
-    Game.player_id = createObject(170, 350, 0, 7, 0, NULL, 0, &Textures[DUDE1]);
-    createObject(280, 90,  1, 7, 0, IDLE, Game.player_id, &Textures[DUDE3]);
-    createObject(80,  110, 0, 7, 0, IDLE, 1, &Textures[DUDE2]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, IDLE, 2, &Textures[DUDE1]);
+    Game.player_id =
+    createObject(170, 350, 0, 7, 0, NULL, 0, &Textures[DUDE1]);
+    
+    createObject(280, 90,  1, 7, 0, AI_IDLE, Game.player_id, &Textures[DUDE3]);
+    createObject(80,  110, 0, 7, 0, AI_IDLE, 1,              &Textures[DUDE2]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
 }
 
 void initGame()
@@ -122,6 +149,9 @@ void initGame()
     Game.Map.height = 20;
     Game.Map.collision = CollisionMap;
     Game.Map.tiles = TileMap;
+    Game.object_capacity = 16;
+    Game.id_capacity = 16;
     Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
+    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
     createInitialObjects();
 }

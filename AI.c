@@ -82,8 +82,8 @@ void chaseTarget(Object_t* chaser)
 
     
     object_to_target = getVec2(chaser->position, chaser->move_target);
-    distance_sq    = getVec2LengthSquared(object_to_target);
-    cross_product  = crossVec2(object_to_target, chaser->direction);
+    distance_sq      = getVec2LengthSquared(object_to_target);
+    cross_product    = crossVec2(object_to_target, chaser->direction);
     
     if (distance_sq <= MIN_CHASE_DISTANCE_SQ)
         clearBit(chaser->control, CONTROL_UP);
@@ -120,15 +120,22 @@ void chaseTarget(Object_t* chaser)
 
 void think(Object_t* obj)
 {
-    obj->move_target = Game.Objects[obj->target_id].position;
-    // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
-    if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
+    if (Game.ObjectsById[obj->target_id] != NULL)
     {
-        obj->ai_mode = CHASE_TARGET;
-        obj->ai_timer = CHASE_TIMEOUT;
+        obj->move_target = Game.ObjectsById[obj->target_id]->position;
+        // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
+        if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
+        {
+            obj->ai_mode = AI_CHASE;
+            obj->ai_timer = CHASE_TIMEOUT;
+        }
+    }
+    else
+    {
+        obj->ai_mode = AI_IDLE;
     }
 
-    if (obj->ai_mode == CHASE_TARGET) // to separate "do" function?
+    if (obj->ai_mode == AI_CHASE) // to separate "do" function?
     {   // "think" infrequently (every 10 tics), but do all the time ... ?
         if (obj->ai_timer > 0)
         {
@@ -137,7 +144,7 @@ void think(Object_t* obj)
         }
         else
         {
-            obj->ai_mode = IDLE;
+            obj->ai_mode = AI_IDLE;
             clearBit(obj->control, CONTROL_UP);
             clearBit(obj->control, CONTROL_LEFT);
             clearBit(obj->control, CONTROL_RIGHT);
