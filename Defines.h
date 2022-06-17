@@ -114,6 +114,8 @@
 #define TIMER_18HZ          0xFFFF
 #define TIMER_1000HZ        1193
 
+#define DWORD               uint32_t
+
 #define LOW_BYTE(n)         (n & 0x00ff)
 #define HIGH_BYTE(n)        ((n>>8) & 0x00ff)
 

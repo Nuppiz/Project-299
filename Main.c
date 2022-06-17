@@ -6,6 +6,7 @@
 #include "Input.h"
 #include "Loadgfx.h"
 #include "Movecoll.h"
+#include "Sound.h"
 #include "Text.h"
 #include "Video.h"
 
@@ -70,6 +71,8 @@ void init()
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
 
+    testMusic();
+
     // gfx
     setVideoMode(VGA_256_COLOR_MODE);
     loadPalette("Pal.bmp", &NewPalette);
@@ -77,7 +80,7 @@ void init()
     loadFontNew();
     loadAllTextures();
     loadAllTiles();
-    //setTextures();
+
     // the rest
     initKeyboard();
     initSystem();
