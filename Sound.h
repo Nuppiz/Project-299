@@ -1,6 +1,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-void testMusic();
+void playMusic(char *music);
+void initMusic();
 
 #endif/* SOUND_H */

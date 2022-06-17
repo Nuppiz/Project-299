@@ -49,6 +49,11 @@ void testButtons()
 {
     if (KEY_WAS_HIT(KEY_DELETE))
         deleteLastObject();
+
+    if (KEY_WAS_HIT(KEY_M))
+    {
+        midasClose();
+    }
 }
 
 void processKeyEvents() // unused right now

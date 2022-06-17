@@ -18,7 +18,7 @@ char debug[NUM_DEBUG][DEBUG_STR_LEN];
 
 static void interrupt (far *old_Timer_ISR)(void);
 
-void interrupt far Timer(void)
+void interrupt far SysTimer(void)
 {
     static long last_clock_time = 0;
 
@@ -68,10 +68,8 @@ void init()
     extern Palette_t NewPalette;
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
-    _dos_setvect(TIME_KEEPER_INT, Timer);
+    _dos_setvect(TIME_KEEPER_INT, SysTimer);
     setTimer(TIMER_1000HZ);
-
-    testMusic();
 
     // gfx
     setVideoMode(VGA_256_COLOR_MODE);
@@ -85,13 +83,15 @@ void init()
     initKeyboard();
     initSystem();
     initGame();
+    initMusic();
     #if DEBUG == 1
     initDebug();
     #endif
 }
 
 void quit()
-{   
+{
+    midasClose();
     setTimer(TIMER_18HZ);
     _dos_setvect(TIME_KEEPER_INT, old_Timer_ISR);
     deinitKeyboard();
@@ -111,6 +111,8 @@ void gameLoop()
     time_t last_frame  = 0; // Tracks time elapsed since last draw started
     time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
     int frame_count    = 0; // Counts frames in a second so far; used by debug
+
+    playMusic("MUSIC/MENU.S3M");
 
     while (System.running == 1)
     {  
