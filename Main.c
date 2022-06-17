@@ -55,8 +55,8 @@ void initSystem()
     System.seconds    = 0;
     System.ticks      = 0;
     System.frames     = 0;
-    System.tick_time  = 1000/TICK_RATE;
-    System.frame_time = 1000/FRAME_RATE;
+    System.tick_time  = 1;
+    System.frame_time = 1;
     System.tick_rate  = TICK_RATE;
     System.frame_rate = FRAME_RATE;
     System.fps        = 0;
@@ -66,6 +66,8 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
+    initMusic();
+    //tmrClose();
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, SysTimer);
@@ -83,7 +85,6 @@ void init()
     initKeyboard();
     initSystem();
     initGame();
-    initMusic();
     #if DEBUG == 1
     initDebug();
     #endif
@@ -112,7 +113,7 @@ void gameLoop()
     time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
     int frame_count    = 0; // Counts frames in a second so far; used by debug
 
-    playMusic("MUSIC/MENU.S3M");
+    playMusic("MUSIC/UFOHIPPA.MOD");
 
     while (System.running == 1)
     {  

@@ -455,5 +455,4 @@ void initMusic()
     /* Open channels for music and sound effects. The first FXCHANNELS
        channels will always be free for playing effects: */
     midasOpenChannels(FXCHANNELS + MAXMUSCHANNELS);
-    midasTMRInit = 0;
 }
