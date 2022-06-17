@@ -57,4 +57,10 @@ enum DebugIndex
     NUM_DEBUG
 };
 
+enum AiMode
+{
+    AI_IDLE,
+    AI_CHASE
+};
+
 #endif/* ENUMS */
