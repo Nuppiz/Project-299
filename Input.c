@@ -47,12 +47,8 @@ void playerControl()
 
 void testButtons()
 {
-    if (KEY_WAS_HIT(KEY_1))
-        deleteObject(1);
-    if (KEY_WAS_HIT(KEY_2))
-        deleteObject(2);
-    if (KEY_WAS_HIT(KEY_3))
-        deleteObject(object_count - 1);
+    if (KEY_WAS_HIT(KEY_DELETE))
+        deleteLastObject();
 }
 
 void processKeyEvents() // unused right now

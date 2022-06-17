@@ -5,18 +5,14 @@
 
 /* AI functions */
 
-extern uint8_t far screen_buf [];
-extern Object_t* Objects;
-extern int object_count;
-extern Map_t map1;
+//extern uint8_t far screen_buf []; /* no draw calls in AI code pls */
+extern GameData_t Game;
 
-int testLineOfSight(Vec2 origin, Vec2 target)
+int testLineOfSight(Vec2 p, Vec2 target)
 {
-    Vec2 origin_to_target = getVec2(origin, target);
-    Vec2 p = origin; // test point
-    Vec2 direction = normalizeVec2(origin_to_target);
-    float distance = getVec2Length(origin_to_target);
-    float los;
+    Vec2 v = getVec2(p, target);
+    float distance = normalizeAndGetLength(&v);
+    float los = 0;
     
     for (los = 0.0; los < distance; los += LOS_STEP)
     {        
@@ -25,8 +21,8 @@ int testLineOfSight(Vec2 origin, Vec2 target)
         if (getTileType(p) == WALL)
             return OUT_OF_SIGHT;
         
-        p.x += (direction.x * LOS_STEP);
-        p.y += (direction.y * LOS_STEP);
+        p.x += (v.x * LOS_STEP);
+        p.y += (v.y * LOS_STEP);
     }
     return IN_SIGHT;
 }
@@ -34,10 +30,10 @@ int testLineOfSight(Vec2 origin, Vec2 target)
 int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
 {
     Vec2 origin_to_target = getVec2(origin, target);
-    float distance = getVec2Length(origin_to_target);
+    float distance_sq = getVec2LengthSquared(origin_to_target);
     float angle;
     
-    if (distance < CHASE_DISTANCE)
+    if (distance_sq < CHASE_DISTANCE_SQ)
     {
         angle = getVec2Angle2(origin_to_target, direction);
         
@@ -59,8 +55,8 @@ int whichSide(Vec2 object_direction, Vec2 object_to_target)
 
 void turnTowards(Object_t* object, Vec2 target)
 {
-    Vec2 ObjectToTarget = getVec2(object->position, target);
-    int side            = whichSide(object->direction, ObjectToTarget);
+    Vec2 object_to_target = getVec2(object->position, target);
+    int side            = whichSide(object->direction, object_to_target);
 
     if (side == LEFT_SIDE)
     {
@@ -76,8 +72,8 @@ void turnTowards(Object_t* object, Vec2 target)
 
 void chaseTarget(Object_t* chaser)
 {
-    Vec2 ObjectToTarget;
-    float distance;
+    Vec2 object_to_target;
+    float distance_sq;
     float cross_product;
 
     #if DEBUG == 1
@@ -85,11 +81,11 @@ void chaseTarget(Object_t* chaser)
     #endif
 
     
-    ObjectToTarget      = getVec2(chaser->position, chaser->move_target);
-    distance            = getVec2Length(ObjectToTarget);
-    cross_product       = crossVec2(ObjectToTarget, chaser->direction);
+    object_to_target = getVec2(chaser->position, chaser->move_target);
+    distance_sq    = getVec2LengthSquared(object_to_target);
+    cross_product  = crossVec2(object_to_target, chaser->direction);
     
-    if (distance <= MIN_CHASE_DISTANCE)
+    if (distance_sq <= MIN_CHASE_DISTANCE_SQ)
         clearBit(chaser->control, CONTROL_UP);
     else
         setBit(chaser->control, CONTROL_UP);
@@ -114,7 +110,7 @@ void chaseTarget(Object_t* chaser)
 
     #if DEBUG == 1
     d = debug[DEBUG_AICHASE];
-    d += sprintf(d, "DISTANCE: %.2f\n", distance);
+    d += sprintf(d, "DISTANCE: %.2f\n", sqrt(distance_sq));
     d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
     d += sprintf(d, "CP: %.2f\n", cross_product);
     d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
@@ -124,7 +120,7 @@ void chaseTarget(Object_t* chaser)
 
 void think(Object_t* obj)
 {
-    obj->move_target = Objects[obj->target_object_id].position;
+    obj->move_target = Game.Objects[obj->target_id].position;
     // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
     if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
     {
@@ -132,8 +128,8 @@ void think(Object_t* obj)
         obj->ai_timer = CHASE_TIMEOUT;
     }
 
-    if (obj->ai_mode == CHASE_TARGET)
-    {
+    if (obj->ai_mode == CHASE_TARGET) // to separate "do" function?
+    {   // "think" infrequently (every 10 tics), but do all the time ... ?
         if (obj->ai_timer > 0)
         {
             chaseTarget(obj);
@@ -153,9 +149,9 @@ void AILoop()
 {
     int i = 1;
     
-    while (i < object_count)
+    while (i < Game.object_count)
     {
-        think(&Objects[i]);
+        think(&Game.Objects[i]);
         i++;
     }
 }

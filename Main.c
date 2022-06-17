@@ -10,7 +10,7 @@
 #include "Text.h"
 #include "Video.h"
 
-System_t System;
+System_t System = {0};
 
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
