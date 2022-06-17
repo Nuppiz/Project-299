@@ -30,6 +30,8 @@ char            *moduleTypeStr[NUMMPLAYERS] = {
     { "Multitracker"} };
 
 mpModule    *mod;                   /* pointer to current module struct */
+unsigned effect1, effect2, effect3;
+uint8_t music_on = FALSE;
 
 /****************************************************************************\
 *
@@ -429,13 +431,44 @@ void asdf(int argc, char *argv[])
 #endif
 }
 
+void loadSFX(char* file1, char* file2, char* file3)
+{    
+    effect1 = LoadEffect(file1, 0);
+    effect2 = LoadEffect(file2, 0);
+    effect3 = LoadEffect(file3, 0);
+}
+
+void playSounds(int effect_id)
+{
+    if (effect_id == 1)
+        PlayEffect(effect1, FXRATE, 200, panMiddle);
+    else if (effect_id == 2)
+        PlayEffect(effect2, FXRATE, 200, panMiddle);
+    else if (effect_id == 3)
+        PlayEffect(effect3, FXRATE, 200, panMiddle);
+}
+
+void stopSFX()
+{
+    FreeEffect(effect1);                /* deallocate effect #1 */
+    FreeEffect(effect2);                /* deallocate effect #2 */
+    FreeEffect(effect3);                /* deallocate effect #3 */
+}
+
+void stopMusic()
+{
+    music_on = FALSE;
+    StopModule(mod);
+}
+
 void playMusic(char *music)
 {
+    music_on = TRUE;
     /* Load module and start playing: */
     mod = NewModule(music);
 }
 
-void initMusic()
+void initSounds()
 {
     int         error, i, isConfig;
     /* Check that the configuration file exists: */

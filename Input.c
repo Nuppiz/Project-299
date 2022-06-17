@@ -6,6 +6,7 @@
 uint8_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
+extern uint8_t music_on;
 
 int control_up = KEY_UP;
 int control_down = KEY_DOWN;
@@ -51,8 +52,18 @@ void testButtons()
 
     if (KEY_WAS_HIT(KEY_M))
     {
-        midasClose();
+        if (music_on == TRUE)
+            stopMusic();
+        else
+            playMusic("MUSIC/PELIMUSA.S3M");        
     }
+
+    if (KEY_WAS_HIT(KEY_7))
+        playSounds(1);
+    if (KEY_WAS_HIT(KEY_8))
+        playSounds(2);
+    if (KEY_WAS_HIT(KEY_9))
+        playSounds(3);
 }
 
 void processKeyEvents() // unused right now
