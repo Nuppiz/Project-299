@@ -68,9 +68,9 @@ void init()
 {
     extern Palette_t NewPalette;
     //timer
-    /*old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
+    old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
-    setTimer(TIMER_1000HZ);*/
+    setTimer(TIMER_1000HZ);
 
     // gfx
     setVideoMode(VGA_256_COLOR_MODE);
