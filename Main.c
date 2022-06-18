@@ -19,11 +19,18 @@ char debug[NUM_DEBUG][DEBUG_STR_LEN];
 
 static void interrupt (far *old_Timer_ISR)(void);
 
+void setTimer(uint16_t new_count)
+{
+    outportb(CONTROL_8253, CONTROL_WORD);
+    outportb(COUNTER_0, LOW_BYTE(new_count));
+    outportb(COUNTER_0, HIGH_BYTE(new_count));
+}
+
 void interrupt far Timer(void)
 {
     static long last_clock_time = 0;
 
-    System.time += 55;
+    System.time++;
 
     // keeps the PC clock ticking in the background
     if (last_clock_time + 182 < System.time)
@@ -33,11 +40,11 @@ void interrupt far Timer(void)
     }
 }
 
-void setTimer(uint16_t new_count)
+int getTimer()
 {
-    outportb(CONTROL_8253, CONTROL_WORD);
-    outportb(COUNTER_0, LOW_BYTE(new_count));
-    outportb(COUNTER_0, HIGH_BYTE(new_count));
+    int clock = inport(COUNTER_0);
+
+    return clock;
 }
 
 #if DEBUG == 1
@@ -67,6 +74,7 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
+    initSounds();
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
@@ -84,7 +92,6 @@ void init()
     initKeyboard();
     initSystem();
     initGame();
-    initSounds();
     #if DEBUG == 1
     initDebug();
     #endif
@@ -158,6 +165,7 @@ void gameLoop()
             System.fps = frame_count;
             frame_count = 0;
         }
+        //sprintf(debug[DEBUG_CLOCK], "CLOCK: %d", getTimer());
         #endif
     }
 }

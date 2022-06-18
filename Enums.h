@@ -55,6 +55,7 @@ enum DebugIndex
     DEBUG_VELOCITY,
     DEBUG_AICHASE,
     DEBUG_TESTFOV,
+    DEBUG_CLOCK,
     NUM_DEBUG
 };
 
