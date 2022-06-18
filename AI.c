@@ -133,6 +133,9 @@ void think(Object_t* obj)
     else
     {
         obj->ai_mode = AI_IDLE;
+        clearBit(obj->control, CONTROL_UP);
+        clearBit(obj->control, CONTROL_LEFT);
+        clearBit(obj->control, CONTROL_RIGHT);
     }
 
     if (obj->ai_mode == AI_CHASE) // to separate "do" function?

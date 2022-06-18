@@ -58,6 +58,9 @@ void testButtons()
             playMusic("MUSIC/PELIMUSA.S3M");        
     }
 
+    if (KEY_WAS_HIT(KEY_2))
+        deleteObject(2);
+
     if (KEY_WAS_HIT(KEY_7))
         playSounds(1);
     if (KEY_WAS_HIT(KEY_8))

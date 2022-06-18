@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-void deleteObject(int object_index);
+void deleteObject(id_t id);
 void deleteLastObject();
 void initGame();
 
