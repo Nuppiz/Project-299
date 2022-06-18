@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Patch.h"
 #include "Structs.h"
 #include "Game.h"
 #include "AI.h"
@@ -19,6 +20,26 @@ char debug[NUM_DEBUG][DEBUG_STR_LEN];
 
 static void interrupt (far *old_Timer_ISR)(void);
 
+unsigned short setTimerBxHookBx;
+unsigned char recomputeMidasTickRate = 0;
+unsigned int midasTickRate = 1000;
+void setTimerBxHook()
+{
+    // compute the expected tick rate (as 8.8 fix) with given bx
+    // assuming "timer" runs at 55 KHz (increased by 55 1000 times a second)
+    asm {
+        pushf
+        cmp setTimerBxHookBx, bx
+        jz skipRecompute
+        mov setTimerBxHookBx, bx
+        inc recomputeMidasTickRate
+    }
+skipRecompute:
+    asm {
+        popf
+    }
+}
+
 void setTimer(uint16_t new_count)
 {
     outportb(CONTROL_8253, CONTROL_WORD);
@@ -32,8 +53,13 @@ void interrupt far Timer(void)
 
     System.time++;
 
+    if (recomputeMidasTickRate) {
+        midasTickRate = 55000 / (1193182 / setTimerBxHookBx);
+        recomputeMidasTickRate = 0;
+    }
+
     // keeps the PC clock ticking in the background
-    if (last_clock_time + 182 < System.time)
+    if (last_clock_time + midasTickRate < System.time)
     {
         last_clock_time = System.time;
         old_Timer_ISR();
@@ -42,9 +68,12 @@ void interrupt far Timer(void)
 
 int getTimer()
 {
-    int clock = inport(COUNTER_0);
+    unsigned short divider;
+    outportb(CONTROL_8253, 0xD2);
+    divider = inportb(COUNTER_0);
+    divider |= inportb(COUNTER_0) << 8;
 
-    return clock;
+    return divider;
 }
 
 #if DEBUG == 1
@@ -74,6 +103,8 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
+    initSystem();
+    patchMidasSetTimer(&setTimerBxHook);
     initSounds();
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
@@ -90,7 +121,6 @@ void init()
 
     // the rest
     initKeyboard();
-    initSystem();
     initGame();
     #if DEBUG == 1
     initDebug();
@@ -129,6 +159,7 @@ void gameLoop()
         {
             do
             {
+                sprintf(debug[DEBUG_CLOCK], "TIMER: %d", getTimer());
                 last_tick = System.time;
 
                 input();  
@@ -165,7 +196,6 @@ void gameLoop()
             System.fps = frame_count;
             frame_count = 0;
         }
-        //sprintf(debug[DEBUG_CLOCK], "CLOCK: %d", getTimer());
         #endif
     }
 }
