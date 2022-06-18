@@ -441,11 +441,11 @@ void loadSFX(char* file1, char* file2, char* file3)
 void playSounds(int effect_id)
 {
     if (effect_id == 1)
-        PlayEffect(effect1, FXRATE, 200, panMiddle);
+        PlayEffect(effect1, FXRATE, 2000, panMiddle);
     else if (effect_id == 2)
-        PlayEffect(effect2, FXRATE, 200, panMiddle);
+        PlayEffect(effect2, FXRATE, 2000, panMiddle);
     else if (effect_id == 3)
-        PlayEffect(effect3, FXRATE, 200, panMiddle);
+        PlayEffect(effect3, FXRATE, 2000, panMiddle);
 }
 
 void stopSFX()

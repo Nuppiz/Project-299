@@ -61,8 +61,16 @@ Vec2 normalizeVec2(Vec2 v)
     
     float vec_length = getVec2Length(v);
     
-    normalizedVec.x = v.x / vec_length;
-    normalizedVec.y = v.y / vec_length;
+    if (vec_length != 0)
+    {
+        normalizedVec.x = v.x / vec_length;
+        normalizedVec.y = v.y / vec_length;
+    }
+    else
+    {
+        normalizedVec.x = 0;
+        normalizedVec.y = 0;
+    }
     
     return normalizedVec;
 }
@@ -71,8 +79,16 @@ float normalizeAndGetLength(Vec2* v)
 {
     float vec_length = getVec2Length(*v);
     
-    v->x /= vec_length;
-    v->y /= vec_length;
+    if (vec_length != 0)
+    {
+        v->x /= vec_length;
+        v->y /= vec_length;
+    }
+    else
+    {
+        v->x = 0;
+        v->y = 0;
+    }
     
     return vec_length;
 }

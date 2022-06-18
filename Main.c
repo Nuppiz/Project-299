@@ -87,6 +87,9 @@ void init()
     #if DEBUG == 1
     initDebug();
     #endif
+
+    playMusic("MUSIC/PELIMUSA.S3M");
+    loadSFX("SFX/AARGH.VOC", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
 }
 
 void quit()
@@ -111,9 +114,6 @@ void gameLoop()
     time_t last_frame  = 0; // Tracks time elapsed since last draw started
     time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
     int frame_count    = 0; // Counts frames in a second so far; used by debug
-
-    playMusic("MUSIC/PELIMUSA.S3M");
-    loadSFX("SFX/AARGH.VOC", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
 
     while (System.running == 1)
     {  

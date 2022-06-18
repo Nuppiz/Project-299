@@ -9,6 +9,7 @@
         "movecoll.h": "c",
         "video.h": "c",
         "conio.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "MSETUP.C": "cpp"
     }
 }
