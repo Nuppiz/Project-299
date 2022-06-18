@@ -23,7 +23,7 @@ void interrupt far Timer(void)
 {
     static long last_clock_time = 0;
 
-    System.time += 17;
+    System.time += 55;
 
     // keeps the PC clock ticking in the background
     if (last_clock_time + 182 < System.time)
@@ -67,10 +67,9 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
+    //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
-    initSounds();
-    //timer
     setTimer(TIMER_1000HZ);
 
     // gfx
@@ -85,6 +84,7 @@ void init()
     initKeyboard();
     initSystem();
     initGame();
+    initSounds();
     #if DEBUG == 1
     initDebug();
     #endif

@@ -31,10 +31,6 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
     Vec2 origin_to_target = getVec2(origin, target);
     float distance_sq = getVec2LengthSquared(origin_to_target);
     float angle;
-
-    #if DEBUG == 1
-    char* d;
-    #endif
     
     if (distance_sq < CHASE_DISTANCE_SQ)
     {
@@ -45,10 +41,6 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
              return IN_SIGHT;
         }
     }
-    #if DEBUG == 1
-    d = debug[DEBUG_TESTFOV];
-    d += sprintf(d, "DISTANCE: %.2f\n", sqrt(distance_sq));
-    #endif
 
     return OUT_OF_SIGHT;
 }
