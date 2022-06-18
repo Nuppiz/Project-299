@@ -1,4 +1,5 @@
 *.iconset
 *.obj
-AI.OBJ
+*.OBJ
 MUSIC/BACK.S3M
+.vscode/settings.json
