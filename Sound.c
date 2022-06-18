@@ -2,6 +2,8 @@
 #include "Common.h"
 #include "MIDAS/MIDAS.H"
 
+/* MIDAS Sound System and related functions */
+
 /* number of sound effect channels: */
 #define FXCHANNELS 2
 
@@ -30,6 +32,11 @@ char            *moduleTypeStr[NUMMPLAYERS] = {
     { "Multitracker"} };
 
 mpModule    *mod;                   /* pointer to current module struct */
+unsigned    defAmplify;             /* default amplification */
+unsigned    amplification;          /* current, amplification */
+unsigned    musicVolume = 64;       /* music master volume */
+unsigned    SFXVolume = 64;         /* SFX master volume */
+int         error;
 unsigned effect1, effect2, effect3;
 uint8_t music_on = FALSE;
 
@@ -278,159 +285,6 @@ void StopModule(mpModule *module)
     midasFreeModule(module);
 }
 
-void asdf(int argc, char *argv[])
-{
-    mpModule    *mod;                   /* pointer to current module struct */
-    unsigned    effect1, effect2;       /* sound effect instrument handles */
-    int         effect3;
-    int         quit = 0;
-    int         error, i, isConfig;
-    unsigned    masterVolume = 64;      /* music master volume */
-    unsigned    defAmplify;             /* default amplification */
-    unsigned    amplification;          /* current, amplification */
-    char        fileName[80];
-#ifdef __BORLANDC__
-    ulong       free1 = coreleft();
-#endif
-
-    /* argv[0] is the program name, argv[1] the module filename, argv[2]
-       and argv[3] are the effect file names. */
-
-    /* Check that there are exactly four arguments: */
-    if  ( argc != 5 )
-    {
-        puts(usage);
-        exit(EXIT_SUCCESS);
-    }
-
-    /* Check that the configuration file exists: */
-    if ( (error = fileExists("MIDAS.CFG", &isConfig)) != OK )
-        midasError(error);
-    if ( !isConfig )
-    {
-        puts("Configuration file not found - run MSETUP.EXE");
-        exit(EXIT_FAILURE);
-    }
-
-    midasSetDefaults();                 /* set MIDAS defaults */
-    midasLoadConfig("MIDAS.CFG");       /* load configuration */
-
-    midasInit();                        /* initialize MIDAS Sound System */
-
-    /* Open channels for music and sound effects. The first FXCHANNELS
-       channels will always be free for playing effects: */
-    midasOpenChannels(FXCHANNELS + MAXMUSCHANNELS);
-
-    /* Get Sound Device default amplification value: */
-    if ( (error = midasSD->GetAmplification(&defAmplify)) != OK )
-        midasError(error);
-    amplification = defAmplify;
-
-    printf("defAmplify = %i\n", defAmplify);
-
-    /* Load module and start playing: */
-    mod = NewModule(argv[1]);
-
-    /* Load sound effect samples and store the instrument handles to the
-       table effects[]: */
-    effect1 = LoadEffect(argv[2], 0);
-    effect2 = LoadEffect(argv[3], 0);
-    effect3 = LoadEffect(argv[4], 1);
-
-    puts("Keys:\n"
-         "        1,2,3   Play effect\n"
-         "        Enter   New module\n"
-         "        +,-     Adjust music volume\n"
-         "        Esc     Exit");
-
-#ifdef __BORLANDC__
-    printf("Memory used: %lu bytes\n", free1 - coreleft());
-#endif
-
-    while ( !quit )
-    {
-        switch ( getch() )
-        {
-            case 27:    /* Escape - quit */
-                quit = 1;
-                break;
-
-            case 13:    /* Enter - new module */
-                puts("Enter new module file name:");
-                gets(&fileName[0]);
-                StopModule(mod);
-                mod = NewModule(&fileName[0]);
-#ifdef __BORLANDC__
-                printf("Memory used: %lu bytes\n", free1 - coreleft());
-#endif
-                break;
-
-            case '1':   /* '1' - play first effect */
-                PlayEffect(effect1, FXRATE, 64, -40);
-                break;
-
-            case '2':   /* '2' - play second effect */
-                PlayEffect(effect2, FXRATE, 64, 40);
-                break;
-
-            case '3':   /* '3' - play third effect */
-                PlayEffect(effect3, FXRATE, 64, panMiddle);
-                break;
-
-            case '+':   /* '+' - increase music volume */
-                if ( masterVolume < 64 )
-                {
-                    masterVolume += 4;
-                    if ( (error = midasMP->SetMasterVolume(masterVolume))
-                        != OK )
-                        midasError(error);
-                }
-
-                /* Calculate the amplification value that corresponds to the
-                   current decrease in volume (in respect to the Sound Device
-                   default amplification value): */
-                amplification = defAmplify * 64L*(MAXMUSCHANNELS+FXCHANNELS) /
-                    (MAXMUSCHANNELS * masterVolume + FXCHANNELS * 64);
-                if ( (error = midasSD->SetAmplification(amplification)) != OK)
-                    midasError(error);
-
-                printf("Music volume: %02i, amplification %02i\n",
-                    masterVolume, amplification);
-                break;
-
-            case '-':
-                if ( masterVolume > 8 )
-                {
-                    masterVolume -= 4;
-                    if ( (error = midasMP->SetMasterVolume(masterVolume))
-                        != OK )
-                        midasError(error);
-                }
-
-                /* Calculate the amplification value that corresponds to the
-                   current decrease in volume (in respect to the Sound Device
-                   default amplification value): */
-                amplification = defAmplify * 64L*(MAXMUSCHANNELS+FXCHANNELS) /
-                    (MAXMUSCHANNELS * masterVolume + FXCHANNELS * 64);
-                if ( (error = midasSD->SetAmplification(amplification)) != OK)
-                    midasError(error);
-
-                printf("Music volume: %02i, amplification %02i\n",
-                    masterVolume, amplification);
-                break;
-        }
-    }
-    StopModule(mod);
-    FreeEffect(effect1);                /* deallocate effect #1 */
-    FreeEffect(effect2);                /* deallocate effect #2 */
-    FreeEffect(effect3);                /* deallocate effect #3 */
-    midasClose();                       /* uninitialize MIDAS */
-
-#ifdef __BORLANDC__
-    printf("Memory used: %lu bytes\n", free1 - coreleft());
-#endif
-}
-
 void loadSFX(char* file1, char* file2, char* file3)
 {    
     effect1 = LoadEffect(file1, 0);
@@ -441,11 +295,19 @@ void loadSFX(char* file1, char* file2, char* file3)
 void playSounds(int effect_id)
 {
     if (effect_id == 1)
-        PlayEffect(effect1, FXRATE, 2000, panMiddle);
+        PlayEffect(effect1, FXRATE, SFXVolume, panMiddle);
     else if (effect_id == 2)
-        PlayEffect(effect2, FXRATE, 2000, panMiddle);
+        PlayEffect(effect2, FXRATE, SFXVolume, panMiddle);
     else if (effect_id == 3)
-        PlayEffect(effect3, FXRATE, 2000, panMiddle);
+        PlayEffect(effect3, FXRATE, SFXVolume, panMiddle);
+}
+
+void setSFXVolume(int modifier)
+{
+    if (modifier == 2 && SFXVolume < 64)
+        SFXVolume += 4;
+    else if (modifier == 1 && SFXVolume > 0)
+        SFXVolume -= 4;
 }
 
 void stopSFX()
@@ -468,9 +330,51 @@ void playMusic(char *music)
     mod = NewModule(music);
 }
 
+void setMusicVolume(int modifier)
+{
+    if (modifier == 2)
+    {
+        if (musicVolume < 64 )
+        {
+            musicVolume += 4;
+            if ( (error = midasMP->SetMasterVolume(musicVolume))
+                != OK )
+                midasError(error);
+        }
+
+        /* Calculate the amplification value that corresponds to the
+            current decrease in volume (in respect to the Sound Device
+            default amplification value): */
+        amplification = defAmplify * 64L*(MAXMUSCHANNELS+FXCHANNELS) /
+            (MAXMUSCHANNELS * musicVolume + FXCHANNELS * 64);
+        if ( (error = midasSD->SetAmplification(amplification)) != OK)
+            midasError(error);
+
+    }
+
+    else if (modifier == 1)
+    {
+        if (musicVolume > 0 )
+            {
+                musicVolume -= 4;
+                if ( (error = midasMP->SetMasterVolume(musicVolume))
+                    != OK )
+                    midasError(error);
+            }
+
+        /* Calculate the amplification value that corresponds to the
+            current decrease in volume (in respect to the Sound Device
+            default amplification value): */
+        amplification = defAmplify * 64L*(MAXMUSCHANNELS+FXCHANNELS) /
+            (MAXMUSCHANNELS * musicVolume + FXCHANNELS * 64);
+        if ( (error = midasSD->SetAmplification(amplification)) != OK)
+            midasError(error);
+    }
+}
+
 void initSounds()
 {
-    int         error, i, isConfig;
+    int         i, isConfig;
     /* Check that the configuration file exists: */
     if ( (error = fileExists("MIDAS.CFG", &isConfig)) != OK )
         midasError(error);
@@ -488,4 +392,9 @@ void initSounds()
     /* Open channels for music and sound effects. The first FXCHANNELS
        channels will always be free for playing effects: */
     midasOpenChannels(FXCHANNELS + MAXMUSCHANNELS);
+
+    /* Get Sound Device default amplification value: */
+    if ( (error = midasSD->GetAmplification(&defAmplify)) != OK )
+        midasError(error);
+    amplification = defAmplify;
 }

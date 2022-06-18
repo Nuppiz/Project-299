@@ -82,7 +82,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
         // to do later: ensure successful allocation
     }
     // set the ID entry in the hashmap (ObjectsById) to point to the newly created object
-    Game.ObjectsById = &Game.Objects[Game.object_count];
+    Game.ObjectsById[id] = &Game.Objects[Game.object_count];
 
     Game.Objects[Game.object_count].id = id;
     Game.Objects[Game.object_count].position.x = x;

@@ -4,6 +4,7 @@
 #include "AI.h"
 #include "Draw.h"
 #include "Input.h"
+#include "Keyb.h"
 #include "Loadgfx.h"
 #include "Movecoll.h"
 #include "Sound.h"
@@ -66,9 +67,10 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
-    //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
+    initSounds();
+    //timer
     setTimer(TIMER_1000HZ);
 
     // gfx
@@ -83,13 +85,12 @@ void init()
     initKeyboard();
     initSystem();
     initGame();
-    initSounds();
     #if DEBUG == 1
     initDebug();
     #endif
 
     playMusic("MUSIC/PELIMUSA.S3M");
-    loadSFX("SFX/AARGH.VOC", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
+    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
 }
 
 void quit()

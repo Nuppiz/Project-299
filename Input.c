@@ -64,6 +64,14 @@ void testButtons()
         playSounds(2);
     if (KEY_WAS_HIT(KEY_9))
         playSounds(3);
+    if (KEY_WAS_HIT(KEY_PAGEUP))
+        setMusicVolume(2);
+    if (KEY_WAS_HIT(KEY_PAGEDOWN))
+        setMusicVolume(1);
+    if (KEY_WAS_HIT(KEY_A))
+        setSFXVolume(2);
+    if (KEY_WAS_HIT(KEY_Z))
+        setSFXVolume(1);
 }
 
 void processKeyEvents() // unused right now

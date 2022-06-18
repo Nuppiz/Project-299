@@ -187,7 +187,7 @@ void CALLING midasUninitError(int errNum);
 
 void CALLING midasDetectSD(void);
 
-
+void setTimer(unsigned new_count);
 
 /****************************************************************************\
 *
