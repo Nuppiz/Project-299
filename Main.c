@@ -18,11 +18,11 @@ char debug[NUM_DEBUG][DEBUG_STR_LEN];
 
 static void interrupt (far *old_Timer_ISR)(void);
 
-void interrupt far SysTimer(void)
+void interrupt far Timer(void)
 {
     static long last_clock_time = 0;
 
-    System.time++;
+    System.time += 17;
 
     // keeps the PC clock ticking in the background
     if (last_clock_time + 182 < System.time)
@@ -55,8 +55,8 @@ void initSystem()
     System.seconds    = 0;
     System.ticks      = 0;
     System.frames     = 0;
-    System.tick_time  = 1; // was 1000/TICK_RATE
-    System.frame_time = 1; // was 1000/FRAME_RATE
+    System.tick_time  = 1000/TICK_RATE;
+    System.frame_time = 1000/FRAME_RATE;
     System.tick_rate  = TICK_RATE;
     System.frame_rate = FRAME_RATE;
     System.fps        = 0;
@@ -68,7 +68,7 @@ void init()
     extern Palette_t NewPalette;
     //timer
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
-    _dos_setvect(TIME_KEEPER_INT, SysTimer);
+    _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
 
     // gfx
