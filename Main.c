@@ -161,9 +161,9 @@ void quit()
 
 void updateStats()
 {
-    /*sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
-        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);*/
-    sprintf(debug[DEBUG_FPS], "BX=%u RC=%u T=%lu", setTimerBxHookBx, recomputeMidasTickRate, System.time);
+    sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
+        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
+    //sprintf(debug[DEBUG_FPS], "BX=%u RC=%u T=%lu", setTimerBxHookBx, recomputeMidasTickRate, System.time);
 }
 
 void gameLoop()
