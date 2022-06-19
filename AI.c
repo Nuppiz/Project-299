@@ -114,7 +114,7 @@ void chaseTarget(Object_t* chaser)
     d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
     d += sprintf(d, "CP: %.2f\n", cross_product);
     d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
-    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.x);
+    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.y);
     #endif
 }
 
