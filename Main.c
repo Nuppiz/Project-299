@@ -64,7 +64,7 @@ void interrupt far Timer(void)
     }
 
     // keeps the PC clock ticking in the background
-    if (last_clock_time + 182 < System.time)
+    if (last_clock_time + 55 < System.time)
     {
         last_clock_time = System.time;
         old_Timer_ISR();
