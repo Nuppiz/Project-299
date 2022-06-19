@@ -1,5 +1,4 @@
 #include "Common.h"
-#include "Patch.h"
 #include "Structs.h"
 #include "Game.h"
 #include "AI.h"
@@ -8,6 +7,7 @@
 #include "Keyb.h"
 #include "Loadgfx.h"
 #include "Movecoll.h"
+#include "Patch.h"
 #include "Sound.h"
 #include "Text.h"
 #include "Video.h"
@@ -19,6 +19,7 @@ char debug[NUM_DEBUG][DEBUG_STR_LEN];
 #endif
 
 static void interrupt (far *old_Timer_ISR)(void);
+static void interrupt (far *midas_Timer_ISR)(void);
 
 unsigned short setTimerBxHookBx;
 unsigned char recomputeMidasTickRate = 0;
@@ -26,7 +27,6 @@ unsigned int midasTickRate = 1000;
 void setTimerBxHook()
 {
     // compute the expected tick rate (as 8.8 fix) with given bx
-    // assuming "timer" runs at 55 KHz (increased by 55 1000 times a second)
     asm {
         pushf
         cmp setTimerBxHookBx, bx
@@ -40,40 +40,53 @@ skipRecompute:
     }
 }
 
+void interrupt far Timer(void)
+{
+    static long last_clock_time = 0;
+    static long last_midas_time = 0;
+
+    asm pushf;
+    asm cli;
+
+    ++System.time;
+
+    if (recomputeMidasTickRate)
+    {
+        midasTickRate = 1000UL / (1193100UL / setTimerBxHookBx);
+        last_midas_time = System.time;
+        recomputeMidasTickRate = 0;
+    }
+
+    if (last_midas_time + midasTickRate < System.time)
+    {
+        last_midas_time = System.time;
+        midas_Timer_ISR();
+    }
+
+    // keeps the PC clock ticking in the background
+    if (last_clock_time + 182 < System.time)
+    {
+        last_clock_time = System.time;
+        old_Timer_ISR();
+    } 
+    else
+    {
+        outportb(PIC2_COMMAND, PIC_EOI);
+        outportb(PIC1_COMMAND, PIC_EOI);
+    }
+
+    asm popf;
+}
+
+void interrupt far stubISR(void) {
+
+}
+
 void setTimer(uint16_t new_count)
 {
     outportb(CONTROL_8253, CONTROL_WORD);
     outportb(COUNTER_0, LOW_BYTE(new_count));
     outportb(COUNTER_0, HIGH_BYTE(new_count));
-}
-
-void interrupt far Timer(void)
-{
-    static long last_clock_time = 0;
-
-    System.time++;
-
-    if (recomputeMidasTickRate) {
-        midasTickRate = 55000 / (1193182 / setTimerBxHookBx);
-        recomputeMidasTickRate = 0;
-    }
-
-    // keeps the PC clock ticking in the background
-    if (last_clock_time + midasTickRate < System.time)
-    {
-        last_clock_time = System.time;
-        old_Timer_ISR();
-    }
-}
-
-int getTimer()
-{
-    unsigned short divider;
-    outportb(CONTROL_8253, 0xD2);
-    divider = inportb(COUNTER_0);
-    divider |= inportb(COUNTER_0) << 8;
-
-    return divider;
 }
 
 #if DEBUG == 1
@@ -103,13 +116,17 @@ void initSystem()
 void init()
 {
     extern Palette_t NewPalette;
-    initSystem();
     patchMidasSetTimer(&setTimerBxHook);
+    asm cli;
+    old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
+    // provide stub ISR to MIDAS so that it doesn't do anything
+    _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
     //timer
-    old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
+    midas_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
+    asm sti;
 
     // gfx
     setVideoMode(VGA_256_COLOR_MODE);
@@ -121,6 +138,7 @@ void init()
 
     // the rest
     initKeyboard();
+    initSystem();
     initGame();
     #if DEBUG == 1
     initDebug();
@@ -132,17 +150,20 @@ void init()
 
 void quit()
 {
+    asm sti;
     midasClose();
     setTimer(TIMER_18HZ);
     _dos_setvect(TIME_KEEPER_INT, old_Timer_ISR);
     deinitKeyboard();
+    asm cli;
     setVideoMode(TEXT_MODE);
 }
 
 void updateStats()
 {
-    sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
-        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
+    /*sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
+        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);*/
+    sprintf(debug[DEBUG_FPS], "BX=%u RC=%u T=%lu", setTimerBxHookBx, recomputeMidasTickRate, System.time);
 }
 
 void gameLoop()
@@ -159,7 +180,6 @@ void gameLoop()
         {
             do
             {
-                sprintf(debug[DEBUG_CLOCK], "TIMER: %d", getTimer());
                 last_tick = System.time;
 
                 input();  

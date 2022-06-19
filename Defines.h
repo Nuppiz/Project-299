@@ -110,9 +110,12 @@
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
 #define COUNTER_0           0x40
-#define TIME_KEEPER_INT     0x1C 
-#define TIMER_18HZ          0xFFFF
+#define TIME_KEEPER_INT     0x08 
+#define TIMER_18HZ          0
 #define TIMER_1000HZ        1193
+#define PIC1_COMMAND        0x20
+#define PIC2_COMMAND        0xA0
+#define PIC_EOI             0x20
 
 #define DWORD               uint32_t
 
