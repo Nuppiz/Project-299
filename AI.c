@@ -5,6 +5,7 @@
 
 /* AI functions */
 
+extern System_t System;
 extern GameData_t Game;
 
 int testLineOfSight(Vec2 p, Vec2 target)
@@ -133,13 +134,38 @@ void think(Object_t* obj)
     else
     {
         obj->ai_mode = AI_IDLE;
-        clearBit(obj->control, CONTROL_UP);
-        clearBit(obj->control, CONTROL_LEFT);
-        clearBit(obj->control, CONTROL_RIGHT);
+        obj->control = 0; // same as clearing all bits
+        // clearBit(obj->control, CONTROL_UP);
+        // clearBit(obj->control, CONTROL_LEFT);
+        // clearBit(obj->control, CONTROL_RIGHT);
     }
+}
 
-    if (obj->ai_mode == AI_CHASE) // to separate "do" function?
-    {   // "think" infrequently (every 10 tics), but do all the time ... ?
+void act(Object_t* obj)
+{
+    if (obj->ai_mode == AI_IDLE)
+    {
+        if (obj->ai_timer == 0)
+        {
+            if (!(obj->control & (CONTROL_LEFT|CONTROL_RIGHT)))
+            {
+                obj->ai_timer = 5 + rand() % 30;
+                if (rand() % 2)
+                    setBit(obj->control, CONTROL_LEFT);
+                else
+                    setBit(obj->control, CONTROL_RIGHT);
+            }
+            else
+            {
+                obj->ai_timer = 10 + rand() % 200;
+                obj->control = 0;
+            }
+        }
+        else
+            obj->ai_timer--;
+    }
+    else if (obj->ai_mode == AI_CHASE)
+    {
         if (obj->ai_timer > 0)
         {
             chaseTarget(obj);
@@ -148,20 +174,32 @@ void think(Object_t* obj)
         else
         {
             obj->ai_mode = AI_IDLE;
-            clearBit(obj->control, CONTROL_UP);
-            clearBit(obj->control, CONTROL_LEFT);
-            clearBit(obj->control, CONTROL_RIGHT);
+            obj->control = 0; // same as clearing all bits
+            //clearBit(obj->control, CONTROL_UP);
+            //clearBit(obj->control, CONTROL_LEFT);
+            //clearBit(obj->control, CONTROL_RIGHT);
         }
     }
 }
 
 void AILoop()
 {
-    int i = 1;
-    
-    while (i < Game.object_count)
+    int i;
+    if (!(System.ticks % 10)) // only think every 10 tics
     {
-        think(&Game.Objects[i]);
-        i++;
+        for (i = 1; i < Game.object_count; i++)
+        {
+            if (Game.Objects[i].ai_mode != AI_NONE)
+            {
+                think(&Game.Objects[i]);
+                act(&Game.Objects[i]);
+            }
+        }
+    }
+    else
+    {
+        for (i = 1; i < Game.object_count; i++)
+            if (Game.Objects[i].ai_mode != AI_NONE)
+                act(&Game.Objects[i]);
     }
 }
