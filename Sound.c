@@ -54,7 +54,7 @@ void Error(char *msg)
 {
     printf("Error: %s\n", msg);
     midasClose();
-    quit();
+    exit(EXIT_FAILURE);
 }
 
 

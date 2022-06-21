@@ -61,6 +61,7 @@ enum DebugIndex
 
 enum AiMode
 {
+    AI_NONE,
     AI_IDLE,
     AI_CHASE
 };
