@@ -92,3 +92,13 @@ float normalizeAndGetLength(Vec2* v)
     
     return vec_length;
 }
+
+Vec2 getDirVec2(double radians)
+{
+	Vec2 direction;
+	
+	direction.x = cos(radians);
+	direction.y = sin(radians);
+	
+	return direction;
+}

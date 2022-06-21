@@ -21,6 +21,7 @@ void loadPalette(char* filename, Palette_t* pal)
 {
     FILE *fp;
     int i;
+	int x;
     
     // Open the file
     fp = fopen(filename, "rb");

@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Vectors.h"
 
 GameData_t Game = {0};
 
@@ -73,7 +74,9 @@ id_t getNewId()
 
 id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, id_t ai_target, Texture_t* sprite)
 {
+	Vec2 direction; //temporary container for direction value
     id_t id = getNewId();
+	direction = getDirVec2(angle);
 
     if (Game.object_count >= Game.object_capacity)
     {
@@ -93,6 +96,11 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].ai_mode = ai_mode;
     Game.Objects[Game.object_count].target_id = ai_target;
     Game.Objects[Game.object_count].sprite = *sprite;
+	Game.Objects[Game.object_count].direction.x = direction.x;
+	Game.Objects[Game.object_count].direction.y = direction.y;
+	
+	Game.Objects[Game.object_count].velocity.x = 0.0;
+	Game.Objects[Game.object_count].velocity.y = 0.0;
 
     Game.object_count++;
     
@@ -124,10 +132,12 @@ void deleteLastObject()
 void createInitialObjects()
 {   
     Game.player_id =
-    createObject(170, 350, 0, 7, 0, NULL, 0, &Textures[DUDE1]);
+    createObject(170, 350, 0.1, 7, 0, NULL, 0, &Textures[DUDE1]);
     
     createObject(280, 90,  1, 7, 0, AI_IDLE, Game.player_id, &Textures[DUDE3]);
-    createObject(80,  110, 0, 7, 0, AI_IDLE, 1,              &Textures[DUDE2]);
+    createObject(80,  110, 0.1, 7, 0, AI_IDLE, 1,              &Textures[DUDE2]);
+    createObject(200, 350, 0.1, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    /*createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
@@ -138,9 +148,7 @@ void createInitialObjects()
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);*/
 }
 
 void initGame()

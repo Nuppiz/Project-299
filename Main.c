@@ -24,6 +24,9 @@ static void interrupt (far *midas_Timer_ISR)(void);
 unsigned short setTimerBxHookBx;
 unsigned char recomputeMidasTickRate = 0;
 unsigned int midasTickRate = 1000;
+
+extern Palette_t NewPalette;
+
 void setTimerBxHook()
 {
     // compute the expected tick rate (as 8.8 fix) with given bx
@@ -115,31 +118,42 @@ void initSystem()
 
 void init()
 {
-    extern Palette_t NewPalette;
+	printf("Initializing sounds...");
     patchMidasSetTimer(&setTimerBxHook);
     asm cli;
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     // provide stub ISR to MIDAS so that it doesn't do anything
     _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
+	printf("OK\n");
     //timer
+	printf("Initializing timer...");
     midas_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
     asm sti;
+	printf("OK\n");
 
     // gfx
+	printf("Initializing graphics...");
     setVideoMode(VGA_256_COLOR_MODE);
+	printf("Video mode OK\n");
     loadPalette("Pal.bmp", &NewPalette);
+	printf("Palette loaded\n");
     setPalette_VGA(&NewPalette);
+	printf("Palette set\n");
     loadFontNew();
     loadAllTextures();
     loadAllTiles();
+	printf("Graphics loaded into memory\n");
 
     // the rest
     initKeyboard();
+	printf("Keyboard OK\n");
     initSystem();
+	printf("System variables OK\n");
     initGame();
+	printf("Game variables OK\n");
     #if DEBUG == 1
     initDebug();
     #endif
@@ -223,6 +237,7 @@ void gameLoop()
 void main()
 {
     init();
+	printf("Init OK\n");
     gameLoop();
     quit();
 }
