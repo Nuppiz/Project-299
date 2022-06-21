@@ -124,9 +124,8 @@ void deleteLastObject()
 void createInitialObjects()
 {   
     Game.player_id =
-    createObject(170, 350, 0, 7, 0, NULL, 0, &Textures[DUDE1]);
-    
-    createObject(280, 90,  1, 7, 0, AI_NONE, Game.player_id, &Textures[DUDE3]);
+    createObject(170, 350, 0, 7, 0, AI_NONE, 0,              &Textures[DUDE1]);
+    createObject(280, 90,  1, 7, 0, AI_IDLE, Game.player_id, &Textures[DUDE3]);
     createObject(80,  110, 0, 7, 0, AI_IDLE, 1,              &Textures[DUDE2]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
     createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
