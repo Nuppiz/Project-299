@@ -167,6 +167,7 @@
 #define CONTROL_FAST        BIT_4
 #define CONTROL_STRAFE_L    BIT_5
 #define CONTROL_STRAFE_R    BIT_6
+#define CONTROL_STRAFE_MOD  BIT_7
 
 #define OBJ_FLAG_DEAD BIT_0
 

@@ -132,7 +132,7 @@ void controlAllObjects()
     
     // copy control variable from Input.c to the player object's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
-    extern uint8_t player_control;
+    extern flags_t player_control;
     PlayerObject.control = player_control;
 
     while (i < Game.object_count)

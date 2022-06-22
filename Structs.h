@@ -71,7 +71,7 @@ typedef struct
     float    magnitude; // magnitude of velocity
     int      radius;    // collision box/circle radius
     
-    uint8_t control;
+    flags_t control;
     uint8_t ai_mode;
     int     ai_timer;
     id_t    target_id; // index number in the object array of the AI's target

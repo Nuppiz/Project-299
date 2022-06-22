@@ -3,7 +3,7 @@
 #include "Vectors.h"
 #include "Keyb.h"
 
-uint8_t player_control = 0;
+flags_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
 extern uint8_t music_on;
@@ -15,6 +15,7 @@ int control_right = KEY_RIGHT;
 int control_fast = KEY_LSHIFT;
 int control_strafe_l = KEY_A;
 int control_strafe_r = KEY_D;
+int control_strafe_mod = KEY_LALT;
 
 void playerControl()
 {
@@ -43,13 +44,38 @@ void playerControl()
     if (KEY_IS_PRESSED(control_strafe_r))   player_control |= CONTROL_STRAFE_R;
     else                                    player_control &= ~CONTROL_STRAFE_R;
 
+    if (KEY_IS_PRESSED(control_strafe_mod))
+    {
+        player_control &= ~CONTROL_LEFT;
+        player_control &= ~CONTROL_RIGHT;
+        if (KEY_IS_PRESSED(control_left))
+        {
+            player_control |= CONTROL_STRAFE_L;
+            player_control &= ~CONTROL_STRAFE_R;
+        }
+        else if (KEY_IS_PRESSED(control_right))
+        {
+            player_control |= CONTROL_STRAFE_R;
+            player_control &= ~CONTROL_STRAFE_L;
+        }
+        else
+        {
+            player_control &= ~CONTROL_STRAFE_L;
+            player_control &= ~CONTROL_STRAFE_R;
+        }
+    }
+
     #if DEBUG == 1
     d[0] = '\0';
-    if (player_control & CONTROL_UP)    d += sprintf(d, "UP ");
-    if (player_control & CONTROL_DOWN)  d += sprintf(d, "DOWN ");
-    if (player_control & CONTROL_LEFT)  d += sprintf(d, "LEFT ");
-    if (player_control & CONTROL_RIGHT) d += sprintf(d, "RIGHT ");
-    if (player_control & CONTROL_FAST)  d += sprintf(d, "FAST ");
+    if (player_control & CONTROL_UP)            d += sprintf(d, "UP ");
+    if (player_control & CONTROL_DOWN)          d += sprintf(d, "DOWN ");
+    if (player_control & CONTROL_LEFT)          d += sprintf(d, "LEFT ");
+    if (player_control & CONTROL_RIGHT)         d += sprintf(d, "RIGHT ");
+    if (player_control & CONTROL_FAST)          d += sprintf(d, "FAST ");
+    if (player_control & CONTROL_STRAFE_L)      d += sprintf(d, "STRAFE-L ");
+    if (player_control & CONTROL_STRAFE_R)      d += sprintf(d, "STRAFE-R ");
+    if (player_control & CONTROL_STRAFE_MOD)    d += sprintf(d, "STRAFE ");
+        
     #endif
 }
 
