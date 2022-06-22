@@ -29,12 +29,6 @@ void playerControl()
     if (KEY_IS_PRESSED(control_down))       player_control |= CONTROL_DOWN;
     else                                    player_control &= ~CONTROL_DOWN;
 
-    if (KEY_IS_PRESSED(control_left))       player_control |= CONTROL_LEFT;
-    else                                    player_control &= ~CONTROL_LEFT;
-
-    if (KEY_IS_PRESSED(control_right))      player_control |= CONTROL_RIGHT;
-    else                                    player_control &= ~CONTROL_RIGHT;
-
     if (KEY_IS_PRESSED(control_fast))       player_control |= CONTROL_FAST;
     else                                    player_control &= ~CONTROL_FAST;
 
@@ -46,23 +40,19 @@ void playerControl()
 
     if (KEY_IS_PRESSED(control_strafe_mod))
     {
-        player_control &= ~CONTROL_LEFT;
-        player_control &= ~CONTROL_RIGHT;
-        if (KEY_IS_PRESSED(control_left))
-        {
-            player_control |= CONTROL_STRAFE_L;
-            player_control &= ~CONTROL_STRAFE_R;
-        }
-        else if (KEY_IS_PRESSED(control_right))
-        {
-            player_control |= CONTROL_STRAFE_R;
-            player_control &= ~CONTROL_STRAFE_L;
-        }
-        else
-        {
-            player_control &= ~CONTROL_STRAFE_L;
-            player_control &= ~CONTROL_STRAFE_R;
-        }
+        if (KEY_IS_PRESSED(control_left))   player_control |= CONTROL_STRAFE_L;
+        else                                player_control &= ~CONTROL_STRAFE_L;
+
+        if (KEY_IS_PRESSED(control_right))  player_control |= CONTROL_STRAFE_R;
+        else                                player_control &= ~CONTROL_STRAFE_R;
+    }
+    else
+    {
+        if (KEY_IS_PRESSED(control_left))       player_control |= CONTROL_LEFT;
+        else                                    player_control &= ~CONTROL_LEFT;
+
+        if (KEY_IS_PRESSED(control_right))      player_control |= CONTROL_RIGHT;
+        else                                    player_control &= ~CONTROL_RIGHT;
     }
 
     #if DEBUG == 1

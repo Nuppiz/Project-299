@@ -119,7 +119,7 @@ void controlObject(Object_t* obj)
         obj->velocity.x += cos(obj->angle - RAD_90) * strafe_speed;
         obj->velocity.y += sin(obj->angle - RAD_90) * strafe_speed;
     }
-    else if ((obj->control & CONTROL_STRAFE_R) && obj->magnitude <= max_speed)
+    if ((obj->control & CONTROL_STRAFE_R) && obj->magnitude <= max_speed)
     {
         obj->velocity.x += cos(obj->angle + RAD_90) * strafe_speed;
         obj->velocity.y += sin(obj->angle + RAD_90) * strafe_speed;
