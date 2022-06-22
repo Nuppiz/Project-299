@@ -40,6 +40,8 @@ void playerControl()
 
     if (KEY_IS_PRESSED(control_strafe_mod))
     {
+        player_control &= ~CONTROL_LEFT;
+        player_control &= ~CONTROL_RIGHT;
         if (KEY_IS_PRESSED(control_left))   player_control |= CONTROL_STRAFE_L;
         else                                player_control &= ~CONTROL_STRAFE_L;
 

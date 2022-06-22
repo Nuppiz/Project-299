@@ -85,8 +85,8 @@
 #define STOP_SPEED          0.2
 #define TURN_RATE           RAD_5
 #define FAST_TURN_RATE      RAD_10
-#define STRAFE_RATE         0.5
-#define FAST_STRAFE_RATE    1
+#define STRAFE_SPEED        0.5
+#define FAST_STRAFE_SPEED   1
 
 #define CHASE_DISTANCE          75
 #define CHASE_DISTANCE_SQ       (CHASE_DISTANCE*CHASE_DISTANCE)

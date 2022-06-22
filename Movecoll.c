@@ -73,7 +73,7 @@ void controlObject(Object_t* obj)
 
     max_speed = ((obj->control & CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
     turn_rate = ((obj->control & CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
-    strafe_speed = ((obj->control & CONTROL_FAST)) ? FAST_STRAFE_RATE : STRAFE_RATE;
+    strafe_speed = ((obj->control & CONTROL_FAST)) ? FAST_STRAFE_SPEED : STRAFE_SPEED;
 
     obj->direction = getDirVec2(obj->angle); // calculate directional vector
     
