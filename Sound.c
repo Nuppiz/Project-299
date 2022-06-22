@@ -302,7 +302,7 @@ void playSounds(int effect_id)
         PlayEffect(effect3, FXRATE, SFXVolume, panMiddle);
 }
 
-void setSFXVolume(int modifier)
+void changeSFXVolume(int modifier)
 {
     if (modifier == 2 && SFXVolume < 64)
         SFXVolume += 4;
@@ -330,7 +330,7 @@ void playMusic(char *music)
     mod = NewModule(music);
 }
 
-void setMusicVolume(int modifier)
+void changeMusicVolume(int modifier)
 {
     if (modifier == 2)
     {

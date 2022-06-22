@@ -23,7 +23,7 @@
 #define SET_PIXEL(x,y,color) screen_buf[(((y)<<8)+((y)<<6)) + (x)] = color
 #else
 #define SET_PIXEL(x,y,color) screen_buf[(y)*SCREEN_WIDTH + (x)] = color
-#endif
+#endif /* DEFINES_H */
 
 #define KB_ARRAY_LENGTH     256
 #define KB_QUEUE_LENGTH     256
@@ -85,6 +85,8 @@
 #define STOP_SPEED          0.2
 #define TURN_RATE           RAD_5
 #define FAST_TURN_RATE      RAD_10
+#define STRAFE_RATE         0.5
+#define FAST_STRAFE_RATE    1
 
 #define CHASE_DISTANCE          75
 #define CHASE_DISTANCE_SQ       (CHASE_DISTANCE*CHASE_DISTANCE)
@@ -106,6 +108,9 @@
 
 #define LEFT_SIDE           1
 #define RIGHT_SIDE          2
+
+#define VOLUME_DOWN         1
+#define VOLUME_UP           2
 
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
@@ -155,11 +160,13 @@
 #define BIT_30 1073741824
 #define BIT_31 2147483648
 
-#define CONTROL_UP    BIT_0
-#define CONTROL_DOWN  BIT_1
-#define CONTROL_LEFT  BIT_2
-#define CONTROL_RIGHT BIT_3
-#define CONTROL_FAST  BIT_4
+#define CONTROL_UP          BIT_0
+#define CONTROL_DOWN        BIT_1
+#define CONTROL_LEFT        BIT_2
+#define CONTROL_RIGHT       BIT_3
+#define CONTROL_FAST        BIT_4
+#define CONTROL_STRAFE_L    BIT_5
+#define CONTROL_STRAFE_R    BIT_6
 
 #define OBJ_FLAG_DEAD BIT_0
 

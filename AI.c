@@ -61,13 +61,13 @@ void turnTowards(Object_t* object, Vec2 target)
 
     if (side == LEFT_SIDE)
     {
-        setBit(object->control, CONTROL_LEFT);
-        clearBit(object->control, CONTROL_RIGHT);
+        (object->control) |= CONTROL_LEFT;
+        (object->control) &= ~CONTROL_RIGHT;
     }
     else if (side == RIGHT_SIDE)
     {
-        setBit(object->control, CONTROL_RIGHT);
-        clearBit(object->control, CONTROL_LEFT);
+        (object->control) |= CONTROL_RIGHT;
+        (object->control) &= ~CONTROL_LEFT;
     }
 }
 
@@ -87,26 +87,26 @@ void chaseTarget(Object_t* chaser)
     cross_product    = crossVec2(object_to_target, chaser->direction);
     
     if (distance_sq <= MIN_CHASE_DISTANCE_SQ)
-        clearBit(chaser->control, CONTROL_UP);
+        (chaser->control) &= ~CONTROL_UP;
     else
-        setBit(chaser->control, CONTROL_UP);
+        (chaser->control) |= CONTROL_UP;
 
     // set direction based on cross product
 
     if (cross_product > TURN_THRESHOLD)
     {
-        setBit(chaser->control, CONTROL_LEFT);
-        clearBit(chaser->control, CONTROL_RIGHT);
+        (chaser->control) |= CONTROL_LEFT;
+        (chaser->control) &= ~CONTROL_RIGHT;
     }
     else if (cross_product < -TURN_THRESHOLD)
     {
-        setBit(chaser->control, CONTROL_RIGHT);
-        clearBit(chaser->control, CONTROL_LEFT);
+        (chaser->control) |= CONTROL_RIGHT;
+        (chaser->control) &= ~CONTROL_LEFT;
     }
     else
     {
-        clearBit(chaser->control, CONTROL_LEFT);
-        clearBit(chaser->control, CONTROL_RIGHT);
+        (chaser->control) |= CONTROL_LEFT;
+        (chaser->control) &= ~CONTROL_RIGHT;
     }
 
     #if DEBUG == 1
@@ -151,9 +151,9 @@ void act(Object_t* obj)
             {
                 obj->ai_timer = 5 + rand() % 30;
                 if (rand() % 2)
-                    setBit(obj->control, CONTROL_LEFT);
+                    (obj->control) |= CONTROL_LEFT;
                 else
-                    setBit(obj->control, CONTROL_RIGHT);
+                    (obj->control) |= CONTROL_RIGHT;
             }
             else
             {

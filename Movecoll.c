@@ -68,21 +68,21 @@ void edgeDetectAllObjects()
 
 void controlObject(Object_t* obj)
 {
-    float max_speed;
+    float max_speed, strafe_speed;
     double turn_rate;
 
-    max_speed = (isBitSet(obj->control, CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
-    turn_rate = (isBitSet(obj->control, CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
+    max_speed = ((obj->control & CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
+    turn_rate = ((obj->control & CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
+    strafe_speed = ((obj->control & CONTROL_FAST)) ? FAST_STRAFE_RATE : STRAFE_RATE;
 
-    obj->direction.x = cos(obj->angle); // calculate directional vector
-    obj->direction.y = sin(obj->angle);
+    obj->direction = getDirVec2(obj->angle); // calculate directional vector
     
-    if (isBitSet(obj->control, CONTROL_UP) && obj->magnitude <= max_speed)
+    if ((obj->control & CONTROL_UP) && obj->magnitude <= max_speed)
     {
         obj->velocity.x += obj->direction.x * ACCELERATION_RATE;
         obj->velocity.y += obj->direction.y * ACCELERATION_RATE;
     }
-    else if (isBitSet(obj->control, CONTROL_DOWN) && obj->magnitude <= max_speed)
+    else if ((obj->control & CONTROL_DOWN) && obj->magnitude <= max_speed)
     {
         obj->velocity.x -= obj->direction.x * ACCELERATION_RATE;
         obj->velocity.y -= obj->direction.y * ACCELERATION_RATE;
@@ -101,17 +101,28 @@ void controlObject(Object_t* obj)
         }
     }
 
-    if (isBitSet(obj->control, CONTROL_LEFT))
+    if ((obj->control & CONTROL_LEFT))
     {
         obj->angle -= turn_rate;
         if (obj->angle < 0)
             obj->angle = RAD_360;
     }
-    if (isBitSet(obj->control, CONTROL_RIGHT))
+    if ((obj->control & CONTROL_RIGHT))
     {
         obj->angle += turn_rate;
         if (obj->angle > RAD_360)
             obj->angle = 0;
+    }
+
+    if ((obj->control & CONTROL_STRAFE_L) && obj->magnitude <= max_speed)
+    {
+        obj->velocity.x += cos(obj->angle - RAD_90) * strafe_speed;
+        obj->velocity.y += sin(obj->angle - RAD_90) * strafe_speed;
+    }
+    else if ((obj->control & CONTROL_STRAFE_R) && obj->magnitude <= max_speed)
+    {
+        obj->velocity.x += cos(obj->angle + RAD_90) * strafe_speed;
+        obj->velocity.y += sin(obj->angle + RAD_90) * strafe_speed;
     }
 }
 

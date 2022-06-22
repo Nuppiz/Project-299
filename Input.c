@@ -13,6 +13,8 @@ int control_down = KEY_DOWN;
 int control_left = KEY_LEFT;
 int control_right = KEY_RIGHT;
 int control_fast = KEY_LSHIFT;
+int control_strafe_l = KEY_A;
+int control_strafe_r = KEY_D;
 
 void playerControl()
 {
@@ -20,20 +22,26 @@ void playerControl()
     char* d = debug[DEBUG_AICHASE];
     #endif
 
-    if (KEY_IS_PRESSED(control_up))     player_control |= CONTROL_UP;
-    else                                player_control &= ~CONTROL_UP;
+    if (KEY_IS_PRESSED(control_up))         player_control |= CONTROL_UP;
+    else                                    player_control &= ~CONTROL_UP;
 
-    if (KEY_IS_PRESSED(control_down))   player_control |= CONTROL_DOWN;
-    else                                player_control &= ~CONTROL_DOWN;
+    if (KEY_IS_PRESSED(control_down))       player_control |= CONTROL_DOWN;
+    else                                    player_control &= ~CONTROL_DOWN;
 
-    if (KEY_IS_PRESSED(control_left))   player_control |= CONTROL_LEFT;
-    else                                player_control &= ~CONTROL_LEFT;
+    if (KEY_IS_PRESSED(control_left))       player_control |= CONTROL_LEFT;
+    else                                    player_control &= ~CONTROL_LEFT;
 
-    if (KEY_IS_PRESSED(control_right))  player_control |= CONTROL_RIGHT;
-    else                                player_control &= ~CONTROL_RIGHT;
+    if (KEY_IS_PRESSED(control_right))      player_control |= CONTROL_RIGHT;
+    else                                    player_control &= ~CONTROL_RIGHT;
 
-    if (KEY_IS_PRESSED(control_fast))   player_control |= CONTROL_FAST;
-    else                                player_control &= ~CONTROL_FAST;
+    if (KEY_IS_PRESSED(control_fast))       player_control |= CONTROL_FAST;
+    else                                    player_control &= ~CONTROL_FAST;
+
+    if (KEY_IS_PRESSED(control_strafe_l))   player_control |= CONTROL_STRAFE_L;
+    else                                    player_control &= ~CONTROL_STRAFE_L;
+
+    if (KEY_IS_PRESSED(control_strafe_r))   player_control |= CONTROL_STRAFE_R;
+    else                                    player_control &= ~CONTROL_STRAFE_R;
 
     #if DEBUG == 1
     d[0] = '\0';
@@ -68,13 +76,13 @@ void testButtons()
     if (KEY_WAS_HIT(KEY_9))
         playSounds(3);
     if (KEY_WAS_HIT(KEY_PAGEUP))
-        setMusicVolume(2);
+        changeMusicVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAGEDOWN))
-        setMusicVolume(1);
-    if (KEY_WAS_HIT(KEY_A))
-        setSFXVolume(2);
-    if (KEY_WAS_HIT(KEY_Z))
-        setSFXVolume(1);
+        changeMusicVolume(VOLUME_DOWN);
+    if (KEY_WAS_HIT(KEY_PAD_PLUS))
+        changeSFXVolume(VOLUME_UP);
+    if (KEY_WAS_HIT(KEY_PAD_MINUS))
+        changeSFXVolume(VOLUME_DOWN);
 }
 
 void processKeyEvents() // unused right now
