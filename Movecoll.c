@@ -116,13 +116,13 @@ void controlObject(Object_t* obj)
 
     if ((obj->control & CONTROL_STRAFE_L) && obj->magnitude <= max_speed)
     {
-        obj->velocity.x += cos(obj->angle - RAD_90) * strafe_speed;
-        obj->velocity.y += sin(obj->angle - RAD_90) * strafe_speed;
+        obj->velocity.x += obj->direction.y * strafe_speed;
+        obj->velocity.y += -obj->direction.x * strafe_speed;
     }
     if ((obj->control & CONTROL_STRAFE_R) && obj->magnitude <= max_speed)
     {
-        obj->velocity.x += cos(obj->angle + RAD_90) * strafe_speed;
-        obj->velocity.y += sin(obj->angle + RAD_90) * strafe_speed;
+        obj->velocity.x += -obj->direction.y * strafe_speed;
+        obj->velocity.y += obj->direction.x * strafe_speed;
     }
 }
 
