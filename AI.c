@@ -105,7 +105,7 @@ void chaseTarget(Object_t* chaser)
     }
     else
     {
-        (chaser->control) |= CONTROL_LEFT;
+        (chaser->control) &= ~CONTROL_LEFT;
         (chaser->control) &= ~CONTROL_RIGHT;
     }
 
