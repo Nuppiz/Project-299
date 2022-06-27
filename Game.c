@@ -61,7 +61,9 @@ id_t getNewId()
 {
     id_t id;
     // to do; optimize with a cached "free list" to avoid looping through really long id lists
-    for (id = 0; id <= Game.id_capacity; id++)
+    // fixed bug where only every other number was used
+    // start id count from 1 so 0 is never used; assign 0 as "no id" if needed
+    for (id = 1; id < Game.id_capacity; id++)
         if (Game.ObjectsById[id] == NULL)
             return id;
     // no free IDs found; allocate more
