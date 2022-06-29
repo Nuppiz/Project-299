@@ -93,6 +93,7 @@ typedef struct
 
 typedef struct
 {
+    int level_num; // current level number
     int width; // width in tiles
     int height; // height in tiles
     uint8_t* collision; // array to store collision data
