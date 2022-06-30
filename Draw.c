@@ -458,9 +458,9 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(PlayerObject.direction.y, PlayerObject.direction.x);
-    pos.x = PlayerObject.position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = PlayerObject.position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(PlayerObject->direction.y, PlayerObject->direction.x);
+    pos.x = PlayerObject->position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = PlayerObject->position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;

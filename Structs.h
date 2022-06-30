@@ -104,7 +104,7 @@ typedef struct
 {
     Map_t Map;
     Object_t* Objects;
-    Object_t** ObjectsById; // not used yet
+    Object_t** ObjectsById;
     id_t object_count;
     id_t object_capacity;
     id_t max_id;

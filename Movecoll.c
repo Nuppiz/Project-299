@@ -133,7 +133,7 @@ void controlAllObjects()
     // copy control variable from Input.c to the player object's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
     extern flags_t player_control;
-    PlayerObject.control = player_control;
+    PlayerObject->control = player_control;
 
     while (i < Game.object_count)
     {
@@ -293,6 +293,6 @@ void physics()
     collideAllObjects();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject.velocity.x, PlayerObject.velocity.y);
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject->velocity.x, PlayerObject->velocity.y);
     #endif
 }
