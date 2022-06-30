@@ -23,7 +23,7 @@
 #define SET_PIXEL(x,y,color) screen_buf[(((y)<<8)+((y)<<6)) + (x)] = color
 #else
 #define SET_PIXEL(x,y,color) screen_buf[(y)*SCREEN_WIDTH + (x)] = color
-#endif /* DEFINES_H */
+#endif/* DEFINES_H */
 
 #define KB_ARRAY_LENGTH     256
 #define KB_QUEUE_LENGTH     256
@@ -71,6 +71,8 @@
 #define WALL                0
 #define COLOUR_WHITE        4
 #define COLOUR_RED          40
+#define COLOUR_BLUE         200
+#define COLOUR_YELLOW       160
 #define COLOUR_PEACH        64
 #define TRANSPARENT_COLOR   251
 

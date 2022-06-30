@@ -75,6 +75,40 @@ int drawText(int x, int y, char* string, uint8_t color)
     return newlines;
 }
 
+int drawTextClipped(int x, int y, char* string, uint8_t color)
+{
+    int i = 0;
+    int newlines = 0;
+    int start_x = x;
+    char c;
+
+    if (x < 0 || x > SCREEN_WIDTH-10 || y < 0 || y > SCREEN_HEIGHT-10)
+        return 0;
+
+    while ((c = string[i++]) != 0)
+    {
+        if (c == '\n')
+        {
+            x = start_x;
+            y += 10;
+            newlines++;
+            
+            if (y > SCREEN_HEIGHT-10)
+                return 0;
+
+            continue;
+        }
+        if (x > SCREEN_WIDTH-10)
+        {
+            continue;
+        }
+        drawSymbol(x, y, c - 32, color);
+        x += 10;
+    }
+
+    return newlines;
+}
+
 void drawDebug()
 {
     int i;

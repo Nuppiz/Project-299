@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Text.h"
 
 /* Graphics drawing functions */
 
@@ -500,6 +501,7 @@ void drawObjects()
     int i = 0; // object array "index"
     int start_x;
     int start_y;
+    char str[8] = {0};
 
     while (i < Game.object_count)
     {
@@ -509,6 +511,11 @@ void drawObjects()
         //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
         drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Game.Objects[i].sprite, TRANSPARENT_COLOR);
         drawDot(&Game.Objects[i]);
+        #if DEBUG == 1
+        str[0] = '\0';
+        sprintf(str, "%u", Game.Objects[i].id);
+        drawTextClipped(start_x, start_y-10, str, COLOUR_YELLOW);
+        #endif
         i++;
     }
 }
