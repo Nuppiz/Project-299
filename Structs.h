@@ -78,7 +78,7 @@ typedef struct
     Vec2    move_target;
 
     uint8_t color;
-    Texture_t sprite;
+    id_t sprite_id;
 } Object_t;
 
 typedef struct

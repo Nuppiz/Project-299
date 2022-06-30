@@ -109,4 +109,27 @@ uint8_t TileMap [] =
   6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,19, 0, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3,
   6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,19, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,19, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3
-};*/
+};
+
+
+void createInitialObjects()
+{   
+    Game.player_id =
+    createObject(170, 350, 0.1, 7, 0, NULL, 0, &Textures[DUDE1]);
+    
+    createObject(280, 90,  1, 7, 0, AI_IDLE, 1, &Textures[DUDE3]);
+    createObject(80,  110, 0.1, 7, 0, AI_IDLE, 2,              &Textures[DUDE2]);
+    createObject(200, 350, 0.1, 7, 0, AI_IDLE, 3,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
+}*/

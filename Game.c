@@ -5,17 +5,13 @@
 
 GameData_t Game = {0};
 
-// instead of referring to a Texture array, objects should simply store an id
-// which acts as an index to an array of Texture pointers
-extern Texture_t Textures[NUM_TEXTURES];
-
 id_t getNewId()
 {
     id_t id;
     // to do; optimize with a cached "free list" to avoid looping through really long id lists
     // fixed bug where only every other number was used
     // start id count from 1 so 0 is never used; assign 0 as "no id" if needed
-    for (id = 0; id < Game.id_capacity; id++)
+    for (id = 1; id < Game.id_capacity; id++)
         if (Game.ObjectsById[id] == NULL)
             return id;
     // no free IDs found; allocate more
@@ -26,7 +22,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, id_t ai_target, Texture_t* sprite)
+id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, id_t ai_target, id_t sprite_id)
 {
 	Vec2 direction; //temporary container for direction value
     id_t id = getNewId();
@@ -49,7 +45,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].control = control;
     Game.Objects[Game.object_count].ai_mode = ai_mode;
     Game.Objects[Game.object_count].target_id = ai_target;
-    Game.Objects[Game.object_count].sprite = *sprite;
+    Game.Objects[Game.object_count].sprite_id = sprite_id;
 	Game.Objects[Game.object_count].direction.x = direction.x;
 	Game.Objects[Game.object_count].direction.y = direction.y;
 	
@@ -81,28 +77,6 @@ void deleteLastObject()
 {
     if (Game.object_count > 0)
         deleteObject(Game.object_count-1);
-}
-
-void createInitialObjects()
-{   
-    Game.player_id =
-    createObject(170, 350, 0.1, 7, 0, NULL, 0, &Textures[DUDE1]);
-    
-    createObject(280, 90,  1, 7, 0, AI_IDLE, Game.player_id, &Textures[DUDE3]);
-    createObject(80,  110, 0.1, 7, 0, AI_IDLE, 1,              &Textures[DUDE2]);
-    createObject(200, 350, 0.1, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    /*createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);
-    createObject(200, 350, 0, 7, 0, AI_IDLE, 2,              &Textures[DUDE1]);*/
 }
 
 void initGame()

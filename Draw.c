@@ -8,6 +8,7 @@ extern System_t System;
 extern GameData_t Game;
 
 extern uint8_t far screen_buf [];
+extern Texture_t Textures[];
 extern Texture_t Tiles [];
 
 Vec2 camera_offset;
@@ -505,11 +506,11 @@ void drawObjects()
 
     while (i < Game.object_count)
     {
-        start_x = Game.Objects[i].position.x - camera_offset.x - Game.Objects[i].sprite.width / 2;
-        start_y = Game.Objects[i].position.y - camera_offset.y - Game.Objects[i].sprite.height / 2;
+        start_x = Game.Objects[i].position.x - camera_offset.x - Textures[Game.Objects[i].sprite_id].width / 2;
+        start_y = Game.Objects[i].position.y - camera_offset.y - Textures[Game.Objects[i].sprite_id].height / 2;
         // draw all circles in their current locations
         //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
-        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Game.Objects[i].sprite, TRANSPARENT_COLOR);
+        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].sprite_id], TRANSPARENT_COLOR);
         drawDot(&Game.Objects[i]);
         #if DEBUG == 1
         str[0] = '\0';

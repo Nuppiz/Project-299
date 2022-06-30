@@ -3,7 +3,6 @@
 #include "Structs.h"
 
 extern GameData_t Game;
-extern Texture_t Textures[NUM_TEXTURES];
 
 void levelLoader()
 {
@@ -15,9 +14,9 @@ void levelLoader()
  
     float x, y;
     double angle;
-    int radius, sprite_id;
+    int radius;
     uint8_t control, ai_mode;
-    id_t ai_target;
+    id_t ai_target, sprite_id;
     
     /* build filename and load it */
     sprintf(filename, "LEVELS/level%d.txt", Game.Map.level_num);
@@ -46,13 +45,14 @@ void levelLoader()
             {
                 fscanf(level_file, "%f %f %lf %d %d %d %d %d",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_target, &sprite_id);
-                Game.player_id = createObject(x, y, angle, radius, control, ai_mode, ai_target, &Textures[sprite_id]);
+                Game.player_id = createObject(x, y, angle, radius, control, ai_mode, ai_target, sprite_id);
+                
             }
             else if (strcmp(buffer, "dude") == 0)
             {
                 fscanf(level_file, "%f %f %lf %d %d %d %d %d",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_target, &sprite_id);
-                createObject(x, y, angle, radius, control, ai_mode, ai_target, &Textures[sprite_id]);
+                createObject(x, y, angle, radius, control, ai_mode, ai_target, sprite_id);
             }
             else if (strcmp(buffer, "collisiondata") == 0)
             {

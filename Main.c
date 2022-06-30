@@ -157,8 +157,7 @@ void init()
     #if DEBUG == 1
     initDebug();
     #endif
-
-    playMusic("MUSIC/PELIMUSA.S3M");
+    
     loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
 }
 
