@@ -88,7 +88,7 @@ void loop()
 void main()
 {
     mainInit();
-    switchState(1);
+    switchState(STATE_TITLE);
     loop();
     quit();
 }

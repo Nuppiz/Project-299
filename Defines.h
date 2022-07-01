@@ -114,6 +114,9 @@
 #define VOLUME_DOWN         1
 #define VOLUME_UP           2
 
+#define STATE_TITLE         1
+#define STATE_INGAME        2
+
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
 #define COUNTER_0           0x40

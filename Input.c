@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "State.h"
+#include "Game.h"
 #include "Vectors.h"
 #include "Keyb.h"
 
@@ -108,7 +109,10 @@ void testButtons()
         changeSFXVolume(VOLUME_DOWN);
 
     if (KEY_WAS_HIT(KEY_ESC))
-        switchState(1);
+    {
+        exitGame();
+        switchState(STATE_TITLE);
+    }
 }
 
 void processKeyEvents() // unused right now
@@ -148,7 +152,7 @@ void gameInput()
 void titleControl()
 {
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
-        switchState(2);
+        switchState(STATE_INGAME);
 }
 
 void titleInput()

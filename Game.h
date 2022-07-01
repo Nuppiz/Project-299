@@ -7,5 +7,6 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
 void deleteObject(id_t id);
 void deleteLastObject();
 void initGame();
+void exitGame();
 
 #endif/* GAME_H */

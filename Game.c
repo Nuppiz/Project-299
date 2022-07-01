@@ -93,3 +93,10 @@ void initGame()
     levelLoader();
     //createInitialObjects();
 }
+
+void exitGame() // exit game to menu/title
+{
+    free(Game.Map.tiles);
+    free(Game.Map.collision);
+    free(Game.Objects);
+}
