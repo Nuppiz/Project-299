@@ -96,7 +96,12 @@ void initGame()
 
 void exitGame() // exit game to menu/title
 {
+    memset(Game.Map.tiles, 0, Game.Map.width * Game.Map.height);
     free(Game.Map.tiles);
+    memset(Game.Map.collision, 0, Game.Map.width * Game.Map.height);
     free(Game.Map.collision);
+    memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
     free(Game.Objects);
+    memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
+    free(Game.ObjectsById);
 }
