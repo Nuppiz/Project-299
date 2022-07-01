@@ -1,6 +1,8 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include "Common.h"
+
 typedef struct
 {
     int    running;
@@ -111,5 +113,14 @@ typedef struct
     id_t id_capacity;
     id_t player_id;
 } GameData_t;
+
+typedef void (*fnp)();
+
+typedef struct {
+  fnp init;
+  fnp input;
+  fnp update;
+  fnp draw;
+} State;
 
 #endif/* STRUCTS_H */

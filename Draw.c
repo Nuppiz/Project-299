@@ -523,7 +523,7 @@ void drawObjects()
 
 void drawDebug();
 
-void draw()
+void gameDraw()
 {
     calcCameraOffset();
     drawMap();
@@ -532,6 +532,9 @@ void draw()
     #if DEBUG == 1
     drawDebug();
     #endif
+}
 
-    render();
+void titleDraw()
+{
+    drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
 }

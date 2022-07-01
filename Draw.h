@@ -4,6 +4,7 @@
 #include "Structs.h"
 
 void drawTexture(int x, int y, Texture_t* texture);
-void draw();
+void gameDraw();
+void titleDraw();
 
 #endif/* DRAW_H */

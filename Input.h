@@ -2,6 +2,7 @@
 #define INPUT_H
 
 void processKeyEvents();
-void input();
+void gameInput();
+void titleInput();
 
 #endif/* INPUT_H */

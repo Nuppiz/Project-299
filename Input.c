@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "State.h"
 #include "Vectors.h"
 #include "Keyb.h"
 
@@ -105,6 +106,9 @@ void testButtons()
         changeSFXVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAD_MINUS))
         changeSFXVolume(VOLUME_DOWN);
+
+    if (KEY_WAS_HIT(KEY_ESC))
+        switchState(1);
 }
 
 void processKeyEvents() // unused right now
@@ -125,10 +129,32 @@ void clearKeys()
         Keyboard.keystates[i] &= KEY_PRESSED_FLAG;
 }
 
-void input()
+void gameInput()
 {
     processKeyEvents();
     playerControl();
+
+    #if DEBUG == 1
+    testButtons();
+    #endif
+    
+    // F10 always exits, wherever you are
+    if (KEY_WAS_HIT(KEY_F10))
+        System.running = 0;
+
+    clearKeys();
+}
+
+void titleControl()
+{
+    if (KEY_IS_PRESSED(KEY_SPACEBAR))
+        switchState(2);
+}
+
+void titleInput()
+{
+    processKeyEvents();
+    titleControl();
 
     #if DEBUG == 1
     testButtons();
