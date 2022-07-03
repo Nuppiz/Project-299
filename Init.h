@@ -3,7 +3,8 @@
 
 void deinitClock();
 void mainInit();
-void gameInit();
 void titleInit();
+void gameInit();
+void pauseInit();
 
 #endif /* INIT_H */

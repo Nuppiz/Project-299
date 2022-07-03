@@ -523,6 +523,11 @@ void drawObjects()
 
 void drawDebug();
 
+void titleDraw()
+{
+    drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
+}
+
 void gameDraw()
 {
     calcCameraOffset();
@@ -534,7 +539,7 @@ void gameDraw()
     #endif
 }
 
-void titleDraw()
+void pauseDraw()
 {
-    drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
+    drawText(104, 96, "PAUSED", COLOUR_WHITE);
 }

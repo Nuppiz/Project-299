@@ -1,7 +1,8 @@
 #ifndef UPDATE_H
 #define UPDATE_H
 
-void gameUpdate();
 void titleUpdate();
+void gameUpdate();
+void pauseUpdate();
 
 #endif /* UPDATE_H */

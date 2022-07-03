@@ -66,4 +66,12 @@ enum AiMode
     AI_CHASE
 };
 
+enum StateIndex
+{
+    STATE_TITLE,
+    STATE_INGAME,
+    STATE_PAUSE,
+    NUM_STATES
+};
+
 #endif/* ENUMS */

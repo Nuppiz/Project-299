@@ -1,7 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
 #include "Game.h"
-#include "State.h"
 #include "AI.h"
 #include "Draw.h"
 #include "Init.h"
@@ -13,9 +12,11 @@
 #include "Sound.h"
 #include "Text.h"
 #include "Video.h"
+#include "State.h"
 
 System_t System = {0};
-State* current_state;
+extern State* Stack[];
+extern stack_top;
 
 void quit()
 {
@@ -38,6 +39,7 @@ void loop()
     time_t last_frame  = 0; // Tracks time elapsed since last draw started
     time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
     int frame_count    = 0; // Counts frames in a second so far; used by debug
+    int i;
 
     while (System.running == 1)
     {  
@@ -46,9 +48,13 @@ void loop()
             do
             {
                 last_tick = System.time;
-
-                current_state->input();
-                current_state->update();
+                for (i = 0; i < stack_top; i++)
+                {
+                    if (Stack[i]->flags & STATE_ENABLE_INPUT != 0);
+                        Stack[i]->input();
+                    if (Stack[i]->flags & STATE_ENABLE_UPDATE != 0);
+                        Stack[i]->update();
+                }
 
                 accumulator -= System.tick_time;
                 System.ticks++;
@@ -60,7 +66,11 @@ void loop()
         {
             last_frame = System.time;
 
-            current_state->draw();
+            for (i = 0; i < stack_top; i++)
+            {
+                if (Stack[i]->flags & STATE_ENABLE_DRAW != 0);
+                    Stack[i]->draw();
+            }
             render();
 
             System.frames++;
@@ -88,7 +98,7 @@ void loop()
 void main()
 {
     mainInit();
-    switchState(STATE_TITLE);
+    pushToStack(STATE_TITLE);
     loop();
     quit();
 }

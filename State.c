@@ -2,34 +2,64 @@
 #include "Input.h"
 #include "Update.h"
 #include "Draw.h"
+#include "Exit.h"
+#include "Enums.h"
 
-/* Game states and their manager */
+/* Game states and stack manager */
 
-extern State* current_state;
+State* Stack[NUM_STATES];
+int state_count = 0;
+int stack_top;
 
-State Titlescreen = {
+State States[NUM_STATES] = {
+{
+    0,
     titleInit,
     titleInput,
     titleUpdate,
-    titleDraw
-};
-
-State Ingame = {
+    titleDraw,
+    titleExit
+},
+{
+    0,
     gameInit,
     gameInput,
     gameUpdate,
-    gameDraw
+    gameDraw,
+    gameExit
+},
+{
+    0,
+    pauseInit,
+    pauseInput,
+    pauseUpdate,
+    pauseDraw,
+    pauseExit
+}
 };
 
-void switchState(uint8_t state)
+void pushToStack(int state_index)
 {
-        switch (state)
-        {
-            case STATE_TITLE:   current_state = &Titlescreen; 
-                                current_state->init();
-                                break;
-            case STATE_INGAME:  current_state = &Ingame;
-                                current_state->init();
-                                break;
-        }
+    if (States[state_index].flags & STATE_IS_ACTIVE == 0)
+    {
+        state_count += 1;
+        stack_top = state_count - 1;
+
+        States[state_index].init();
+        Stack[stack_top] = &States[state_index];
+        Stack[stack_top]->flags |= STATE_IS_ACTIVE;
+    }
+}
+
+void popFromStack()
+{
+    if (state_count > 0)
+    {
+        States[stack_top].exit();
+        Stack[stack_top]->flags &= ~ STATE_IS_ACTIVE;
+
+        Stack[stack_top] = NULL;
+        state_count -= 1;
+        stack_top = state_count - 1;
+    }
 }

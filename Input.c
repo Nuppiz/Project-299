@@ -110,8 +110,11 @@ void testButtons()
 
     if (KEY_WAS_HIT(KEY_ESC))
     {
-        exitGame();
-        switchState(STATE_TITLE);
+        popFromStack();
+    }
+    if (KEY_WAS_HIT(KEY_P))
+    {
+        pushToStack(STATE_PAUSE);
     }
 }
 
@@ -152,13 +155,40 @@ void gameInput()
 void titleControl()
 {
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
-        switchState(STATE_INGAME);
+    {
+        popFromStack();
+        pushToStack(STATE_INGAME);
+    }
 }
 
 void titleInput()
 {
     processKeyEvents();
     titleControl();
+
+    #if DEBUG == 1
+    testButtons();
+    #endif
+    
+    // F10 always exits, wherever you are
+    if (KEY_WAS_HIT(KEY_F10))
+        System.running = 0;
+
+    clearKeys();
+}
+
+void pauseControl()
+{
+    if (KEY_IS_PRESSED(KEY_P))
+    {
+        popFromStack();
+    }
+}
+
+void pauseInput()
+{
+    processKeyEvents();
+    pauseControl();
 
     #if DEBUG == 1
     testButtons();

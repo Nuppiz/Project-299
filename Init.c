@@ -1,7 +1,10 @@
 #include "Common.h"
 #include "Structs.h"
+#include "LvlLoad.h"
 
 extern System_t System;
+extern State States[];
+extern GameData_t Game;
 
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
@@ -103,10 +106,9 @@ void initSystem()
     System.fps_avg    = 0;
 }
 
-void mainInit()
+void soundInit()
 {
-    extern Palette_t NewPalette;
-	printf("Initializing sounds...");
+    printf("Initializing sounds...");
     patchMidasSetTimer(&setTimerBxHook);
     asm cli;
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
@@ -115,15 +117,22 @@ void mainInit()
     initSounds();
     loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
 	printf("OK\n");
-    //timer
-	printf("Initializing timer...");
+}
+
+void timerInit()
+{
+    printf("Initializing timer...");
     midas_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
     asm sti;
 	printf("OK\n");
+}
 
-    // gfx
+void gfxInit()
+{
+    extern Palette_t NewPalette;
+
 	printf("Initializing graphics...");
     setVideoMode(VGA_256_COLOR_MODE);
 	printf("Video mode OK\n");
@@ -136,7 +145,10 @@ void mainInit()
     loadAllTiles();
 	printf("Graphics loaded into memory\n");
 
-    // the rest
+}
+
+void otherInit()
+{
     initKeyboard();
 	printf("Keyboard OK\n");
     initSystem();
@@ -147,15 +159,43 @@ void mainInit()
     #endif
 }
 
-void gameInit()
+void mainInit()
 {
-    initGame();
-	printf("Game variables OK\n");
+    // sound
+    soundInit();
+    // timer
+    timerInit();
+    // gfx
+    gfxInit();
+    // the rest
+    otherInit();
 }
 
 void titleInit()
 {
-    // do nothing atm
+    States[STATE_TITLE].flags |= STATE_ENABLE_INPUT;
+    States[STATE_TITLE].flags |= STATE_ENABLE_DRAW;
+}
+
+void gameInit()
+{
+    Game.object_capacity = 16;
+    Game.id_capacity = 16;
+    Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
+    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
+    Game.Map.level_num = 1;
+    levelLoader();
+	printf("Game variables OK\n");
+    States[STATE_TITLE].flags |= STATE_ENABLE_INPUT;
+    States[STATE_TITLE].flags |= STATE_ENABLE_UPDATE;
+    States[STATE_TITLE].flags |= STATE_ENABLE_DRAW;
+}
+
+void pauseInit()
+{
+    States[STATE_INGAME].flags &= ~ STATE_ENABLE_INPUT;
+    States[STATE_PAUSE].flags |= STATE_ENABLE_INPUT;
+    States[STATE_PAUSE].flags |= STATE_ENABLE_DRAW;
 }
 
 void deinitClock()

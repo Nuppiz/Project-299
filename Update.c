@@ -1,7 +1,12 @@
 #include "AI.h"
 #include "Movecoll.h"
 
-/* Logic, status etc. update functions */
+/* State logic, status etc. update functions */
+
+void titleUpdate()
+{
+    // do nothing atm
+}
 
 void gameUpdate()
 {
@@ -9,7 +14,7 @@ void gameUpdate()
     physics();
 }
 
-void titleUpdate()
+void pauseUpdate()
 {
     // do nothing atm
 }

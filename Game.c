@@ -81,27 +81,10 @@ void deleteLastObject()
 
 void initGame()
 {
-    //Game.Map.width = 24;
-    //Game.Map.height = 20;
-    //Game.Map.collision = CollisionMap;
-    //Game.Map.tiles = TileMap;
     Game.object_capacity = 16;
     Game.id_capacity = 16;
     Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
     Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
     Game.Map.level_num = 1;
     levelLoader();
-    //createInitialObjects();
-}
-
-void exitGame() // exit game to menu/title
-{
-    memset(Game.Map.tiles, 0, Game.Map.width * Game.Map.height);
-    free(Game.Map.tiles);
-    memset(Game.Map.collision, 0, Game.Map.width * Game.Map.height);
-    free(Game.Map.collision);
-    memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
-    free(Game.Objects);
-    memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
-    free(Game.ObjectsById);
 }
