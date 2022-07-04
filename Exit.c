@@ -4,15 +4,17 @@
 
 extern State States[];
 extern GameData_t Game;
+extern uint8_t music_on;
 
 void titleExit()
 {
-    States[STATE_TITLE].flags &= ~ STATE_ENABLE_INPUT;
-    States[STATE_TITLE].flags &= ~ STATE_ENABLE_DRAW;
+    // do nothing atm
 }
 
 void gameExit()
 {
+    if (music_on == TRUE)
+        stopMusic();
     memset(Game.Map.tiles, 0, Game.Map.width * Game.Map.height);
     free(Game.Map.tiles);
     memset(Game.Map.collision, 0, Game.Map.width * Game.Map.height);
@@ -24,14 +26,10 @@ void gameExit()
     memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
     free(Game.ObjectsById);
     Game.id_capacity = 0;
-    States[STATE_TITLE].flags &= ~ STATE_ENABLE_INPUT;
-    States[STATE_TITLE].flags &= ~ STATE_ENABLE_UPDATE;
-    States[STATE_TITLE].flags &= ~ STATE_ENABLE_DRAW;
 }
 
 void pauseExit()
 {
-    States[STATE_PAUSE].flags &= ~ STATE_ENABLE_INPUT;
-    States[STATE_PAUSE].flags &= ~ STATE_ENABLE_DRAW;
     States[STATE_INGAME].flags |= STATE_ENABLE_INPUT;
+    States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
 }

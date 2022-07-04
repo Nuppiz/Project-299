@@ -173,8 +173,7 @@ void mainInit()
 
 void titleInit()
 {
-    States[STATE_TITLE].flags |= STATE_ENABLE_INPUT;
-    States[STATE_TITLE].flags |= STATE_ENABLE_DRAW;
+    // do nothing atm
 }
 
 void gameInit()
@@ -186,16 +185,12 @@ void gameInit()
     Game.Map.level_num = 1;
     levelLoader();
 	printf("Game variables OK\n");
-    States[STATE_TITLE].flags |= STATE_ENABLE_INPUT;
-    States[STATE_TITLE].flags |= STATE_ENABLE_UPDATE;
-    States[STATE_TITLE].flags |= STATE_ENABLE_DRAW;
 }
 
 void pauseInit()
 {
     States[STATE_INGAME].flags &= ~ STATE_ENABLE_INPUT;
-    States[STATE_PAUSE].flags |= STATE_ENABLE_INPUT;
-    States[STATE_PAUSE].flags |= STATE_ENABLE_DRAW;
+    States[STATE_INGAME].flags &= ~ STATE_ENABLE_UPDATE;
 }
 
 void deinitClock()

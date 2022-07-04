@@ -117,12 +117,12 @@ typedef struct
 typedef void (*fnp)();
 
 typedef struct {
-    flags_t flags;
     fnp init;
     fnp input;
     fnp update;
     fnp draw;
     fnp exit;
+    flags_t flags;
 } State;
 
 #endif/* STRUCTS_H */

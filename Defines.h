@@ -178,6 +178,8 @@
 #define STATE_ENABLE_UPDATE    BIT_2
 #define STATE_ENABLE_DRAW      BIT_3
 
+#define ALL_STATE_FLAGS (STATE_IS_ACTIVE|STATE_ENABLE_INPUT|STATE_ENABLE_UPDATE|STATE_ENABLE_DRAW)
+
 /* should be removed, just use bitwise operations directly */
 #define setBit(bitfield, bit)   (bitfield) |= (bit)
 #define clearBit(bitfield, bit) (bitfield) &= ~(bit)

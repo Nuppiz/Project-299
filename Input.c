@@ -63,6 +63,16 @@ void playerControl()
         else                                    player_control &= ~CONTROL_RIGHT;
     }
 
+    if (KEY_WAS_HIT(KEY_ESC))
+    {
+        popFromStack();
+        pushToStack(STATE_TITLE);
+    }
+    if (KEY_WAS_HIT(KEY_P))
+    {
+        pushToStack(STATE_PAUSE);
+    }
+
     #if DEBUG == 1
     d[0] = '\0';
     if (player_control & CONTROL_UP)            d += sprintf(d, "UP ");
@@ -107,15 +117,6 @@ void testButtons()
         changeSFXVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAD_MINUS))
         changeSFXVolume(VOLUME_DOWN);
-
-    if (KEY_WAS_HIT(KEY_ESC))
-    {
-        popFromStack();
-    }
-    if (KEY_WAS_HIT(KEY_P))
-    {
-        pushToStack(STATE_PAUSE);
-    }
 }
 
 void processKeyEvents() // unused right now
@@ -165,10 +166,6 @@ void titleInput()
 {
     processKeyEvents();
     titleControl();
-
-    #if DEBUG == 1
-    testButtons();
-    #endif
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
@@ -179,7 +176,7 @@ void titleInput()
 
 void pauseControl()
 {
-    if (KEY_IS_PRESSED(KEY_P))
+    if (KEY_WAS_HIT(KEY_P))
     {
         popFromStack();
     }

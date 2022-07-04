@@ -50,9 +50,9 @@ void loop()
                 last_tick = System.time;
                 for (i = 0; i < state_count; i++)
                 {
-                    if (Stack[i]->flags & STATE_ENABLE_INPUT != 0);
+                    if (Stack[i]->flags & STATE_ENABLE_INPUT != 0)
                         Stack[i]->input();
-                    if (Stack[i]->flags & STATE_ENABLE_UPDATE != 0);
+                    if (Stack[i]->flags & STATE_ENABLE_UPDATE != 0)
                         Stack[i]->update();
                 }
 
@@ -68,7 +68,7 @@ void loop()
 
             for (i = 0; i < state_count; i++)
             {
-                if (Stack[i]->flags & STATE_ENABLE_DRAW != 0);
+                if (Stack[i]->flags & STATE_ENABLE_DRAW != 0)
                     Stack[i]->draw();
             }
             render();
