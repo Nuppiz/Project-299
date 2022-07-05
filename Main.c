@@ -15,8 +15,9 @@
 #include "State.h"
 
 System_t System = {0};
-extern State* Stack[];
+extern State* Stack[NUM_STATES];
 extern state_count;
+extern stack_top;
 
 void quit()
 {
@@ -48,11 +49,11 @@ void loop()
             do
             {
                 last_tick = System.time;
+                Stack[stack_top]->input(); // only handle input from the state at the top of the stack
+                clearKeys();
                 for (i = 0; i < state_count; i++)
                 {
-                    if (Stack[i]->flags & STATE_ENABLE_INPUT != 0)
-                        Stack[i]->input();
-                    if (Stack[i]->flags & STATE_ENABLE_UPDATE != 0)
+                    if ((Stack[i]->flags & STATE_ENABLE_UPDATE))
                         Stack[i]->update();
                 }
 
@@ -68,7 +69,7 @@ void loop()
 
             for (i = 0; i < state_count; i++)
             {
-                if (Stack[i]->flags & STATE_ENABLE_DRAW != 0)
+                if ((Stack[i]->flags & STATE_ENABLE_DRAW))
                     Stack[i]->draw();
             }
             render();
@@ -98,7 +99,7 @@ void loop()
 void main()
 {
     mainInit();
-    pushToStack(STATE_TITLE);
+    pushState(STATE_TITLE);
     loop();
     quit();
 }

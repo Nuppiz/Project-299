@@ -38,7 +38,7 @@ State States[NUM_STATES] = {
 }
 };
 
-void pushToStack(int state_index)
+void pushState(int state_index)
 {
     if ((States[state_index].flags & STATE_IS_ACTIVE) == 0)
     {
@@ -51,7 +51,7 @@ void pushToStack(int state_index)
     }
 }
 
-void popFromStack()
+void popState()
 {
     if (state_count > 0)
     {

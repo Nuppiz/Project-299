@@ -8,6 +8,7 @@
 flags_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
+extern State States[];
 extern uint8_t music_on;
 
 int control_up = KEY_UP;
@@ -65,12 +66,12 @@ void playerControl()
 
     if (KEY_WAS_HIT(KEY_ESC))
     {
-        popFromStack();
-        pushToStack(STATE_TITLE);
+        popState();
+        pushState(STATE_TITLE);
     }
     if (KEY_WAS_HIT(KEY_P))
     {
-        pushToStack(STATE_PAUSE);
+        pushState(STATE_PAUSE);
     }
 
     #if DEBUG == 1
@@ -139,7 +140,6 @@ void clearKeys()
 
 void gameInput()
 {
-    processKeyEvents();
     playerControl();
 
     #if DEBUG == 1
@@ -149,43 +149,27 @@ void gameInput()
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
         System.running = 0;
-
-    clearKeys();
-}
-
-void titleControl()
-{
-    if (KEY_IS_PRESSED(KEY_SPACEBAR))
-    {
-        popFromStack();
-        pushToStack(STATE_INGAME);
-    }
 }
 
 void titleInput()
 {
-    processKeyEvents();
-    titleControl();
+    if (KEY_IS_PRESSED(KEY_SPACEBAR))
+    {
+        popState();
+        pushState(STATE_INGAME);
+    }
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
         System.running = 0;
-
-    clearKeys();
-}
-
-void pauseControl()
-{
-    if (KEY_WAS_HIT(KEY_P))
-    {
-        popFromStack();
-    }
 }
 
 void pauseInput()
 {
-    processKeyEvents();
-    pauseControl();
+    if (KEY_WAS_HIT(KEY_P))
+    {
+        popState();
+    }
 
     #if DEBUG == 1
     testButtons();
@@ -194,6 +178,4 @@ void pauseInput()
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
         System.running = 0;
-
-    clearKeys();
 }

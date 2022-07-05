@@ -189,8 +189,7 @@ void gameInit()
 
 void pauseInit()
 {
-    States[STATE_INGAME].flags &= ~ STATE_ENABLE_INPUT;
-    States[STATE_INGAME].flags &= ~ STATE_ENABLE_UPDATE;
+    States[STATE_INGAME].flags &= ~STATE_ENABLE_UPDATE;
 }
 
 void deinitClock()

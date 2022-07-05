@@ -30,6 +30,5 @@ void gameExit()
 
 void pauseExit()
 {
-    States[STATE_INGAME].flags |= STATE_ENABLE_INPUT;
     States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
 }

@@ -174,11 +174,10 @@
 #define OBJ_FLAG_DEAD BIT_0
 
 #define STATE_IS_ACTIVE        BIT_0
-#define STATE_ENABLE_INPUT     BIT_1
-#define STATE_ENABLE_UPDATE    BIT_2
-#define STATE_ENABLE_DRAW      BIT_3
+#define STATE_ENABLE_UPDATE    BIT_1
+#define STATE_ENABLE_DRAW      BIT_2
 
-#define ALL_STATE_FLAGS (STATE_IS_ACTIVE|STATE_ENABLE_INPUT|STATE_ENABLE_UPDATE|STATE_ENABLE_DRAW)
+#define ALL_STATE_FLAGS (STATE_IS_ACTIVE|STATE_ENABLE_UPDATE|STATE_ENABLE_DRAW)
 
 /* should be removed, just use bitwise operations directly */
 #define setBit(bitfield, bit)   (bitfield) |= (bit)
