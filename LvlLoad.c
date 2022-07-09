@@ -12,7 +12,7 @@ void levelLoader()
     char c;
     int i = 0;
  
-    float x, y;
+    int x, y;
     double angle;
     int radius, control, ai_mode, ai_timer;
     id_t ai_target, sprite_id;
@@ -42,16 +42,16 @@ void levelLoader()
             }
             else if (strcmp(buffer, "player") == 0)
             {
-                fscanf(level_file, "%f %f %lf %d %d %u",
+                fscanf(level_file, "%d %d %lf %d %d %u",
                     &x, &y, &angle, &radius, &control, &sprite_id);
-                Game.player_id = createObject(x, y, angle, radius, control, 0, 0, 0, sprite_id);
+                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, sprite_id);
                 
             }
             else if (strcmp(buffer, "dude") == 0)
             {
-                fscanf(level_file, "%f %f %lf %d %d %d %d %u %u",
+                fscanf(level_file, "%d %d %lf %d %d %d %d %u %u",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &sprite_id);
-                createObject(x, y, angle, radius, control, ai_mode, ai_timer, ai_target, sprite_id);
+                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, sprite_id);
             }
             else if (strcmp(buffer, "collisiondata") == 0)
             {
