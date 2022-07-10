@@ -115,7 +115,7 @@ void soundInit()
     // provide stub ISR to MIDAS so that it doesn't do anything
     _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
-    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/KARJAISU.VOC");
+    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC");
 	printf("OK\n");
 }
 

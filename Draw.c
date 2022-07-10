@@ -541,5 +541,5 @@ void gameDraw()
 
 void pauseDraw()
 {
-    drawText(104, 96, "PAUSED", COLOUR_WHITE);
+    drawText(132, 96, "PAUSED", COLOUR_WHITE);
 }

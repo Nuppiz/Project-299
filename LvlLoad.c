@@ -2,6 +2,8 @@
 #include "Game.h"
 #include "Structs.h"
 
+/* Level data loader */
+
 extern GameData_t Game;
 
 void levelLoader()

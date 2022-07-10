@@ -3,6 +3,8 @@
 #include "Structs.h"
 #include "Vectors.h"
 
+/* Game data and object array functions */
+
 GameData_t Game = {0};
 
 id_t getNewId()

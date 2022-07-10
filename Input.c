@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Vectors.h"
 #include "Keyb.h"
+#include "Action.h"
 
 flags_t player_control = 0;
 extern System_t System;
@@ -73,6 +74,8 @@ void playerControl()
     {
         pushState(STATE_PAUSE);
     }
+    if (KEY_WAS_HIT(KEY_SPACEBAR))
+        shootWeapon();
 
     #if DEBUG == 1
     d[0] = '\0';
