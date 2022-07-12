@@ -3,35 +3,28 @@
 #include "Movecoll.h"
 #include "Sound.h"
 #include "Vectors.h"
+#include "Text.h"
 
 /* Various actions between the player and other objects */
 
 extern GameData_t Game;
+extern Vec2 camera_offset;
 
 int checkForHit(Vec2 projectile, Vec2 target, int radius)
 {
-    Vec2 collision_box;
+    int collision_left, collision_right, collision_top, collision_bottom;
 
-    collision_box.x = target.x - radius;
-    collision_box.y = target.y - radius;
-    if (projectile.x >= collision_box.x && projectile.y >= collision_box.y)
-        return TRUE;
-    
-    collision_box.x = target.x + radius;
-    collision_box.y = target.y - radius;
-    if (projectile.x <= collision_box.x && projectile.y >= collision_box.y)
-        return TRUE;
+    target.x -= camera_offset.x;
+    target.y -= camera_offset.y;
 
-    collision_box.x = target.x + radius;
-    collision_box.y = target.y + radius;
-    if (projectile.x <= collision_box.x && projectile.y <= collision_box.y)
-        return TRUE;
+    collision_left = target.x - radius;
+    collision_right = target.x + radius;
+    collision_top = target.y - radius;
+    collision_bottom = target.y + radius;
 
-    collision_box.x = target.x - radius;
-    collision_box.y = target.y + radius;
-    if (projectile.x >= collision_box.x && projectile.y <= collision_box.y)
+    if (projectile.x >= collision_left && projectile.x <= collision_right
+    && projectile.y >= collision_top && projectile.y <= collision_bottom)
         return TRUE;
-
     else
         return FALSE;
 }
@@ -46,13 +39,16 @@ int bulletCollision(Object_t* source, Object_t* target)
     bullet_loc.x = source->position.x;
     bullet_loc.y = source->position.y;
 
-    for (bulletpath = 0; bulletpath < BULLET_MAX_DISTANCE; bulletpath += BULLET_STEP)
+    for (bulletpath = 0; bulletpath < BULLET_MAX_DISTANCE; bulletpath++)
     {
-        bullet_loc.x += cos(source->angle) * BULLET_STEP;
-        bullet_loc.y += sin(source->angle) * BULLET_STEP;
+        bullet_loc.x += source->direction.x;
+        bullet_loc.y += source->direction.y;
 
         if (getTileType(bullet_loc) == WALL)
+        {
+            //playSounds(SOUND_EXPLO);
             return FALSE;
+        }
         else if (checkForHit(bullet_loc, target->position, target->radius) == TRUE)
             return TRUE;
     }
@@ -65,10 +61,13 @@ void shootWeapon()
 
     playSounds(SOUND_SHOOT);
 
-    while (i < Game.object_count)
+    while (i < Game.object_count - 1)
     {
         if (bulletCollision(&Game.Objects[0], &Game.Objects[i]) == TRUE)
+        {
             playSounds(SOUND_AARGH);
+            sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+        }
 
         i++;
     }

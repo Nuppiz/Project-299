@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "Text.h"
+#include "Action.h"
 
 /* Graphics drawing functions */
 
@@ -483,6 +484,8 @@ void drawDot(Object_t* obj)
     int pos_x;
     int pos_y;
     float dot_radians;
+    int i;
+    Vec2 dot;
     
     // calculate angle
     dot_radians = atan2(obj->direction.y, obj->direction.x);
@@ -493,8 +496,18 @@ void drawDot(Object_t* obj)
     pos_x = obj->position.x + offset_x;
     pos_y = obj->position.y + offset_y;
 
+    dot.x = pos_x;
+    dot.y = pos_y;
+
     if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
+    {
         SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
+        for (i = 1; i < Game.object_count; i++)
+        {
+            if (checkForHit(dot, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
+                drawText(152, 180, "HIT", COLOUR_WHITE);
+        }
+    }
 }
 
 void drawObjects()
