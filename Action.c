@@ -4,6 +4,9 @@
 #include "Sound.h"
 #include "Vectors.h"
 #include "Text.h"
+#include "Game.h"
+#include "Draw.h"
+#include "Video.h" // temp
 
 /* Various actions between the player and other objects */
 
@@ -14,8 +17,8 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
 {
     int collision_left, collision_right, collision_top, collision_bottom;
 
-    target.x -= camera_offset.x;
-    target.y -= camera_offset.y;
+    //target.x -= camera_offset.x;
+    //target.y -= camera_offset.y;
 
     collision_left = target.x - radius;
     collision_right = target.x + radius;
@@ -29,46 +32,57 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
         return FALSE;
 }
 
-int bulletCollision(Object_t* source, Object_t* target)
+void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
 {
-    //Vec2 s_to_t = getVec2(source->position, target->position);
-    Vec2 bullet_loc;
-    int bulletpath;
-    //float angle = getVec2Angle2(s_to_t, source->direction);
+    int bulletpath, i, b;
 
-    bullet_loc.x = source->position.x;
-    bullet_loc.y = source->position.y;
-
-    for (bulletpath = 0; bulletpath < BULLET_MAX_DISTANCE; bulletpath++)
+    for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
-        bullet_loc.x += source->direction.x;
-        bullet_loc.y += source->direction.y;
+        pos.x += dir.x * BULLET_STEP;
+        pos.y += dir.y * BULLET_STEP;
 
-        if (getTileType(bullet_loc) == WALL)
+        if (getTileType(pos) == WALL)
         {
             //playSounds(SOUND_EXPLO);
-            return FALSE;
+            createParticle(pos, 48);
+            break;
         }
-        else if (checkForHit(bullet_loc, target->position, target->radius) == TRUE)
-            return TRUE;
+        else
+        {
+            for (i = 0; i < Game.object_count; i++)
+            {
+                if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
+                {
+                    playSounds(SOUND_AARGH);
+                    for (b = 0; b < 20; b++)
+                    {
+                        createParticle(pos, 176);
+                    }
+                    deleteObject(Game.Objects[i].id);
+                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+                }
+                //SET_PIXEL_VGA(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y)), COLOUR_WHITE);
+            }
+        }
     }
-    return FALSE;
+    createParticle(pos, 32);
 }
 
-void shootWeapon()
+void shootWeapon(Object_t* source)
 {
-    int i = 1;
+    Vec2 bullet_loc, direction;
+    double angle;
+    int i;
 
     playSounds(SOUND_SHOOT);
 
-    while (i < Game.object_count - 1)
-    {
-        if (bulletCollision(&Game.Objects[0], &Game.Objects[i]) == TRUE)
-        {
-            playSounds(SOUND_AARGH);
-            sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-        }
+    bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);
+    bullet_loc.y = source->position.y + direction.y * (source->radius * 1.5);
 
-        i++;
+    for (i = 1; i < 4; i++)
+    {
+        angle = source->angle + ((rand() % 20 - 10) * RAD_1);
+        direction = getDirVec2(angle);
+        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 -10));
     }
 }

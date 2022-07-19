@@ -125,4 +125,11 @@ typedef struct {
     flags_t flags;
 } State;
 
+typedef struct {
+    Vec2 pos;
+    Vec2 vel;
+    int life;
+    uint8_t color;
+} Particle;
+
 #endif/* STRUCTS_H */
