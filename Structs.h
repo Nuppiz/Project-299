@@ -45,6 +45,7 @@ typedef struct
 
 typedef struct
 {
+    char* filename;
     uint8_t* pixels;
     uint16_t width, height;
     uint16_t transparent;
@@ -114,7 +115,7 @@ typedef struct
     id_t player_id;
 } GameData_t;
 
-typedef void (*fnp)();
+typedef void (*fnp)(); // function pointer
 
 typedef struct {
     fnp init;
@@ -131,5 +132,14 @@ typedef struct {
     int life;
     uint8_t color;
 } Particle;
+
+typedef struct {
+    uint8_t texture_id : 6;
+    uint8_t material_type : 3; //generic, grass, sand, wood, water, snow, metal, plastic ...?
+    uint8_t obstacle : 1;
+    uint8_t block_bullets : 1;
+    uint8_t entity_type : 2; // none, door, switch, breakable
+    uint8_t entity_value : 3; // door id (0-7), switch id (0-7), breakable_health (0-7)
+} Tile;
 
 #endif/* STRUCTS_H */
