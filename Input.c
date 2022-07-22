@@ -9,7 +9,7 @@
 flags_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
-extern State States[];
+extern State_t States[];
 extern GameData_t Game;
 extern uint8_t music_on;
 

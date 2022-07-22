@@ -1,12 +1,8 @@
-#ifndef LOADGFX
-#define LOADGFX
+#ifndef LOADGFX_H
+#define LOADGFX_H
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size);
-int loadTileGfx(char* filename);
-void loadTile(char* filename, int tile_index);
-int loadTexture(char* filename);
 void createErrorTexture();
-void loadAllTextures();
-void loadAllTiles();
+int loadTexture(char* filename);
 
-#endif/* LOADGFX */
+#endif/* LOADGFX_H */

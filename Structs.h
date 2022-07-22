@@ -101,14 +101,14 @@ typedef struct {
     uint8_t block_bullets : 1;
     uint8_t entity_type : 2; // none, door, switch, breakable
     uint8_t entity_value : 3; // door id (0-7), switch id (0-7), breakable_health (0-7)
-} Tile;
+} Tile_t;
 
 typedef struct
 {
     int level_num; // current level number
     int width; // width in tiles
     int height; // height in tiles
-    Tile* tilemap;
+    Tile_t* tilemap;
 } Map_t;
 
 typedef struct
@@ -132,13 +132,13 @@ typedef struct {
     fnp draw;
     fnp exit;
     flags_t flags;
-} State;
+} State_t;
 
 typedef struct {
     Vec2 pos;
     Vec2 vel;
-    int life;
+    int8_t life;
     uint8_t color;
-} Particle;
+} Particle_t;
 
 #endif/* STRUCTS_H */

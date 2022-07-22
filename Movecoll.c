@@ -31,6 +31,23 @@ int getTileCollision(Vec2 pos)
     return tile_obstacle; // return said data
 }
 
+int getTileBulletBlock(Vec2 pos)
+{
+    int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
+    uint8_t tile_bullet;
+    
+    // calculate current grid position
+    pos.x /= SQUARE_SIZE;
+    pos.y /= SQUARE_SIZE;
+    
+    // check which grid_array index it corresponds to
+    object_tile = (int)pos.y * Game.Map.width + (int)pos.x;
+    
+    tile_bullet = Game.Map.tilemap[object_tile].block_bullets; // check bullet block flag at that index
+    
+    return tile_bullet; // return said data
+}
+
 void edgeDetectObject(Object_t* obj)
 {
     if (obj->position.x - obj->radius <= 0) // left edge
@@ -161,7 +178,7 @@ void moveObject(Object_t* obj, Vec2 movement)
         test_point_b.y = obj->position.y + obj->radius;
         
         // if the movement would result in the object moving inside of a wall...
-        if (getTileCollision(test_point_a) == OBSTACLE || getTileCollision(test_point_b) == OBSTACLE)
+        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
             // ...cancel movement and set velocity to 0
             obj->position.x = (obj->grid_loc.x + 1) * SQUARE_SIZE - obj->radius - 1;
@@ -178,7 +195,7 @@ void moveObject(Object_t* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (getTileCollision(test_point_a) == OBSTACLE || getTileCollision(test_point_b) == OBSTACLE)
+        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
             obj->position.x = obj->grid_loc.x * SQUARE_SIZE + obj->radius;
             obj->velocity.x = 0.0;
@@ -195,7 +212,7 @@ void moveObject(Object_t* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y - obj->radius;
         
-        if (getTileCollision(test_point_a) == OBSTACLE || getTileCollision(test_point_b) == OBSTACLE)
+        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
             obj->position.y = obj->grid_loc.y * SQUARE_SIZE + obj->radius;
             obj->velocity.y = 0.0;
@@ -211,7 +228,7 @@ void moveObject(Object_t* obj, Vec2 movement)
         test_point_b.x = obj->position.x - obj->radius;
         test_point_b.y = obj->position.y + obj->radius;
         
-        if (getTileCollision(test_point_a) == OBSTACLE || getTileCollision(test_point_b) == OBSTACLE)
+        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
             obj->position.y = (obj->grid_loc.y + 1) * SQUARE_SIZE - obj->radius - 1;
             obj->velocity.y = 0.0;

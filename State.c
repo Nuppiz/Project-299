@@ -7,11 +7,11 @@
 
 /* Game states and stack manager */
 
-State* Stack[NUM_STATES];
+State_t* Stack[NUM_STATES];
 int state_count = 0;
 int stack_top;
 
-State States[NUM_STATES] = {
+State_t States[NUM_STATES] = {
 {
     titleInit,
     titleInput,

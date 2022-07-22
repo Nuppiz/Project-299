@@ -2,7 +2,7 @@
 
 /* State exit functions */
 
-extern State States[];
+extern State_t States[];
 extern GameData_t Game;
 extern uint8_t music_on;
 

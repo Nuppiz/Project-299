@@ -3,6 +3,7 @@
 #include "Text.h"
 #include "Action.h"
 #include "Video.h"
+#include "Vectors.h"
 
 /* Graphics drawing functions */
 
@@ -13,7 +14,7 @@ extern uint8_t far screen_buf[];
 extern Texture_t* Textures;
 
 Vec2 camera_offset;
-Particle Particles[MAX_PARTICLES] = {0};
+Particle_t Particles[MAX_PARTICLES] = {0};
 int particle_read = 0;
 int particle_write = 0;
 
@@ -418,8 +419,7 @@ void drawMap()
         {
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
-                drawTextureClipped(x_pixel, y_pixel, &Textures[0]);
-                ASSERT(Textures[0].pixels[0] == COLOUR_RED);
+                drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
                 i++;
             }
         }
@@ -430,8 +430,7 @@ void drawMap()
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
-                    drawTextureClipped(x_pixel, y_pixel, &Textures[0]);
-                    ASSERT(Textures[0].pixels[0] == COLOUR_RED);
+                    drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
                 }
                 i++;
             }
@@ -529,18 +528,57 @@ void decrementParticleWrite()
         particle_write = MAX_PARTICLES - 1;
 }
 
-void createParticle(Vec2 pos, uint8_t color)
+void spawnParticle(Vec2 pos, Vec2 vel, uint8_t color, int8_t life)
 {
-    int random_x = (rand() % 10) - 5;
-    int random_y = (rand() % 10) - 5;
     Particles[particle_write].pos.x = pos.x;
     Particles[particle_write].pos.y = pos.y;
-    Particles[particle_write].vel.x = random_x / 10.0;
-    Particles[particle_write].vel.y = random_y / 10.0;
+    Particles[particle_write].vel.x = vel.x;
+    Particles[particle_write].vel.y = vel.y;
     Particles[particle_write].color = color;
-    Particles[particle_write].life = rand() % 15;
+    Particles[particle_write].life = life;
 
     increaseParticleWrite();
+}
+
+void sprayParticle(Vec2 pos, Vec2 dir, float speed, float randomness, uint8_t num_particles, uint8_t start_color, uint8_t color_variance)
+{
+    Vec2 basic_direction, random_direction, vel;
+    float random_angle;
+    int8_t life = rand() % 15;
+    uint8_t color = start_color + rand() % color_variance;
+    int i;
+
+    basic_direction.x = dir.x * speed;
+    basic_direction.y = dir.y = speed;
+
+    random_angle = degToRad(rand() % 360);
+    random_direction = getDirVec2(random_angle);
+    random_direction.x *= speed *= randomness;
+    random_direction.y *= speed *= randomness;
+
+    vel.x = basic_direction.x + random_direction.x;
+    vel.y = basic_direction.y + random_direction.y;
+    for (i = 0; i < num_particles; i++)
+    {
+        spawnParticle(pos, vel, color, life);
+    }
+}
+
+void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type)
+{
+    uint8_t start_color, color_variance, num_particles;
+    float speed, randomness;
+    speed = rand() % 10 / 5.0;
+
+    switch (fx_type)
+    {
+    case FX_BLOOD: start_color = 176, color_variance = 15, num_particles = 20, randomness = 0.8, speed = -speed; break;
+    case FX_SPARKS: start_color = 160, color_variance = 7, num_particles = 15, randomness = 0.5, speed = -speed; break;
+    case FX_DIRT: start_color = 64, color_variance = 15, num_particles = 8, randomness = 0.3; break;
+    
+    default: break;
+    }
+    sprayParticle(pos, dir, speed, randomness, num_particles, start_color, color_variance);
 }
 
 void deleteParticle(int index)
@@ -574,7 +612,6 @@ void particleArrayManager()
             continue;
         }    
         drawParticle(&Particles[i].pos, Particles[i].vel, Particles[i].color);
-        Particles[i].color++;
         i++;
         if (i == MAX_PARTICLES)
         {

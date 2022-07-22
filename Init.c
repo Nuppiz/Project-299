@@ -4,7 +4,7 @@
 #include "Loadgfx.h"
 
 extern System_t System;
-extern State States[];
+extern State_t States[];
 extern GameData_t Game;
 
 #if DEBUG == 1

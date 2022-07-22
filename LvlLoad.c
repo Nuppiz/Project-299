@@ -6,7 +6,8 @@
 /* Level data loader */
 
 extern GameData_t Game;
-Tile TileSet[100] = {0};
+extern Texture_t* Textures;
+Tile_t TileSet[100];
 
 void loadTileset(char* filename)
 {
@@ -63,7 +64,7 @@ void levelLoader()
     int radius, control, ai_mode, ai_timer;
     id_t ai_target, texture_id;
 
-    level_file = fopen("LEVELS/tiletest.txt", "rb");
+    level_file = fopen("LEVELS/tiletest.txt", "r");
     
     if (level_file == NULL)
     {
@@ -87,22 +88,20 @@ void levelLoader()
             else if (strcmp(buffer, "leveldim") == 0)
             {
                 fscanf(level_file, "%d %d", &Game.Map.width, &Game.Map.height);
-                Game.Map.tilemap = malloc((Game.Map.width * Game.Map.height) * sizeof(Tile));
+                Game.Map.tilemap = malloc((Game.Map.width * Game.Map.height) * sizeof(Tile_t));
                 ASSERT(Game.Map.width == 30);
                 ASSERT(Game.Map.height == 30);
             }
             else if (strcmp(buffer, "tilemap") == 0)
             {
                 i = 0;
-                while ((c = fgetc(level_file)) != EOF)
+                while ((c = fgetc(level_file)) != EOF && i < Game.Map.width * Game.Map.height)
                 {
                     if (c != '\n')
                     {
                         Game.Map.tilemap[i] = TileSet[c - 32];
                         i++;
                     }
-                    else
-                        putchar('\n');
                 }
             }
             else if (strcmp(buffer, "player") == 0)
