@@ -2,7 +2,7 @@
 
 /* State exit functions */
 
-extern State States[];
+extern State_t States[];
 extern GameData_t Game;
 extern uint8_t music_on;
 
@@ -15,10 +15,8 @@ void gameExit()
 {
     if (music_on == TRUE)
         stopMusic();
-    memset(Game.Map.tiles, 0, Game.Map.width * Game.Map.height);
-    free(Game.Map.tiles);
-    memset(Game.Map.collision, 0, Game.Map.width * Game.Map.height);
-    free(Game.Map.collision);
+    memset(Game.Map.tilemap, 0, Game.Map.width * Game.Map.height);
+    free(Game.Map.tilemap);
     Game.object_count = 0;
     memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
     free(Game.Objects);

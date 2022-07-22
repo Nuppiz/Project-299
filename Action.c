@@ -34,17 +34,16 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
 
 void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
 {
-    int bulletpath, i, b;
+    int bulletpath, i;
 
     for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
         pos.x += dir.x * BULLET_STEP;
         pos.y += dir.y * BULLET_STEP;
 
-        if (getTileType(pos) == WALL)
+        if (getTileBulletBlock(pos) == TRUE)
         {
-            //playSounds(SOUND_EXPLO);
-            createParticle(pos, 48);
+            particleFx(pos, dir, FX_SPARKS);
             break;
         }
         else
@@ -53,19 +52,15 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
             {
                 if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
                 {
-                    playSounds(SOUND_AARGH);
-                    for (b = 0; b < 20; b++)
-                    {
-                        createParticle(pos, 176);
-                    }
-                    deleteObject(Game.Objects[i].id);
+                    //playSounds(SOUND_AARGH);
+                    particleFx(pos, dir, FX_BLOOD);
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
                 }
                 //SET_PIXEL_VGA(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y)), COLOUR_WHITE);
             }
         }
     }
-    createParticle(pos, 32);
+    particleFx(pos, dir, FX_DIRT);
 }
 
 void shootWeapon(Object_t* source)

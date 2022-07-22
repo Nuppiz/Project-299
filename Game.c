@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "LvlLoad.h"
 #include "Structs.h"
+#include "Loadgfx.h"
 #include "Vectors.h"
 
 /* Game data and object array functions */
@@ -24,7 +25,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, id_t sprite_id)
+id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, char* texture_name)
 {
 	Vec2 direction; //temporary container for direction value
     id_t id = getNewId();
@@ -48,7 +49,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].ai_mode = ai_mode;
     Game.Objects[Game.object_count].ai_timer = ai_timer;
     Game.Objects[Game.object_count].target_id = ai_target;
-    Game.Objects[Game.object_count].sprite_id = sprite_id;
+    Game.Objects[Game.object_count].texture_id = loadTexture(texture_name);
 	Game.Objects[Game.object_count].direction.x = direction.x;
 	Game.Objects[Game.object_count].direction.y = direction.y;
 	
@@ -80,14 +81,4 @@ void deleteLastObject()
 {
     if (Game.object_count > 0)
         deleteObject(Game.object_count-1);
-}
-
-void initGame()
-{
-    Game.object_capacity = 16;
-    Game.id_capacity = 16;
-    Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
-    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
-    Game.Map.level_num = 1;
-    levelLoader();
 }

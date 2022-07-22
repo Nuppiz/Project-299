@@ -15,7 +15,7 @@
 #include "State.h"
 
 System_t System = {0};
-extern State* Stack[NUM_STATES];
+extern State_t* Stack[NUM_STATES];
 extern state_count;
 extern stack_top;
 

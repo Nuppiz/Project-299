@@ -4,7 +4,7 @@
 #include "Structs.h"
 
 void drawTexture(int x, int y, Texture_t* texture);
-void createParticle(Vec2 pos, uint8_t);
+void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type);
 void titleDraw();
 void gameDraw();
 void pauseDraw();
