@@ -18,7 +18,7 @@ int testLineOfSight(Vec2 p, Vec2 target)
     {        
         //SET_PIXEL((int)p.x - (CAMERA_OFFSET * SQUARE_SIZE), (int)p.y, COLOUR_WHITE);
         
-        if (getTileType(p) == WALL)
+        if (getTileCollision(p) == OBSTACLE)
             return OUT_OF_SIGHT;
         
         p.x += (v.x * LOS_STEP);

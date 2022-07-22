@@ -41,7 +41,7 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
         pos.x += dir.x * BULLET_STEP;
         pos.y += dir.y * BULLET_STEP;
 
-        if (getTileType(pos) == WALL)
+        if (getTileCollision(pos) == OBSTACLE)
         {
             //playSounds(SOUND_EXPLO);
             createParticle(pos, 48);

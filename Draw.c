@@ -9,9 +9,8 @@
 extern System_t System;
 extern GameData_t Game;
 
-extern uint8_t far screen_buf [];
-extern Texture_t Textures [];
-extern Texture_t Tiles [];
+extern uint8_t far screen_buf[];
+extern Texture_t* Textures;
 
 Vec2 camera_offset;
 Particle Particles[MAX_PARTICLES] = {0};
@@ -419,13 +418,8 @@ void drawMap()
         {
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
-                /*if (x_pixel >= SQUARE_SIZE && x_pixel < (SCREEN_WIDTH - SQUARE_SIZE) && y_pixel >= SQUARE_SIZE && y_pixel < (SCREEN_HEIGHT - SQUARE_SIZE))
-                    drawTexture(x_pixel, y_pixel, &Textures[Game.Map.textures[i]]);
-                else
-                {
-                    drawSpritePartial(x_pixel, y_pixel, &Textures[Game.Map.textures[i] + 8]);
-                }*/
-                drawTextureClipped(x_pixel, y_pixel, &Tiles[Game.Map.tiles[i]]);
+                drawTextureClipped(x_pixel, y_pixel, &Textures[0]);
+                ASSERT(Textures[0].pixels[0] == COLOUR_RED);
                 i++;
             }
         }
@@ -435,7 +429,10 @@ void drawMap()
             {
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
-                    drawTextureClipped(x_pixel, y_pixel, &Tiles[Game.Map.tiles[i]]);
+                {
+                    drawTextureClipped(x_pixel, y_pixel, &Textures[0]);
+                    ASSERT(Textures[0].pixels[0] == COLOUR_RED);
+                }
                 i++;
             }
         }
@@ -595,11 +592,11 @@ void drawObjects()
 
     while (i < Game.object_count)
     {
-        start_x = Game.Objects[i].position.x - camera_offset.x - Textures[Game.Objects[i].sprite_id].width / 2;
-        start_y = Game.Objects[i].position.y - camera_offset.y - Textures[Game.Objects[i].sprite_id].height / 2;
+        start_x = Game.Objects[i].position.x - camera_offset.x - Textures[Game.Objects[i].texture_id].width / 2;
+        start_y = Game.Objects[i].position.y - camera_offset.y - Textures[Game.Objects[i].texture_id].height / 2;
         // draw all circles in their current locations
         //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
-        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].sprite_id], TRANSPARENT_COLOR);
+        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
         drawDot(&Game.Objects[i]);
         #if DEBUG == 1
         str[0] = '\0';

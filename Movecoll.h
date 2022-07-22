@@ -5,7 +5,7 @@
 
 //void checkGridLoc(Object_t* obj);
 //void calcCameraOffset(Object_t* target);
-//int getTileType(Vec2 pos);
+//int getTileCollision(Vec2 pos);
 //void moveAllObjects();
 //void collideAllObjects();
 void physics();

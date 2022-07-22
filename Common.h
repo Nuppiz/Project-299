@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define DEBUG_ASSERT 1
+
 /* Common standard libraries used by multiple C files */
 
 #include <stdio.h>
@@ -10,6 +12,7 @@
 #include <math.h>
 #include <conio.h>
 
+#include "Debug.h"
 #include "Defines.h"
 #include "Enums.h"
 
@@ -19,6 +22,6 @@ typedef uint16_t flags_t;
 
 #if DEBUG == 1
 extern char debug[NUM_DEBUG][DEBUG_STR_LEN];
-#endif/* COMMON_H */
+#endif
 
 #endif/* COMMON_H */

@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "LvlLoad.h"
+#include "Loadgfx.h"
 
 extern System_t System;
 extern State States[];
@@ -141,10 +142,8 @@ void gfxInit()
     setPalette_VGA(&NewPalette);
 	printf("Palette set\n");
     loadFontNew();
-    loadAllTextures();
-    loadAllTiles();
-	printf("Graphics loaded into memory\n");
-
+    createErrorTexture();
+	printf("Basic textures loaded into memory\n");
 }
 
 void otherInit()

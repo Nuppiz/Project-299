@@ -3,10 +3,9 @@
 
 enum TextureCount
 {
-    DUDE1,
-    DUDE2,
-    DUDE3,
-    CAR,
+    TEX_DUDE1,
+    TEX_DUDE2,
+    TEX_DUDE3,
     NUM_TEXTURES
 };
 
