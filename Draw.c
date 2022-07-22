@@ -1,6 +1,8 @@
 #include "Common.h"
 #include "Structs.h"
 #include "Text.h"
+#include "Action.h"
+#include "Video.h"
 
 /* Graphics drawing functions */
 
@@ -8,10 +10,13 @@ extern System_t System;
 extern GameData_t Game;
 
 extern uint8_t far screen_buf [];
-extern Texture_t Textures[];
+extern Texture_t Textures [];
 extern Texture_t Tiles [];
 
 Vec2 camera_offset;
+Particle Particles[MAX_PARTICLES] = {0};
+int particle_read = 0;
+int particle_write = 0;
 
 int boundaryCheck(int x, int y)
 {
@@ -483,6 +488,7 @@ void drawDot(Object_t* obj)
     int pos_x;
     int pos_y;
     float dot_radians;
+    int i;
     
     // calculate angle
     dot_radians = atan2(obj->direction.y, obj->direction.x);
@@ -494,7 +500,90 @@ void drawDot(Object_t* obj)
     pos_y = obj->position.y + offset_y;
 
     if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
+    {
         SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
+    }
+}
+
+void increaseParticleRead()
+{
+    particle_read++;
+
+    if (particle_read == MAX_PARTICLES)
+        particle_read = 0;
+}
+
+void increaseParticleWrite()
+{
+    particle_write++;
+
+    if (particle_write == MAX_PARTICLES)
+        particle_write = 0;
+
+    if (particle_write == particle_read)
+        increaseParticleRead();
+}
+
+void decrementParticleWrite()
+{
+    particle_write--;
+
+    if (particle_write < 0)
+        particle_write = MAX_PARTICLES - 1;
+}
+
+void createParticle(Vec2 pos, uint8_t color)
+{
+    int random_x = (rand() % 10) - 5;
+    int random_y = (rand() % 10) - 5;
+    Particles[particle_write].pos.x = pos.x;
+    Particles[particle_write].pos.y = pos.y;
+    Particles[particle_write].vel.x = random_x / 10.0;
+    Particles[particle_write].vel.y = random_y / 10.0;
+    Particles[particle_write].color = color;
+    Particles[particle_write].life = rand() % 15;
+
+    increaseParticleWrite();
+}
+
+void deleteParticle(int index)
+{
+    int last_particle = (particle_write == 0) ? MAX_PARTICLES - 1 : particle_write - 1;
+
+    if (last_particle != particle_read)
+        Particles[index] = Particles[last_particle];
+
+    decrementParticleWrite();
+}
+
+void drawParticle(Vec2* pos, Vec2 vel, uint8_t color)
+{
+    pos->x += vel.x;
+    pos->y += vel.y;
+    if (boundaryCheck(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y))) == TRUE)
+        SET_PIXEL(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y)), color);
+}
+
+void particleArrayManager()
+{
+    int i = particle_read;
+
+    while (i != particle_write)
+    {
+        Particles[i].life--;
+        if (Particles[i].life <= 0)
+        {
+            deleteParticle(i);
+            continue;
+        }    
+        drawParticle(&Particles[i].pos, Particles[i].vel, Particles[i].color);
+        Particles[i].color++;
+        i++;
+        if (i == MAX_PARTICLES)
+        {
+            i = 0;
+        }
+    }
 }
 
 void drawObjects()
@@ -533,6 +622,7 @@ void gameDraw()
     calcCameraOffset();
     drawMap();
     drawObjects();
+    particleArrayManager();
 
     #if DEBUG == 1
     drawDebug();
@@ -541,5 +631,5 @@ void gameDraw()
 
 void pauseDraw()
 {
-    drawText(104, 96, "PAUSED", COLOUR_WHITE);
+    drawText(132, 96, "PAUSED", COLOUR_WHITE);
 }

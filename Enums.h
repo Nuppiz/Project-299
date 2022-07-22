@@ -56,6 +56,7 @@ enum DebugIndex
     DEBUG_AICHASE,
     DEBUG_TESTFOV,
     DEBUG_CLOCK,
+    DEBUG_SHOOT,
     NUM_DEBUG
 };
 

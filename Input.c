@@ -4,11 +4,13 @@
 #include "Game.h"
 #include "Vectors.h"
 #include "Keyb.h"
+#include "Action.h"
 
 flags_t player_control = 0;
 extern System_t System;
 extern Keyboard_t Keyboard;
 extern State States[];
+extern GameData_t Game;
 extern uint8_t music_on;
 
 int control_up = KEY_UP;
@@ -73,6 +75,8 @@ void playerControl()
     {
         pushState(STATE_PAUSE);
     }
+    if (KEY_IS_PRESSED(KEY_SPACEBAR))
+        shootWeapon(&Game.Objects[0]);
 
     #if DEBUG == 1
     d[0] = '\0';

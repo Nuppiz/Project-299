@@ -25,6 +25,12 @@
 #define SET_PIXEL(x,y,color) screen_buf[(y)*SCREEN_WIDTH + (x)] = color
 #endif/* DEFINES_H */
 
+#if SCREEN_WIDTH == 320
+#define SET_PIXEL_VGA(x,y,color) VGA[(((y)<<8)+((y)<<6)) + (x)] = color
+#else
+#define SET_PIXEL_VGA(x,y,color) VGA[(y)*SCREEN_WIDTH + (x)] = color
+#endif/* DEFINES_H */
+
 #define KB_ARRAY_LENGTH     256
 #define KB_QUEUE_LENGTH     256
 
@@ -79,6 +85,8 @@
 #define DOT_DISTANCE        30
 #define LOOK_DISTANCE       30
 
+#define MAX_PARTICLES       64
+
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
 #define ACCELERATION_RATE   0.5
@@ -113,6 +121,10 @@
 
 #define VOLUME_DOWN         1
 #define VOLUME_UP           2
+
+#define SOUND_SHOOT         1
+#define SOUND_EXPLO         2
+#define SOUND_AARGH         3
 
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
@@ -172,6 +184,10 @@
 #define CONTROL_STRAFE_MOD  BIT_7
 
 #define OBJ_FLAG_DEAD BIT_0
+
+#define BULLET_STEP            4
+#define BULLET_MAX_DISTANCE    100
+#define BULLET_HIT_ANGLE       0.5
 
 #define STATE_IS_ACTIVE        BIT_0
 #define STATE_ENABLE_UPDATE    BIT_1

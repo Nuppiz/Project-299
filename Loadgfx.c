@@ -4,7 +4,11 @@
 /* Graphics loading functions */
 
 Texture_t Textures[NUM_TEXTURES];
-Texture_t Tiles[NUM_TILES];
+Texture_t Tiles[NUM_TILES]; // this old array will be deleted later
+Texture_t Tiles_[2]; // this should later just be Tiles, a Texture pointer to a malloced array
+// which gets realloced every time a new texture is added and texture count grows.
+
+int tile_count = 0;
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -13,6 +17,33 @@ void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
     file_ptr = fopen(filename, "rb");
     fread(destination, 1, data_size, file_ptr);
     fclose(file_ptr);
+}
+
+int loadTileGfx(char* filename)
+{
+    //loop all textures here to check if it was already loaded,
+    //return id of that texture if it was found.
+    int name_length = strlen(filename);
+    FILE* file_ptr;
+    file_ptr = fopen(filename, "rb");
+    if (filename == NULL)
+        return 0;
+    else
+        tile_count++;
+
+    fread(&Tiles_[tile_count].width, 2, 1, file_ptr);
+    fseek(file_ptr, 2, SEEK_SET);
+    fread(&Tiles_[tile_count].height, 2, 1, file_ptr);
+	fseek(file_ptr, 8, SEEK_SET);
+    Tiles_[tile_count].pixels = malloc(Tiles_[tile_count].width * Tiles_[tile_count].height);
+    fread(Tiles_[tile_count].pixels, 1, Tiles_[tile_count].width * Tiles_[tile_count].height, file_ptr);
+    Tiles_[tile_count].offset_x = 0;
+    Tiles_[tile_count].offset_y = 0;
+    fclose(file_ptr);
+    Tiles_[tile_count].filename = malloc(name_length);
+    strcpy(Tiles_[tile_count].filename, filename);
+
+    return tile_count;
 }
 
 void loadTile(char* filename, int tile_index)
@@ -93,5 +124,4 @@ void loadAllTiles()
     loadTile("TILES/BA_TOILL.7UP", BA_TOILETL);
     loadTile("TILES/BA_TOILR.7UP", BA_TOILETR);
     loadTile("TILES/BA_TOILU.7UP", BA_TOILETU);
-
 }

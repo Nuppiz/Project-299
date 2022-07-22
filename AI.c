@@ -135,9 +135,6 @@ void think(Object_t* obj)
     {
         obj->ai_mode = AI_IDLE;
         obj->control = 0; // same as clearing all bits
-        // clearBit(obj->control, CONTROL_UP);
-        // clearBit(obj->control, CONTROL_LEFT);
-        // clearBit(obj->control, CONTROL_RIGHT);
     }
 }
 
@@ -175,9 +172,6 @@ void act(Object_t* obj)
         {
             obj->ai_mode = AI_IDLE;
             obj->control = 0; // same as clearing all bits
-            //clearBit(obj->control, CONTROL_UP);
-            //clearBit(obj->control, CONTROL_LEFT);
-            //clearBit(obj->control, CONTROL_RIGHT);
         }
     }
 }
