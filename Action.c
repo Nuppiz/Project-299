@@ -86,9 +86,24 @@ Tile_t* getEntityTile(int x, int y)
     return tile_location;
 }
 
-void useDoor(Entity_t* ent)
+void useDoor(Entity_t* door, uint8_t use_mode)
 {
+    // useDoor(uint8 ent_id)
+    // the below should become useDoor function
+            
+    // then you need to find its tile some oher way
+    // we would need that anyway,
+    // for when we don't yet know the entity's location (e.g. a door used by a switch elsewhere)
+    // need a getEntityTile function that uses entity's x y to look up TileMap[] and return Tile pointer
+    Tile_t* tile = getEntityTile(door->x, door->y);
 
+    if (door->data.door.locked == TRUE && use_mode == USE_VIA_BUTTON)
+    {
+        door->state ^= 1;
+        tile->texture_id = (door->state) == 1 ? tile->texture_id+1 : tile->texture_id-1;
+    }
+    //else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
+        //playSound(DOOR_LOCKED_CLICKETY_CLACK_WONT_BUDGE)
 }
 
 void useTile(Vec2 pos, Vec2 dir)
@@ -109,19 +124,7 @@ void useTile(Vec2 pos, Vec2 dir)
         switch (ent->type)
         {
         case ENT_DOOR:
-            // useDoor(uint8 ent_id)
-            // the below should become useDoor function
-            // then you need to find its tile some oher way
-        // we would need that anyway,
-        // for when we don't yet know the entity's location (e.g. a door used by a switch elsewhere)
-        // need a getEntityTile function that uses entity's x y to look up TileMap[] and return Tile pointer
-            if (ent->data.door.locked == 0)
-            {
-                ent->state ^= 1;
-                tile->texture_id = (ent->state) == 1 ? tile->texture_id+1 : tile->texture_id-1;
-            }
-            //else
-                //playSound(DOOR_LOCKED_CLICKETY_CLACK_WONT_BUDGE)
+            usedoor(ent, USE_DIRECTLY);
             break;
         case ENT_BUTTON:
             // bla bla
@@ -130,6 +133,5 @@ void useTile(Vec2 pos, Vec2 dir)
             // if used via button, bypass "locked" variable;
             // otherwise check for locked, and make noise when you fail to budge door.
         }
-
     }
 }

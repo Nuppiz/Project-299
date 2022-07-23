@@ -21,6 +21,12 @@ enum EntityTypes
     ENT_BUTTON
 };
 
+enum EntityUseModes
+{
+    USE_DIRECTLY,
+    USE_VIA_BUTTON
+};
+
 enum DebugIndex
 {
     DEBUG_FPS,
