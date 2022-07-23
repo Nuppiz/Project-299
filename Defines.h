@@ -87,7 +87,7 @@
 #define DOT_DISTANCE        30
 #define LOOK_DISTANCE       30
 
-#define MAX_PARTICLES       64
+#define MAX_PARTICLES       1280
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5

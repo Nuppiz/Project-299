@@ -49,6 +49,7 @@ typedef struct
     uint8_t* pixels;
     uint16_t width, height;
     uint16_t transparent;
+    uint8_t material_type;
     int offset_x, offset_y;
 } Texture_t;
 
@@ -95,12 +96,11 @@ typedef struct
 } Palette_t;
 
 typedef struct {
-    uint8_t texture_id : 6;
-    uint8_t material_type : 3; //generic, grass, sand, wood, water, snow, metal, plastic ...?
+    uint8_t texture_id : 7;
     uint8_t obstacle : 1;
     uint8_t block_bullets : 1;
-    uint8_t entity_type : 2; // none, door, switch, breakable
-    uint8_t entity_value : 3; // door id (0-7), switch id (0-7), breakable_health (0-7)
+    uint8_t is_entity : 1;
+    uint8_t entity_value : 5; // door id (0-7), switch id (0-7), breakable_health (0-7)
 } Tile_t;
 
 typedef struct
@@ -140,5 +140,15 @@ typedef struct {
     int8_t life;
     uint8_t color;
 } Particle_t;
+
+typedef struct {
+    uint8_t x, y;
+    uint8_t state : 1;
+    uint8_t type : 7;
+    union u_data {
+        struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
+        struct t_button {uint8_t target : 5;} button;
+    } data;
+} Entity_t;
 
 #endif/* STRUCTS_H */

@@ -28,18 +28,17 @@ void loadTileset(char* filename)
         {
             symbol = fgetc(tileset) - 32;
             fscanf(tileset, "%s", name);
-            TileSet[symbol].texture_id = loadTexture(name);
+            tex_id = loadTexture(name);
+            TileSet[symbol].texture_id = tex_id;
 
             while((c = fgetc(tileset)) != '\n' && c != EOF)
             {
                 switch (c)
                 {
-                case 'D': TileSet[symbol].material_type = 0; continue;
-                case 'G': TileSet[symbol].material_type = 1; continue;
+                case 'D': Textures[tex_id].material_type = MAT_DEFAULT; continue;
+                case 'G': Textures[tex_id].material_type = MAT_GRASS; continue;
                 case 'O': TileSet[symbol].obstacle = 1; continue;
-                case 'P': TileSet[symbol].obstacle = 0; continue;
                 case 'B': TileSet[symbol].block_bullets = 1; continue;
-                case 'T': TileSet[symbol].block_bullets = 0; continue;
                 
                 default:  continue;
                 }
@@ -103,6 +102,10 @@ void levelLoader()
                         i++;
                     }
                 }
+                Game.Map.tilemap[1].is_entity = 1; // debug, delete later
+                Game.Map.tilemap[10].is_entity = 1; // debug, delete later
+                Game.Map.tilemap[1].entity_value = 1; // debug, delete later
+                Game.Map.tilemap[10].entity_value = 0; // debug, delete later
             }
             else if (strcmp(buffer, "player") == 0)
             {

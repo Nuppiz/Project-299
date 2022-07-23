@@ -78,6 +78,9 @@ void playerControl()
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
         shootWeapon(&Game.Objects[0]);
 
+    if (KEY_IS_PRESSED(KEY_E))
+        useTile(Game.Objects[0].position, Game.Objects[0].direction);
+
     #if DEBUG == 1
     d[0] = '\0';
     if (player_control & CONTROL_UP)            d += sprintf(d, "UP ");

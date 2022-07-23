@@ -540,45 +540,49 @@ void spawnParticle(Vec2 pos, Vec2 vel, uint8_t color, int8_t life)
     increaseParticleWrite();
 }
 
-void sprayParticle(Vec2 pos, Vec2 dir, float speed, float randomness, uint8_t num_particles, uint8_t start_color, uint8_t color_variance)
+void sprayParticles(Vec2 pos, Vec2 dir, float speed, float randomness, uint8_t num_particles, uint8_t start_color, uint8_t color_variance, int8_t life)
 {
-    Vec2 basic_direction, random_direction, vel;
-    float random_angle;
-    int8_t life = rand() % 15;
-    uint8_t color = start_color + rand() % color_variance;
+    Vec2 random_vec, vel;
+    float random_scale;
+    uint8_t color;
+    int8_t random_life;
     int i;
 
-    basic_direction.x = dir.x * speed;
-    basic_direction.y = dir.y = speed;
-
-    random_angle = degToRad(rand() % 360);
-    random_direction = getDirVec2(random_angle);
-    random_direction.x *= speed *= randomness;
-    random_direction.y *= speed *= randomness;
-
-    vel.x = basic_direction.x + random_direction.x;
-    vel.y = basic_direction.y + random_direction.y;
     for (i = 0; i < num_particles; i++)
     {
-        spawnParticle(pos, vel, color, life);
+        random_vec = getDirVec2(degToRad(rand() % 360));
+        random_scale = (float)(rand() % 100) / 100.0;
+        random_vec.x *= speed * random_scale * randomness;
+        random_vec.y *= speed * random_scale * randomness;
+
+        vel.x = dir.x * speed + random_vec.x;
+        vel.y = dir.y * speed + random_vec.y;
+        color = start_color + rand() % color_variance;
+        random_life = (life / 2) + life * random_scale;
+        spawnParticle(pos, vel, color, random_life);
     }
 }
 
 void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type)
 {
     uint8_t start_color, color_variance, num_particles;
+    int8_t life;
     float speed, randomness;
-    speed = rand() % 10 / 5.0;
 
     switch (fx_type)
     {
-    case FX_BLOOD: start_color = 176, color_variance = 15, num_particles = 20, randomness = 0.8, speed = -speed; break;
-    case FX_SPARKS: start_color = 160, color_variance = 7, num_particles = 15, randomness = 0.5, speed = -speed; break;
-    case FX_DIRT: start_color = 64, color_variance = 15, num_particles = 8, randomness = 0.3; break;
+    case FX_BLOOD: start_color = 176, color_variance = 15, num_particles = 20, 
+    randomness = 0.8, speed = 1, life = 20; break;
+    case FX_SPARKS: start_color = 160, color_variance = 7, num_particles = 15, 
+    randomness = 0.5, speed = -5, life = 10; break;
+    case FX_DIRT: start_color = 64, color_variance = 15, num_particles = 8, 
+    randomness = 0.3, speed = 3, life = 10; break;
+    case FX_WATERGUN: start_color = 196, color_variance = 5, num_particles = 15, 
+    randomness = 0.1, speed = 10, life = 10; break;
     
     default: break;
     }
-    sprayParticle(pos, dir, speed, randomness, num_particles, start_color, color_variance);
+    sprayParticles(pos, dir, speed, randomness, num_particles, start_color, color_variance, life);
 }
 
 void deleteParticle(int index)

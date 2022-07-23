@@ -7,9 +7,9 @@
 
 extern GameData_t Game;
 
-void checkGridLoc(Object_t* obj) // circle's location on the grid
+void checkGridLoc(Object_t* obj) // object's location on the grid
 {   
-    // calculated by dividing the circle's x/y location by square size
+    // calculated by dividing the object's x/y location by square size
     obj->grid_loc.x = obj->position.x / SQUARE_SIZE;
     obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
 }

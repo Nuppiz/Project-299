@@ -61,7 +61,7 @@ int loadTexture(char* filename)
         return texture_id;
 
     file_ptr = fopen(filename, "rb");
-    if (filename == NULL)
+    if (file_ptr == NULL)
         return 0;
 
     if (Textures == NULL)

@@ -5,7 +5,20 @@ enum ParticleEffects
 {
     FX_BLOOD,
     FX_DIRT,
-    FX_SPARKS
+    FX_SPARKS,
+    FX_WATERGUN
+};
+
+enum TextureMaterials
+{
+    MAT_DEFAULT,
+    MAT_GRASS
+};
+
+enum EntityTypes
+{
+    ENT_DOOR,
+    ENT_BUTTON
 };
 
 enum DebugIndex
