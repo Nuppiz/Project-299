@@ -257,7 +257,6 @@ void collideTwoObjects(Object_t* object_a, Object_t* object_b)
     float distance_squared;
     float collision_depth;
     int radii_squared = (object_a->radius + object_b->radius) * (object_a->radius + object_b->radius);
-    //int tile_type;
     Vec2 u; // how much each object moves in case of a collision
     
     distance_x = object_a->position.x - object_b->position.x;  // x-distance between the two objects
@@ -272,7 +271,7 @@ void collideTwoObjects(Object_t* object_a, Object_t* object_b)
         // calculate how much the objects are "inside" each other
         collision_depth = radii_squared - distance_squared;
         
-        //each object is moved for half of that
+        // each object is moved for half of that
         u.x = (distance_x / distance_squared) * (collision_depth / 2);
         u.y = (distance_y / distance_squared) * (collision_depth / 2);
         

@@ -100,7 +100,7 @@ typedef struct {
     uint8_t obstacle : 1;
     uint8_t block_bullets : 1;
     uint8_t is_entity : 1;
-    uint8_t entity_value : 5; // door id (0-7), switch id (0-7), breakable_health (0-7)
+    uint8_t entity_value : 5; // id in Entities array
 } Tile_t;
 
 typedef struct
