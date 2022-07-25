@@ -124,9 +124,10 @@ void useTile(Vec2 pos, Vec2 dir)
         switch (ent->type)
         {
         case ENT_DOOR:
-            usedoor(ent, USE_DIRECTLY);
+            useDoor(ent, USE_DIRECTLY);
             break;
         case ENT_BUTTON:
+            break;
             // bla bla
             // ent = our button entity
             // useDoor(ent->data.button.target_id, use_mode) // usemode USE_DIRECTLY, USE_VIA_BUTTON

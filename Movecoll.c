@@ -254,26 +254,27 @@ void collideTwoObjects(Object_t* object_a, Object_t* object_b)
 {
     float distance_x;
     float distance_y;
-    float distance;
+    float distance_squared;
     float collision_depth;
+    int radii_squared = (object_a->radius + object_b->radius) * (object_a->radius + object_b->radius);
     //int tile_type;
     Vec2 u; // how much each object moves in case of a collision
     
     distance_x = object_a->position.x - object_b->position.x;  // x-distance between the two objects
     distance_y = object_a->position.y - object_b->position.y;  // y-distance between the two objects
     
-    // actual distance between the two objects (hypotenuse of the x and y distances)
-    distance = sqrt((distance_x * distance_x) + (distance_y * distance_y));
+    // squared distance between the two objects (spares an expensive sqrt operation)
+    distance_squared = (distance_x * distance_x) + (distance_y * distance_y);
     
-    // if distance is less than combined radiuses
-    if (distance < (object_a->radius + object_b->radius))
+    // if distance is less than combined radiuses squared
+    if (distance_squared < radii_squared)
     {
         // calculate how much the objects are "inside" each other
-        collision_depth = (object_a->radius + object_b->radius) - distance;
+        collision_depth = radii_squared - distance_squared;
         
         //each object is moved for half of that
-        u.x = (distance_x/distance) * (collision_depth/2);
-        u.y = (distance_y/distance) * (collision_depth/2);
+        u.x = (distance_x / distance_squared) * (collision_depth / 2);
+        u.y = (distance_y / distance_squared) * (collision_depth / 2);
         
         // first object gets the values as is...
         moveObject(object_a, u);
