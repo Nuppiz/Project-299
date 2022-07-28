@@ -78,7 +78,7 @@ void playerControl()
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
         shootWeapon(&Game.Objects[0]);
 
-    if (KEY_IS_PRESSED(KEY_E))
+    if (KEY_WAS_HIT(KEY_E))
         useTile(Game.Objects[0].position, Game.Objects[0].direction);
 
     #if DEBUG == 1

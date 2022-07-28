@@ -1,5 +1,5 @@
-#ifndef ENUMS
-#define ENUMS
+#ifndef ENUMS_H
+#define ENUMS_H
 
 enum ParticleEffects
 {
@@ -25,6 +25,27 @@ enum EntityUseModes
 {
     USE_DIRECTLY,
     USE_VIA_BUTTON
+};
+
+enum InteractiveTile
+{
+    NONE,
+    TILE_KEY_RED,
+    TILE_KEY_BLUE,
+    TILE_KEY_YELLOW
+};
+
+enum SoundEffects
+{
+    SOUND_SHOOT,
+    SOUND_EXPLO,
+    SOUND_AARGH,
+    SOUND_SWITCH,
+    SOUND_LOCKED,
+    SOUND_ITEM,
+    SOUND_DOOR_O,
+    SOUND_DOOR_C,
+    NUM_SFX
 };
 
 enum DebugIndex
@@ -54,4 +75,4 @@ enum StateIndex
     NUM_STATES
 };
 
-#endif/* ENUMS */
+#endif/* ENUMS_H */

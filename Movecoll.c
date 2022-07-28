@@ -2,12 +2,14 @@
 #include "Structs.h"
 #include "Vectors.h"
 #include "Keyb.h"
+#include "Sound.h"
 
 /* Object_t movement and collision detection */
 
 extern GameData_t Game;
+extern uint8_t key_acquired;
 
-void checkGridLoc(Object_t* obj) // object's location on the grid
+void updateGridLoc(Object_t* obj) // object's location on the grid
 {   
     // calculated by dividing the object's x/y location by square size
     obj->grid_loc.x = obj->position.x / SQUARE_SIZE;
@@ -46,6 +48,16 @@ int getTileBulletBlock(Vec2 pos)
     tile_bullet = Game.Map.tilemap[object_tile].block_bullets; // check bullet block flag at that index
     
     return tile_bullet; // return said data
+}
+
+void checkForKey() // temporary, will be replaced with better system later
+{
+    if (Game.Map.tilemap[Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x].entity_value != 0)
+    {
+        key_acquired = TRUE;
+        Game.Map.tilemap[Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x].entity_value = 0;
+        playSounds(SOUND_ITEM);
+    }
 }
 
 void edgeDetectObject(Object_t* obj)
@@ -165,7 +177,7 @@ void moveObject(Object_t* obj, Vec2 movement)
     Vec2 test_point_a;
     Vec2 test_point_b;
     
-    checkGridLoc(obj);
+    updateGridLoc(obj);
     
     if (movement.x > 0) // if moving to the right
     {
@@ -234,7 +246,7 @@ void moveObject(Object_t* obj, Vec2 movement)
             obj->velocity.y = 0.0;
         }
     }
-    checkGridLoc(obj);
+    updateGridLoc(obj);
 }
 
 void moveAllObjects()
@@ -308,6 +320,7 @@ void physics()
     controlAllObjects();
     moveAllObjects();
     collideAllObjects();
+    checkForKey();
 
     #if DEBUG == 1
     sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject->velocity.x, PlayerObject->velocity.y);

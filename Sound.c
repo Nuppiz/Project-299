@@ -37,7 +37,7 @@ unsigned    amplification;          /* current, amplification */
 unsigned    musicVolume = 64;       /* music master volume */
 unsigned    SFXVolume = 64;         /* SFX master volume */
 int         error;
-unsigned effect1, effect2, effect3;
+unsigned effect1, effect2, effect3, effect4, effect5, effect6, effect7, effect8;
 uint8_t music_on = FALSE;
 
 /****************************************************************************\
@@ -285,28 +285,45 @@ void StopModule(mpModule *module)
     midasFreeModule(module);
 }
 
-void loadSFX(char* file1, char* file2, char* file3)
+// replace later with a for-loop or sth
+void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, char* file6, char* file7, char* file8)
 {    
     effect1 = LoadEffect(file1, 0);
     effect2 = LoadEffect(file2, 0);
     effect3 = LoadEffect(file3, 0);
+    effect4 = LoadEffect(file4, 0);
+    effect5 = LoadEffect(file5, 0);
+    effect6 = LoadEffect(file6, 0);
+    effect7 = LoadEffect(file7, 0);
+    effect8 = LoadEffect(file8, 0);
 }
 
+// replace later with switch case maybe or a more elegant system
 void playSounds(int effect_id)
 {
-    if (effect_id == 1)
+    if (effect_id == SOUND_SHOOT)
         PlayEffect(effect1, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == 2)
+    else if (effect_id == SOUND_EXPLO)
         PlayEffect(effect2, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == 3)
+    else if (effect_id == SOUND_AARGH)
         PlayEffect(effect3, FXRATE, SFXVolume, panMiddle);
+    else if (effect_id == SOUND_SWITCH)
+        PlayEffect(effect4, FXRATE, SFXVolume, panMiddle);
+    else if (effect_id == SOUND_LOCKED)
+        PlayEffect(effect5, FXRATE, SFXVolume, panMiddle);
+    else if (effect_id == SOUND_ITEM)
+        PlayEffect(effect6, FXRATE, SFXVolume, panMiddle);
+    else if (effect_id == SOUND_DOOR_O)
+        PlayEffect(effect7, FXRATE, SFXVolume, panMiddle);
+    else if (effect_id == SOUND_DOOR_C)
+        PlayEffect(effect8, FXRATE, SFXVolume, panMiddle);  
 }
 
 void changeSFXVolume(int modifier)
 {
-    if (modifier == 2 && SFXVolume < 64)
+    if (modifier == VOLUME_UP && SFXVolume < 64)
         SFXVolume += 4;
-    else if (modifier == 1 && SFXVolume > 0)
+    else if (modifier == VOLUME_DOWN && SFXVolume > 0)
         SFXVolume -= 4;
 }
 
@@ -315,6 +332,9 @@ void stopSFX()
     FreeEffect(effect1);                /* deallocate effect #1 */
     FreeEffect(effect2);                /* deallocate effect #2 */
     FreeEffect(effect3);                /* deallocate effect #3 */
+    FreeEffect(effect4);                /* deallocate effect #3 */
+    FreeEffect(effect5);                /* deallocate effect #3 */
+    FreeEffect(effect6);                /* deallocate effect #3 */
 }
 
 void stopMusic()
@@ -332,7 +352,7 @@ void playMusic(char *music)
 
 void changeMusicVolume(int modifier)
 {
-    if (modifier == 2)
+    if (modifier == VOLUME_UP)
     {
         if (musicVolume < 64 )
         {
@@ -352,7 +372,7 @@ void changeMusicVolume(int modifier)
 
     }
 
-    else if (modifier == 1)
+    else if (modifier == VOLUME_DOWN)
     {
         if (musicVolume > 0 )
             {

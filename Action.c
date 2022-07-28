@@ -7,11 +7,19 @@
 #include "Game.h"
 #include "Draw.h"
 
-/* Various actions between the player and other objects */
+/* Various actions between the player and other entities/actors */
 
 extern GameData_t Game;
-extern Vec2 camera_offset;
 Entity_t Entities[32];
+uint8_t key_acquired = 0;
+
+ // tbd
+void entityInit()
+{
+    int i;
+
+    
+}
 
 int checkForHit(Vec2 projectile, Vec2 target, int radius)
 {
@@ -88,22 +96,43 @@ Tile_t* getEntityTile(int x, int y)
 
 void useDoor(Entity_t* door, uint8_t use_mode)
 {
-    // useDoor(uint8 ent_id)
-    // the below should become useDoor function
-            
-    // then you need to find its tile some oher way
-    // we would need that anyway,
-    // for when we don't yet know the entity's location (e.g. a door used by a switch elsewhere)
-    // need a getEntityTile function that uses entity's x y to look up TileMap[] and return Tile pointer
     Tile_t* tile = getEntityTile(door->x, door->y);
 
-    if (door->data.door.locked == TRUE && use_mode == USE_VIA_BUTTON)
+    if (use_mode == USE_VIA_BUTTON)
     {
         door->state ^= 1;
-        tile->texture_id = (door->state) == 1 ? tile->texture_id+1 : tile->texture_id-1;
+        door->data.door.locked ^= 1;
+        tile->obstacle ^= 1;
+        tile->block_bullets ^= 1;
+        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
     }
-    //else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
-        //playSound(DOOR_LOCKED_CLICKETY_CLACK_WONT_BUDGE)
+    else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY & key_acquired == TRUE)
+    {
+        playSounds(SOUND_DOOR_O);
+        door->state ^= 1;
+        door->data.door.locked ^= 1;
+        tile->obstacle ^= 1;
+        tile->block_bullets ^= 1;
+        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+    }
+    else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
+        playSounds(SOUND_LOCKED);
+    else if (door->state == 0)
+    {
+        playSounds(SOUND_DOOR_C);
+        door->state ^= 1;
+        tile->obstacle ^= 1;
+        tile->block_bullets ^= 1;
+        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+    }
+    else if (door->state == 1)
+    {
+        playSounds(SOUND_DOOR_O);
+        door->state ^= 1;
+        tile->obstacle ^= 1;
+        tile->block_bullets ^= 1;
+        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+    }
 }
 
 void useTile(Vec2 pos, Vec2 dir)
@@ -111,8 +140,8 @@ void useTile(Vec2 pos, Vec2 dir)
     Vec2_int target;
     Tile_t* tile;
     uint8_t tile_x, tile_y;
-    target.x = pos.x * dir.x * 2;
-    target.y = pos.y * dir.y * 2;
+    target.x = pos.x + dir.x * 30;
+    target.y = pos.y + dir.y * 30;
 
     tile_x = target.x / SQUARE_SIZE;
     tile_y = target.y / SQUARE_SIZE;
@@ -120,19 +149,17 @@ void useTile(Vec2 pos, Vec2 dir)
     if ((tile = &Game.Map.tilemap[tile_y * Game.Map.width + tile_x])->is_entity == TRUE)
     {
         Entity_t* ent = &Entities[tile->entity_value];
-        playSounds(SOUND_EXPLO);
         switch (ent->type)
         {
         case ENT_DOOR:
             useDoor(ent, USE_DIRECTLY);
             break;
         case ENT_BUTTON:
+            playSounds(SOUND_SWITCH);
+            ent->state ^= 1;
+            tile->texture_id = (ent->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+            useDoor(&Entities[ent->data.button.target], USE_VIA_BUTTON);
             break;
-            // bla bla
-            // ent = our button entity
-            // useDoor(ent->data.button.target_id, use_mode) // usemode USE_DIRECTLY, USE_VIA_BUTTON
-            // if used via button, bypass "locked" variable;
-            // otherwise check for locked, and make noise when you fail to budge door.
         }
     }
 }

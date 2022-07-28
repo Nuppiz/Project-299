@@ -2,6 +2,7 @@
 #include "Structs.h"
 #include "LvlLoad.h"
 #include "Loadgfx.h"
+#include "Sound.h"
 
 extern System_t System;
 extern State_t States[];
@@ -116,7 +117,7 @@ void soundInit()
     // provide stub ISR to MIDAS so that it doesn't do anything
     _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
-    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC");
+    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC", "SFX/SWITCH.WAV", "SFX/LOCKED.WAV", "SFX/ITEMUP.WAV", "SFX/DOOR_O.WAV", "SFX/DOOR_C.WAV");
 	printf("OK\n");
 }
 

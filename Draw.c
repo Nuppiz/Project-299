@@ -12,6 +12,7 @@ extern GameData_t Game;
 
 extern uint8_t far screen_buf[];
 extern Texture_t* Textures;
+extern Tile_t TileSet[];
 
 Vec2 camera_offset;
 Particle_t Particles[MAX_PARTICLES] = {0};
@@ -421,6 +422,8 @@ void drawMap()
             {
                 drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
                 i++;
+                if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value != 0)
+                    drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
             }
         }
         else
@@ -431,6 +434,8 @@ void drawMap()
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
                     drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
+                    if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value != 0)
+                        drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
                 }
                 i++;
             }

@@ -124,10 +124,6 @@
 #define VOLUME_DOWN         1
 #define VOLUME_UP           2
 
-#define SOUND_SHOOT         1
-#define SOUND_EXPLO         2
-#define SOUND_AARGH         3
-
 #define CONTROL_8253        0x43
 #define CONTROL_WORD        0x3C
 #define COUNTER_0           0x40

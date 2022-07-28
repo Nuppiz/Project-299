@@ -3,7 +3,7 @@
 
 #include "Structs.h"
 
-//void checkGridLoc(Object_t* obj);
+//void updateGridLoc(Object_t* obj);
 //void calcCameraOffset(Object_t* target);
 int getTileCollision(Vec2 pos);
 int getTileBulletBlock(Vec2 pos);

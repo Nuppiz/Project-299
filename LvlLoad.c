@@ -7,7 +7,9 @@
 
 extern GameData_t Game;
 extern Texture_t* Textures;
+extern Entity_t Entities[];
 Tile_t TileSet[100];
+extern int texture_count;
 
 void loadTileset(char* filename)
 {
@@ -39,6 +41,7 @@ void loadTileset(char* filename)
                 case 'G': Textures[tex_id].material_type = MAT_GRASS; continue;
                 case 'O': TileSet[symbol].obstacle = 1; continue;
                 case 'B': TileSet[symbol].block_bullets = 1; continue;
+                case 'E': TileSet[symbol].is_entity = 1; continue;
                 
                 default:  continue;
                 }
@@ -102,10 +105,23 @@ void levelLoader()
                         i++;
                     }
                 }
-                Game.Map.tilemap[1].is_entity = 1; // debug, delete later
-                Game.Map.tilemap[10].is_entity = 1; // debug, delete later
-                Game.Map.tilemap[1].entity_value = 1; // debug, delete later
-                Game.Map.tilemap[10].entity_value = 0; // debug, delete later
+                // test, delete later
+                Game.Map.tilemap[27].is_entity = 1; 
+                Game.Map.tilemap[28].is_entity = 1;
+                Game.Map.tilemap[27].entity_value = 1;
+                Game.Map.tilemap[28].entity_value = 0;
+                Game.Map.tilemap[87].is_entity = 0;
+                Game.Map.tilemap[87].entity_value = TILE_KEY_RED;
+                Entities[0].type = ENT_DOOR;
+                Entities[0].state = 1;
+                Entities[0].x = 28;
+                Entities[0].y = 0;
+                Entities[0].data.door.locked = TRUE;
+                Entities[1].type = ENT_BUTTON;
+                Entities[1].state = 0;
+                Entities[1].x = 27;
+                Entities[1].y = 0;
+                Entities[1].data.button.target = 0;
             }
             else if (strcmp(buffer, "player") == 0)
             {
