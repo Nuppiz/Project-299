@@ -10,16 +10,8 @@
 /* Various actions between the player and other entities/actors */
 
 extern GameData_t Game;
-Entity_t Entities[32];
-uint8_t key_acquired = 0;
-
- // tbd
-void entityInit()
-{
-    int i;
-
-    
-}
+extern Entity_t Entities[];
+uint8_t key_acquired = 0; // replace later with proper inventory system
 
 int checkForHit(Vec2 projectile, Vec2 target, int radius)
 {
@@ -57,7 +49,6 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
             {
                 if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
                 {
-                    //playSounds(SOUND_AARGH);
                     particleFx(pos, dir, FX_BLOOD);
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
                 }
@@ -117,7 +108,7 @@ void useDoor(Entity_t* door, uint8_t use_mode)
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
         playSounds(SOUND_LOCKED);
-    else if (door->state == 0)
+    else if (door->data.door.locked == FALSE && door->state == 0)
     {
         playSounds(SOUND_DOOR_C);
         door->state ^= 1;
@@ -127,7 +118,7 @@ void useDoor(Entity_t* door, uint8_t use_mode)
     }
     else if (door->state == 1)
     {
-        playSounds(SOUND_DOOR_O);
+        playSounds(door->data.door.locked == FALSE && SOUND_DOOR_O);
         door->state ^= 1;
         tile->obstacle ^= 1;
         tile->block_bullets ^= 1;

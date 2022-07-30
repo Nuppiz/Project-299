@@ -113,6 +113,7 @@
 
 #define TRUE                1
 #define FALSE               0
+#define RETURN_ERROR        128
 
 #define FULLY_OUT           0
 #define PARTIAL             1

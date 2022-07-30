@@ -18,7 +18,9 @@ enum TextureMaterials
 enum EntityTypes
 {
     ENT_DOOR,
-    ENT_BUTTON
+    ENT_BUTTON,
+    ENT_KEY,
+    NUM_ENTITYTYPES
 };
 
 enum EntityUseModes

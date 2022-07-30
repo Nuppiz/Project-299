@@ -3,13 +3,20 @@
 #include "Structs.h"
 #include "Loadgfx.h"
 
-/* Level data loader */
+/* Level data and entity loader */
 
 extern GameData_t Game;
 extern Texture_t* Textures;
-extern Entity_t Entities[];
+Entity_t Entities[32];
 Tile_t TileSet[100];
 extern int texture_count;
+
+const char* entity_type_strings [NUM_ENTITYTYPES] =
+{
+    "Door",
+    "Button",
+    "Key",
+};
 
 void loadTileset(char* filename)
 {
@@ -51,20 +58,77 @@ void loadTileset(char* filename)
     fclose(tileset);
 }
 
+int entityTypeCheck(char* entity_name)
+{
+    int entity_type_index;
+
+    for (entity_type_index = 0; entity_type_index < NUM_ENTITYTYPES; entity_type_index++)
+    {
+        if (strcmp(entity_name, entity_type_strings[entity_type_index]) == 0)
+            return entity_type_index;
+    }
+    return RETURN_ERROR;
+}
+
+void entityHandler(FILE* level_file, int entity_type)
+{
+    // because it would look messy to put all of this into the main loader function
+
+    int entity_id, ent_x, ent_y, state, tilemap_location; // common variables
+    int locked, key; // door variables
+    int target; // switch/button variables
+    Entity_t* ent; // shorter name of the current entity for more compact code
+
+    fscanf(level_file, "%d %d %d %d", &entity_id, &ent_x, &ent_y, &state);
+
+    tilemap_location = ent_y * Game.Map.width + ent_x;
+
+    Game.Map.tilemap[tilemap_location].is_entity = 1;
+    Game.Map.tilemap[tilemap_location].entity_value = entity_id;
+
+    ent = &Entities[entity_id];
+
+    ent->x = ent_x;
+    ent->y = ent_y;
+    ent->state = state;
+    ent->type = entity_type;
+
+    switch(entity_type)
+    {
+    case ENT_DOOR: fscanf(level_file, "%d %d", &locked, &key),
+                ent->data.door.locked = locked,
+                ent->data.door.key = key;
+                break;
+    case ENT_BUTTON: fscanf(level_file, "%d", &target),
+                ent->data.button.target = target;
+                break;
+    }
+}
+
 void levelLoader()
 {
+    // general variables
     FILE* level_file;
     char buffer[100];
-    char tileset_file[20] = DEFAULT_TILESET;
-    char texture_filename[20];
     char c;
     int i;
+
+    // tileset variables
     int tileset_found = FALSE;
- 
+    char tileset_file[20] = DEFAULT_TILESET;
+    char texture_filename[20];
+
+    // actor variables
     int x, y;
     double angle;
     int radius, control, ai_mode, ai_timer;
     id_t ai_target, texture_id;
+
+    // entity variables
+    char entity_name [20];
+    int entity_type;
+
+    //int key_type; // key variable (red, blue, yellow, skeleton?)
 
     level_file = fopen("LEVELS/tiletest.txt", "r");
     
@@ -91,8 +155,6 @@ void levelLoader()
             {
                 fscanf(level_file, "%d %d", &Game.Map.width, &Game.Map.height);
                 Game.Map.tilemap = malloc((Game.Map.width * Game.Map.height) * sizeof(Tile_t));
-                ASSERT(Game.Map.width == 30);
-                ASSERT(Game.Map.height == 30);
             }
             else if (strcmp(buffer, "tilemap") == 0)
             {
@@ -105,23 +167,9 @@ void levelLoader()
                         i++;
                     }
                 }
-                // test, delete later
-                Game.Map.tilemap[27].is_entity = 1; 
-                Game.Map.tilemap[28].is_entity = 1;
-                Game.Map.tilemap[27].entity_value = 1;
-                Game.Map.tilemap[28].entity_value = 0;
+                // remove once a proper key system is in place
                 Game.Map.tilemap[87].is_entity = 0;
                 Game.Map.tilemap[87].entity_value = TILE_KEY_RED;
-                Entities[0].type = ENT_DOOR;
-                Entities[0].state = 1;
-                Entities[0].x = 28;
-                Entities[0].y = 0;
-                Entities[0].data.door.locked = TRUE;
-                Entities[1].type = ENT_BUTTON;
-                Entities[1].state = 0;
-                Entities[1].x = 27;
-                Entities[1].y = 0;
-                Entities[1].data.button.target = 0;
             }
             else if (strcmp(buffer, "player") == 0)
             {
@@ -134,6 +182,20 @@ void levelLoader()
                 fscanf(level_file, "%d %d %lf %d %d %d %d %u %s",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, texture_filename);
                 createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, texture_filename);
+            }
+            else if (strcmp(buffer, "entity") == 0)
+            {
+                fscanf(level_file, "%s", entity_name);
+                entity_type = entityTypeCheck(entity_name);
+                if (entity_type == RETURN_ERROR)
+                {
+                    // replace later with just exit to main menu
+                    setVideoMode(TEXT_MODE);
+                    printf("Level load error: invalid entity type.\n");
+                    printf("Please check the level file!\n");
+                    quit();
+                }
+                entityHandler(level_file, entity_type);
             }
         }
     }
