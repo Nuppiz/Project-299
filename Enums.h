@@ -19,7 +19,11 @@ enum EntityTypes
 {
     ENT_DOOR,
     ENT_BUTTON,
-    ENT_KEY,
+    ENT_SPAWNER,
+    ENT_TRIGGER,
+    ENT_COUNTER,
+    ENT_PORTAL,
+    ENT_DELETED,
     NUM_ENTITYTYPES
 };
 

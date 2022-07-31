@@ -44,7 +44,7 @@ void loop()
 
     while (System.running == 1)
     {  
-        if (last_tick + System.tick_time < System.time) // tick
+        if (last_tick + System.tick_interval < System.time) // tick
         {
             do
             {
@@ -57,13 +57,13 @@ void loop()
                         Stack[i]->update();
                 }
 
-                accumulator -= System.tick_time;
+                accumulator -= System.tick_interval;
                 System.ticks++;
             }
-            while (accumulator >= System.tick_time);
+            while (accumulator >= System.tick_interval);
         }
 
-        if (last_frame + System.frame_time < System.time) // frame
+        if (last_frame + System.frame_interval < System.time) // frame
         {
             last_frame = System.time;
 

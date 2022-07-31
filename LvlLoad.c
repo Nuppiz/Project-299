@@ -5,17 +5,21 @@
 
 /* Level data and entity loader */
 
+extern System_t System;
 extern GameData_t Game;
 extern Texture_t* Textures;
-Entity_t Entities[32];
+Entity_t Entities[MAX_ENTITIES];
 Tile_t TileSet[100];
 extern int texture_count;
 
-const char* entity_type_strings [NUM_ENTITYTYPES] =
+const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
     "Door",
     "Button",
-    "Key",
+    "Spawner",
+    "Trigger",
+    "Counter",
+    "Portal",
 };
 
 void loadTileset(char* filename)
@@ -70,16 +74,21 @@ int entityTypeCheck(char* entity_name)
     return RETURN_ERROR;
 }
 
-void entityHandler(FILE* level_file, int entity_type)
+void entityLoader(FILE* level_file, int entity_id, int entity_type)
 {
     // because it would look messy to put all of this into the main loader function
 
-    int entity_id, ent_x, ent_y, state, tilemap_location; // common variables
+    int ent_x, ent_y, state, tilemap_location, only_once; float angle; // common variables
     int locked, key; // door variables
     int target; // switch/button variables
+    time_t last_spawn_time; int spawn_interval, toggleable, max_objects, num_objects, spawn_type, trigger_on_death; // spawner variables
+    time_t last_trigger_time; int trigger_interval; int target_ids[4]; // trigger variables
+    int value; int max_value; int target_id; // counter variables
+    char* level_name; int x, y; // portal variables
+
     Entity_t* ent; // shorter name of the current entity for more compact code
 
-    fscanf(level_file, "%d %d %d %d", &entity_id, &ent_x, &ent_y, &state);
+    fscanf(level_file, "%d %d %d", &ent_x, &ent_y, &state);
 
     tilemap_location = ent_y * Game.Map.width + ent_x;
 
@@ -88,10 +97,10 @@ void entityHandler(FILE* level_file, int entity_type)
 
     ent = &Entities[entity_id];
 
+    ent->type = entity_type;
     ent->x = ent_x;
     ent->y = ent_y;
     ent->state = state;
-    ent->type = entity_type;
 
     switch(entity_type)
     {
@@ -101,6 +110,28 @@ void entityHandler(FILE* level_file, int entity_type)
                 break;
     case ENT_BUTTON: fscanf(level_file, "%d", &target),
                 ent->data.button.target = target;
+                break;
+    case ENT_SPAWNER: fscanf(level_file, "%d %f %d %d %d %d %d", 
+                &spawn_type, &angle, &trigger_on_death, &max_objects, &spawn_interval, &toggleable, &only_once),
+                ent->data.spawner.last_spawn_time = 0,
+                ent->data.spawner.num_objects = 0,
+                ent->data.spawner.spawn_type = spawn_type,
+                ent->data.spawner.angle = angle,
+                ent->data.spawner.trigger_on_death = trigger_on_death,
+                ent->data.spawner.max_objects = max_objects,
+                ent->data.spawner.spawn_time_interval = spawn_interval / System.tick_interval,
+                ent->data.spawner.toggleable = toggleable,
+                ent->data.spawner.only_once = only_once;
+                break;
+    case ENT_TRIGGER: fscanf(level_file, "%d %d %d %d %d %d", &trigger_interval,
+                &target_ids[0], &target_ids[1], &target_ids[2], &target_ids[3], &only_once),
+                ent->data.trigger.last_trigger_time = 0,
+                ent->data.trigger.trigger_interval = trigger_interval / System.tick_interval,
+                ent->data.trigger.target_ids[0] = target_ids[0],
+                ent->data.trigger.target_ids[1] = target_ids[1],
+                ent->data.trigger.target_ids[2] = target_ids[2],
+                ent->data.trigger.target_ids[3] = target_ids[3],
+                ent->data.trigger.only_once = only_once;
                 break;
     }
 }
@@ -126,7 +157,7 @@ void levelLoader()
 
     // entity variables
     char entity_name [20];
-    int entity_type;
+    int entity_id, entity_type;
 
     //int key_type; // key variable (red, blue, yellow, skeleton?)
 
@@ -134,6 +165,7 @@ void levelLoader()
     
     if (level_file == NULL)
     {
+        fclose(level_file);
         setVideoMode(TEXT_MODE);
         printf("Unable to open file: tiletest.txt");
         printf("Please check the file actually exists!\n");
@@ -185,17 +217,18 @@ void levelLoader()
             }
             else if (strcmp(buffer, "entity") == 0)
             {
-                fscanf(level_file, "%s", entity_name);
+                fscanf(level_file, "%d" "%s", &entity_id, entity_name);
                 entity_type = entityTypeCheck(entity_name);
                 if (entity_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
+                    fclose(level_file);
                     setVideoMode(TEXT_MODE);
                     printf("Level load error: invalid entity type.\n");
                     printf("Please check the level file!\n");
                     quit();
                 }
-                entityHandler(level_file, entity_type);
+                entityLoader(level_file, entity_id, entity_type);
             }
         }
     }

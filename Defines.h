@@ -87,7 +87,8 @@
 #define DOT_DISTANCE        30
 #define LOOK_DISTANCE       30
 
-#define MAX_PARTICLES       1280
+#define MAX_PARTICLES       128
+#define MAX_ENTITIES        32
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
@@ -113,7 +114,7 @@
 
 #define TRUE                1
 #define FALSE               0
-#define RETURN_ERROR        128
+#define RETURN_ERROR        -1
 
 #define FULLY_OUT           0
 #define PARTIAL             1

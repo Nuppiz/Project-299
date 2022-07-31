@@ -10,8 +10,8 @@ typedef struct
     time_t seconds;     // second timer (time/1000)
     time_t ticks;       // total game ticks
     time_t frames;      // total frames drawn
-    time_t tick_time;   // target time interval of logic cycles
-    time_t frame_time;  // target time interval between draws
+    time_t tick_interval;   // target time interval of logic cycles
+    time_t frame_interval;  // target time interval between draws
     int    tick_rate;   // target rate of logic cycles
     int    frame_rate;  // target frame rate
     int    fps;         // actual measured fps
@@ -83,6 +83,7 @@ typedef struct
 
     uint8_t color;
     id_t texture_id;
+    uint8_t trigger_on_death; // entity ID to trigger on death
 } Object_t;
 
 typedef struct
@@ -148,6 +149,12 @@ typedef struct {
     union u_data {
         struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
         struct t_button {uint8_t target : 5;} button;
+        struct t_spawner {float angle; time_t last_spawn_time; int spawn_time_interval;
+        int8_t max_objects; uint8_t num_objects; uint16_t spawn_type: 5;
+        uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
+        struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
+        struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
+        struct t_portal {char* level_name; int x; int y; float angle;} portal;
     } data;
 } Entity_t;
 

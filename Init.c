@@ -100,8 +100,8 @@ void initSystem()
     System.seconds    = 0;
     System.ticks      = 0;
     System.frames     = 0;
-    System.tick_time  = 1000/TICK_RATE;
-    System.frame_time = 1000/FRAME_RATE;
+    System.tick_interval  = 1000/TICK_RATE;
+    System.frame_interval = 1000/FRAME_RATE;
     System.tick_rate  = TICK_RATE;
     System.frame_rate = FRAME_RATE;
     System.fps        = 0;

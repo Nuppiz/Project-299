@@ -9,6 +9,7 @@
 
 /* Various actions between the player and other entities/actors */
 
+extern System_t System;
 extern GameData_t Game;
 extern Entity_t Entities[];
 uint8_t key_acquired = 0; // replace later with proper inventory system
@@ -65,7 +66,7 @@ void shootWeapon(Object_t* source)
     int i;
 
     playSounds(SOUND_SHOOT);
-    particleFx(source->position, source->direction, FX_WATERGUN);
+    //particleFx(source->position, source->direction, FX_WATERGUN);
 
     bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);
     bullet_loc.y = source->position.y + direction.y * (source->radius * 1.5);
@@ -78,6 +79,13 @@ void shootWeapon(Object_t* source)
     }
 }
 
+void deleteEntity(int entity_id, int tilemap_loc)
+{
+    Game.Map.tilemap[tilemap_loc].is_entity = 0;
+    Game.Map.tilemap[tilemap_loc].entity_value = 0;
+    Entities[entity_id].type = ENT_DELETED;
+}
+
 Tile_t* getEntityTile(int x, int y)
 {
     Tile_t* tile_location = &Game.Map.tilemap[y * Game.Map.width + x];
@@ -85,44 +93,107 @@ Tile_t* getEntityTile(int x, int y)
     return tile_location;
 }
 
-void useDoor(Entity_t* door, uint8_t use_mode)
+void runSpawner(Entity_t* spawner)
+{
+    Vec2 direction = getDirVec2(spawner->data.spawner.angle);
+    int tilemap_loc;
+
+    if (spawner->state == 1)
+    {
+        if (spawner->data.spawner.last_spawn_time + spawner->data.spawner.spawn_time_interval < System.ticks)
+        {
+            spawner->data.spawner.last_spawn_time = System.ticks;
+            if (spawner->data.spawner.num_objects < spawner->data.spawner.max_objects || spawner->data.spawner.max_objects == -1)
+            {
+                createObject(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
+                7, 0, 1, 0, Game.player_id, "SPRITES/DUDE2.7UP");
+                spawner->data.spawner.num_objects++;
+            }
+            if (spawner->data.spawner.num_objects >= spawner->data.spawner.max_objects && spawner->data.spawner.max_objects != -1)
+            {
+                spawner->state = 0;
+                if (spawner->data.spawner.only_once == 1)
+                {
+                    tilemap_loc = spawner->y * Game.Map.width + spawner->x;
+                    deleteEntity(Game.Map.tilemap[tilemap_loc].entity_value, tilemap_loc);
+                }
+            }
+        }
+    }
+}
+
+void runTrigger(Entity_t* trigger)
+{
+    int i, tilemap_loc;
+    Vec2_int player_grid_loc;
+    player_grid_loc.x = Game.Objects[0].position.x / SQUARE_SIZE;
+    player_grid_loc.y = Game.Objects[0].position.y / SQUARE_SIZE;
+
+    if (player_grid_loc.x == trigger->x && player_grid_loc.y == trigger->y && trigger->state == 0)
+    {
+        trigger->data.trigger.last_trigger_time = System.ticks;
+        playSounds(SOUND_DOOR_O);
+        trigger->state = 1;
+        for (i = 0; i < 4; i++)
+        {
+            if (trigger->data.trigger.target_ids[i] != -1)
+                Entities[trigger->data.trigger.target_ids[i]].state ^= 1;
+        }
+        if (trigger->data.trigger.only_once == 1)
+        {
+            tilemap_loc = trigger->y * Game.Map.width + trigger->x;
+            deleteEntity(Game.Map.tilemap[tilemap_loc].entity_value, tilemap_loc);
+        }
+    }
+    if (trigger->data.trigger.last_trigger_time + trigger->data.trigger.trigger_interval < System.ticks && trigger->state == 1)
+        trigger->state = 0;
+}
+
+void toggleDoor(Entity_t* door)
 {
     Tile_t* tile = getEntityTile(door->x, door->y);
 
+    door->state ^= 1;
+    tile->obstacle ^= 1;
+    tile->block_bullets ^= 1;
+    tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+}
+
+void useDoor(Entity_t* door, uint8_t use_mode)
+{
     if (use_mode == USE_VIA_BUTTON)
     {
-        door->state ^= 1;
-        door->data.door.locked ^= 1;
-        tile->obstacle ^= 1;
-        tile->block_bullets ^= 1;
-        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+        toggleDoor(door);
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY & key_acquired == TRUE)
     {
         playSounds(SOUND_DOOR_O);
-        door->state ^= 1;
         door->data.door.locked ^= 1;
-        tile->obstacle ^= 1;
-        tile->block_bullets ^= 1;
-        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+        toggleDoor(door);
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
         playSounds(SOUND_LOCKED);
     else if (door->data.door.locked == FALSE && door->state == 0)
     {
         playSounds(SOUND_DOOR_C);
-        door->state ^= 1;
-        tile->obstacle ^= 1;
-        tile->block_bullets ^= 1;
-        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+        toggleDoor(door);
     }
-    else if (door->state == 1)
+    else if (door->data.door.locked == FALSE && door->state == 1)
     {
-        playSounds(door->data.door.locked == FALSE && SOUND_DOOR_O);
-        door->state ^= 1;
-        tile->obstacle ^= 1;
-        tile->block_bullets ^= 1;
-        tile->texture_id = (door->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+        playSounds(SOUND_DOOR_O);
+        toggleDoor(door);
+    }
+}
+
+void useButton(Tile_t* tile, Entity_t* button)
+{
+    button->state ^= 1;
+    tile->texture_id = (button->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
+    if (Entities[button->data.button.target].type == ENT_DOOR)
+        useDoor(&Entities[button->data.button.target], USE_VIA_BUTTON);
+    else if (Entities[button->data.button.target].type == ENT_SPAWNER && Entities[button->data.button.target].data.spawner.toggleable == TRUE)
+    {
+        Entities[button->data.button.target].state ^= 1;
     }
 }
 
@@ -142,15 +213,26 @@ void useTile(Vec2 pos, Vec2 dir)
         Entity_t* ent = &Entities[tile->entity_value];
         switch (ent->type)
         {
-        case ENT_DOOR:
-            useDoor(ent, USE_DIRECTLY);
+        case ENT_DOOR: useDoor(ent, USE_DIRECTLY);
             break;
-        case ENT_BUTTON:
-            playSounds(SOUND_SWITCH);
-            ent->state ^= 1;
-            tile->texture_id = (ent->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
-            useDoor(&Entities[ent->data.button.target], USE_VIA_BUTTON);
+        case ENT_BUTTON: playSounds(SOUND_SWITCH), useButton(tile, ent);
             break;
+        }
+    }
+}
+
+void entityLoop()
+{
+    int i;
+
+    for (i = 0; i < MAX_ENTITIES; i++)
+    {
+        if (Entities[i].type != ENT_DELETED)
+        {
+            if (Entities[i].type == ENT_SPAWNER)
+                runSpawner(&Entities[i]);
+            else if (Entities[i].type == ENT_TRIGGER)
+                runTrigger(&Entities[i]);
         }
     }
 }

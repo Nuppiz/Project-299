@@ -1,3 +1,4 @@
+#include "Action.h"
 #include "AI.h"
 #include "Movecoll.h"
 
@@ -12,6 +13,7 @@ void gameUpdate()
 {
     AILoop();
     physics();
+    entityLoop();
 }
 
 void pauseUpdate()

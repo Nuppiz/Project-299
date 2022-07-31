@@ -52,10 +52,11 @@ int getTileBulletBlock(Vec2 pos)
 
 void checkForKey() // temporary, will be replaced with better system later
 {
-    if (Game.Map.tilemap[Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x].entity_value != 0)
+    int player_tilemap_loc;
+    if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_KEY_RED && Game.Map.tilemap[player_tilemap_loc].is_entity == 0)
     {
         key_acquired = TRUE;
-        Game.Map.tilemap[Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x].entity_value = 0;
+        Game.Map.tilemap[player_tilemap_loc].entity_value = 0;
         playSounds(SOUND_ITEM);
     }
 }
