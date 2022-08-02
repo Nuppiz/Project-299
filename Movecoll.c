@@ -7,7 +7,6 @@
 /* Object_t movement and collision detection */
 
 extern GameData_t Game;
-extern uint8_t key_acquired;
 
 void updateGridLoc(Object_t* obj) // object's location on the grid
 {   
@@ -48,17 +47,6 @@ int getTileBulletBlock(Vec2 pos)
     tile_bullet = Game.Map.tilemap[object_tile].block_bullets; // check bullet block flag at that index
     
     return tile_bullet; // return said data
-}
-
-void checkForKey() // temporary, will be replaced with better system later
-{
-    int player_tilemap_loc;
-    if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_KEY_RED && Game.Map.tilemap[player_tilemap_loc].is_entity == 0)
-    {
-        key_acquired = TRUE;
-        Game.Map.tilemap[player_tilemap_loc].entity_value = 0;
-        playSounds(SOUND_ITEM);
-    }
 }
 
 void edgeDetectObject(Object_t* obj)
@@ -321,7 +309,6 @@ void physics()
     controlAllObjects();
     moveAllObjects();
     collideAllObjects();
-    checkForKey();
 
     #if DEBUG == 1
     sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject->velocity.x, PlayerObject->velocity.y);

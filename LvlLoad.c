@@ -22,6 +22,15 @@ const char* entity_type_strings[NUM_ENTITYTYPES] =
     "Portal",
 };
 
+const char* interactive_type_strings[NUM_INTERACTIVE_TILES] =
+{
+    "None",
+    "Key_Red",
+    "Key_Blue",
+    "Key_Yellow",
+    "Spikes",
+};
+
 void loadTileset(char* filename)
 {
     FILE* tileset;
@@ -74,6 +83,18 @@ int entityTypeCheck(char* entity_name)
     return RETURN_ERROR;
 }
 
+int interactiveTypeCheck(char* interactive_name)
+{
+    int interactive_type_index;
+
+    for (interactive_type_index = 0; interactive_type_index < NUM_INTERACTIVE_TILES; interactive_type_index++)
+    {
+        if (strcmp(interactive_name, interactive_type_strings[interactive_type_index]) == 0)
+            return interactive_type_index;
+    }
+    return RETURN_ERROR;
+}
+
 void entityLoader(FILE* level_file, int entity_id, int entity_type)
 {
     // because it would look messy to put all of this into the main loader function
@@ -83,12 +104,13 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
     int target; // switch/button variables
     time_t last_spawn_time; int spawn_interval, toggleable, max_objects, num_objects, spawn_type, trigger_on_death; // spawner variables
     time_t last_trigger_time; int trigger_interval; int target_ids[4]; // trigger variables
-    int value; int max_value; int target_id; // counter variables
-    char* level_name; int x, y; // portal variables
+    int max_value, target_id; // counter variables
+    char level_name[20]; int portal_x, portal_y; // portal variables
 
     Entity_t* ent; // shorter name of the current entity for more compact code
 
-    fscanf(level_file, "%d %d %d", &ent_x, &ent_y, &state);
+    if (entity_type != ENT_COUNTER)
+        fscanf(level_file, "%d %d %d", &ent_x, &ent_y, &state);
 
     tilemap_location = ent_y * Game.Map.width + ent_x;
 
@@ -98,9 +120,12 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
     ent = &Entities[entity_id];
 
     ent->type = entity_type;
-    ent->x = ent_x;
-    ent->y = ent_y;
-    ent->state = state;
+    if (entity_type != ENT_COUNTER)
+    {
+        ent->x = ent_x;
+        ent->y = ent_y;
+        ent->state = state;
+    }
 
     switch(entity_type)
     {
@@ -133,10 +158,22 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
                 ent->data.trigger.target_ids[3] = target_ids[3],
                 ent->data.trigger.only_once = only_once;
                 break;
+    case ENT_COUNTER: fscanf(level_file, "%d %d %d", &max_value, &target_id, &only_once),
+                ent->data.counter.value = 0,
+                ent->data.counter.max_value = max_value,
+                ent->data.counter.target_id = target_id,
+                ent->data.counter.only_once = only_once;
+                break;
+    case ENT_PORTAL: fscanf(level_file, "%s %d %d %f", level_name, &portal_x, &portal_y, &angle),
+                strcpy(level_name, ent->data.portal.level_name);
+                ent->data.portal.x = portal_x,
+                ent->data.portal.y = portal_y,
+                ent->data.portal.angle = angle;
+                break;
     }
 }
 
-void levelLoader()
+void levelLoader(char* level_name, uint8_t load_type)
 {
     // general variables
     FILE* level_file;
@@ -152,22 +189,24 @@ void levelLoader()
     // actor variables
     int x, y;
     double angle;
-    int radius, control, ai_mode, ai_timer;
+    int radius, control, ai_mode, ai_timer, trigger_on_death;
     id_t ai_target, texture_id;
 
     // entity variables
-    char entity_name [20];
+    char entity_name[20];
     int entity_id, entity_type;
 
-    //int key_type; // key variable (red, blue, yellow, skeleton?)
+    // interactive tile variables
+    char interactive_name[20];
+    int interactive_type, tilemap_location;
 
-    level_file = fopen("LEVELS/tiletest.txt", "r");
+    level_file = fopen(level_name, "r");
     
     if (level_file == NULL)
     {
         fclose(level_file);
         setVideoMode(TEXT_MODE);
-        printf("Unable to open file: tiletest.txt");
+        printf("Unable to open file: %s", level_name);
         printf("Please check the file actually exists!\n");
         quit();
     }
@@ -199,25 +238,22 @@ void levelLoader()
                         i++;
                     }
                 }
-                // remove once a proper key system is in place
-                Game.Map.tilemap[87].is_entity = 0;
-                Game.Map.tilemap[87].entity_value = TILE_KEY_RED;
             }
-            else if (strcmp(buffer, "player") == 0)
+            else if (strcmp(buffer, "player") == 0 && load_type != LOAD_PORTAL_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, texture_filename);
+                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, -1, texture_filename);
             }
-            else if (strcmp(buffer, "dude") == 0)
+            else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_PORTAL_LEVEL)
             {
-                fscanf(level_file, "%d %d %lf %d %d %d %d %u %s",
-                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, texture_filename);
-                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, texture_filename);
+                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %s",
+                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &trigger_on_death, texture_filename);
+                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, trigger_on_death, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0)
             {
-                fscanf(level_file, "%d" "%s", &entity_id, entity_name);
+                fscanf(level_file, "%d %s", &entity_id, entity_name);
                 entity_type = entityTypeCheck(entity_name);
                 if (entity_type == RETURN_ERROR)
                 {
@@ -230,6 +266,22 @@ void levelLoader()
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
+            else if (strcmp(buffer, "interactive") == 0)
+            {
+                fscanf(level_file, "%s %d", interactive_name, &tilemap_location);
+                interactive_type = interactiveTypeCheck(interactive_name);
+                if (interactive_type == RETURN_ERROR)
+                {
+                    // replace later with just exit to main menu
+                    fclose(level_file);
+                    setVideoMode(TEXT_MODE);
+                    printf("Level load error: invalid interactive tile type.\n");
+                    printf("Please check the level file!\n");
+                    quit();
+                }
+                Game.Map.tilemap[tilemap_location].is_entity = 0;
+                Game.Map.tilemap[tilemap_location].entity_value = interactive_type;
+            }
         }
     }
     if (tileset_found == FALSE)
@@ -237,4 +289,8 @@ void levelLoader()
         loadTileset(tileset_file);
     }
     fclose(level_file);
+    ASSERT(Entities[7].type == ENT_PORTAL);
+    ASSERT(Entities[7].x == 10);
+    ASSERT(Entities[7].y == 10);
+    ASSERT(Entities[7].state == 1);
 }

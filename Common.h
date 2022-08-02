@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <conio.h>
+#include <string.h>
 
 #include "Debug.h"
 #include "Defines.h"

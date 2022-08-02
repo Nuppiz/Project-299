@@ -117,7 +117,7 @@ void soundInit()
     // provide stub ISR to MIDAS so that it doesn't do anything
     _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
-    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC", "SFX/SWITCH.WAV", "SFX/LOCKED.WAV", "SFX/ITEMUP.WAV", "SFX/DOOR_O.WAV", "SFX/DOOR_C.WAV");
+    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC", "SFX/SWITCH.WAV", "SFX/LOCKED.WAV", "SFX/ITEMUP.WAV", "SFX/DOOR_O.WAV", "SFX/DOOR_C.WAV", "SFX/HURT.WAV", "SFX/PORTAL.WAV");
 	printf("OK\n");
 }
 
@@ -183,7 +183,7 @@ void gameInit()
     Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
     Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
     Game.Map.level_num = 1;
-    levelLoader();
+    levelLoader("LEVELS/tiletest.txt", LOAD_NEW_LEVEL);
 	printf("Game variables OK\n");
 }
 

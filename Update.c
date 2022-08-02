@@ -13,6 +13,7 @@ void gameUpdate()
 {
     AILoop();
     physics();
+    checkForInteractive();
     entityLoop();
 }
 

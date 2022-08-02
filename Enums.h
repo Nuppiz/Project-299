@@ -38,7 +38,9 @@ enum InteractiveTile
     NONE,
     TILE_KEY_RED,
     TILE_KEY_BLUE,
-    TILE_KEY_YELLOW
+    TILE_KEY_YELLOW,
+    TILE_SPIKES,
+    NUM_INTERACTIVE_TILES
 };
 
 enum SoundEffects
@@ -51,6 +53,8 @@ enum SoundEffects
     SOUND_ITEM,
     SOUND_DOOR_O,
     SOUND_DOOR_C,
+    SOUND_HURT,
+    SOUND_PORTAL,
     NUM_SFX
 };
 

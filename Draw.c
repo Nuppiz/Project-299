@@ -422,7 +422,7 @@ void drawMap()
             {
                 drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
                 i++;
-                if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value != 0)
+                if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
                     drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
             }
         }
@@ -434,7 +434,7 @@ void drawMap()
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
                     drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
-                    if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value != 0)
+                    if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
                         drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
                 }
                 i++;
@@ -587,7 +587,8 @@ void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type)
     
     default: break;
     }
-    sprayParticles(pos, dir, speed, randomness, num_particles, start_color, color_variance, life);
+    if (boundaryCheck(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y))) == TRUE)
+        sprayParticles(pos, dir, speed, randomness, num_particles, start_color, color_variance, life);
 }
 
 void deleteParticle(int index)

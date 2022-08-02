@@ -37,7 +37,7 @@ unsigned    amplification;          /* current, amplification */
 unsigned    musicVolume = 64;       /* music master volume */
 unsigned    SFXVolume = 64;         /* SFX master volume */
 int         error;
-unsigned effect1, effect2, effect3, effect4, effect5, effect6, effect7, effect8;
+unsigned effect1, effect2, effect3, effect4, effect5, effect6, effect7, effect8, effect9, effect10;
 uint8_t music_on = FALSE;
 
 /****************************************************************************\
@@ -286,7 +286,7 @@ void StopModule(mpModule *module)
 }
 
 // replace later with a for-loop or sth
-void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, char* file6, char* file7, char* file8)
+void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, char* file6, char* file7, char* file8, char* file9, char* file10)
 {    
     effect1 = LoadEffect(file1, 0);
     effect2 = LoadEffect(file2, 0);
@@ -296,27 +296,26 @@ void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, ch
     effect6 = LoadEffect(file6, 0);
     effect7 = LoadEffect(file7, 0);
     effect8 = LoadEffect(file8, 0);
+    effect9 = LoadEffect(file9, 0);
+    effect10 = LoadEffect(file10, 0);
 }
 
-// replace later with switch case maybe or a more elegant system
+// maybe replace later with a more elegant system
 void playSounds(int effect_id)
 {
-    if (effect_id == SOUND_SHOOT)
-        PlayEffect(effect1, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_EXPLO)
-        PlayEffect(effect2, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_AARGH)
-        PlayEffect(effect3, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_SWITCH)
-        PlayEffect(effect4, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_LOCKED)
-        PlayEffect(effect5, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_ITEM)
-        PlayEffect(effect6, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_DOOR_O)
-        PlayEffect(effect7, FXRATE, SFXVolume, panMiddle);
-    else if (effect_id == SOUND_DOOR_C)
-        PlayEffect(effect8, FXRATE, SFXVolume, panMiddle);  
+    switch (effect_id)
+    {
+    case SOUND_SHOOT: PlayEffect(effect1, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_EXPLO: PlayEffect(effect2, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_AARGH: PlayEffect(effect3, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_SWITCH: PlayEffect(effect4, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_LOCKED: PlayEffect(effect5, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_ITEM: PlayEffect(effect6, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_DOOR_O: PlayEffect(effect7, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_DOOR_C: PlayEffect(effect8, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_HURT: PlayEffect(effect9, FXRATE, SFXVolume, panMiddle); break;
+    case SOUND_PORTAL: PlayEffect(effect10, FXRATE, SFXVolume, panMiddle); break;
+    }
 }
 
 void changeSFXVolume(int modifier)

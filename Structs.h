@@ -83,7 +83,7 @@ typedef struct
 
     uint8_t color;
     id_t texture_id;
-    uint8_t trigger_on_death; // entity ID to trigger on death
+    int8_t trigger_on_death; // entity ID to trigger on death
 } Object_t;
 
 typedef struct
@@ -154,7 +154,7 @@ typedef struct {
         uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
         struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
         struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
-        struct t_portal {char* level_name; int x; int y; float angle;} portal;
+        struct t_portal {char level_name[20]; int x; int y; float angle;} portal;
     } data;
 } Entity_t;
 

@@ -25,7 +25,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, char* texture_name)
+id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int8_t trigger_on_death, char* texture_name)
 {
 	Vec2 direction; //temporary container for direction value
     id_t id = getNewId();
@@ -49,6 +49,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].ai_mode = ai_mode;
     Game.Objects[Game.object_count].ai_timer = ai_timer;
     Game.Objects[Game.object_count].target_id = ai_target;
+    Game.Objects[Game.object_count].trigger_on_death = trigger_on_death;
     Game.Objects[Game.object_count].texture_id = loadTexture(texture_name);
 	Game.Objects[Game.object_count].direction.x = direction.x;
 	Game.Objects[Game.object_count].direction.y = direction.y;

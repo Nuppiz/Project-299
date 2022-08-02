@@ -75,7 +75,7 @@ void playerControl()
     {
         pushState(STATE_PAUSE);
     }
-    if (KEY_IS_PRESSED(KEY_SPACEBAR))
+    if (KEY_WAS_HIT(KEY_SPACEBAR))
         shootWeapon(&Game.Objects[0]);
 
     if (KEY_WAS_HIT(KEY_E))

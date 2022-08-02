@@ -186,8 +186,13 @@
 #define OBJ_FLAG_DEAD BIT_0
 
 #define BULLET_STEP            4
-#define BULLET_MAX_DISTANCE    100
+#define BULLET_MAX_DISTANCE    150
 #define BULLET_HIT_ANGLE       0.5
+
+#define LOAD_NEW_LEVEL         0
+#define LOAD_PORTAL_LEVEL      1
+
+#define SFX_INTERVAL           50
 
 #define STATE_IS_ACTIVE        BIT_0
 #define STATE_ENABLE_UPDATE    BIT_1

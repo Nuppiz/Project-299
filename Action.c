@@ -6,6 +6,7 @@
 #include "Text.h"
 #include "Game.h"
 #include "Draw.h"
+#include "LvlLoad.h"
 
 /* Various actions between the player and other entities/actors */
 
@@ -14,68 +15,29 @@ extern GameData_t Game;
 extern Entity_t Entities[];
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
-int checkForHit(Vec2 projectile, Vec2 target, int radius)
+void checkForInteractive() // temporary, will be replaced with better system later
 {
-    int collision_left, collision_right, collision_top, collision_bottom;
+    int player_tilemap_loc;
+    static time_t last_sfx_played = 0;
 
-    collision_left = target.x - radius;
-    collision_right = target.x + radius;
-    collision_top = target.y - radius;
-    collision_bottom = target.y + radius;
+    player_tilemap_loc = Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x;
 
-    if (projectile.x >= collision_left && projectile.x <= collision_right
-    && projectile.y >= collision_top && projectile.y <= collision_bottom)
-        return TRUE;
-    else
-        return FALSE;
-}
-
-void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
-{
-    int bulletpath, i;
-
-    for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
+    if (Game.Map.tilemap[player_tilemap_loc].is_entity == 0)
     {
-        pos.x += dir.x * BULLET_STEP;
-        pos.y += dir.y * BULLET_STEP;
-
-        if (getTileBulletBlock(pos) == TRUE)
+        if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_KEY_RED)
         {
-            particleFx(pos, dir, FX_SPARKS);
-            break;
+            key_acquired = TRUE;
+            Game.Map.tilemap[player_tilemap_loc].entity_value = 0;
+            playSounds(SOUND_ITEM);
         }
-        else
+        else if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_SPIKES)
         {
-            for (i = 0; i < Game.object_count; i++)
+            if (last_sfx_played + SFX_INTERVAL < System.ticks)
             {
-                if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
-                {
-                    particleFx(pos, dir, FX_BLOOD);
-                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-                }
+                last_sfx_played = System.ticks;
+                playSounds(SOUND_HURT);
             }
         }
-    }
-    particleFx(pos, dir, FX_DIRT);
-}
-
-void shootWeapon(Object_t* source)
-{
-    Vec2 bullet_loc, direction;
-    double angle;
-    int i;
-
-    playSounds(SOUND_SHOOT);
-    //particleFx(source->position, source->direction, FX_WATERGUN);
-
-    bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);
-    bullet_loc.y = source->position.y + direction.y * (source->radius * 1.5);
-
-    for (i = 1; i < 4; i++)
-    {
-        angle = source->angle + ((rand() % 20 - 10) * RAD_1);
-        direction = getDirVec2(angle);
-        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 -10));
     }
 }
 
@@ -106,7 +68,7 @@ void runSpawner(Entity_t* spawner)
             if (spawner->data.spawner.num_objects < spawner->data.spawner.max_objects || spawner->data.spawner.max_objects == -1)
             {
                 createObject(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
-                7, 0, 1, 0, Game.player_id, "SPRITES/DUDE2.7UP");
+                7, 0, 1, 0, Game.player_id, spawner->data.spawner.trigger_on_death, "SPRITES/DUDE2.7UP");
                 spawner->data.spawner.num_objects++;
             }
             if (spawner->data.spawner.num_objects >= spawner->data.spawner.max_objects && spawner->data.spawner.max_objects != -1)
@@ -125,19 +87,18 @@ void runSpawner(Entity_t* spawner)
 void runTrigger(Entity_t* trigger)
 {
     int i, tilemap_loc;
-    Vec2_int player_grid_loc;
-    player_grid_loc.x = Game.Objects[0].position.x / SQUARE_SIZE;
-    player_grid_loc.y = Game.Objects[0].position.y / SQUARE_SIZE;
 
-    if (player_grid_loc.x == trigger->x && player_grid_loc.y == trigger->y && trigger->state == 0)
+    if (Game.Objects[0].grid_loc.x == trigger->x && Game.Objects[0].grid_loc.y == trigger->y && trigger->state == 0)
     {
         trigger->data.trigger.last_trigger_time = System.ticks;
         playSounds(SOUND_DOOR_O);
         trigger->state = 1;
         for (i = 0; i < 4; i++)
         {
-            if (trigger->data.trigger.target_ids[i] != -1)
+            if (trigger->data.trigger.target_ids[i] != -1 && Entities[trigger->data.trigger.target_ids[i]].type != ENT_COUNTER)
                 Entities[trigger->data.trigger.target_ids[i]].state ^= 1;
+            else
+                Entities[trigger->data.trigger.target_ids[i]].data.counter.value++;
         }
         if (trigger->data.trigger.only_once == 1)
         {
@@ -185,8 +146,10 @@ void useDoor(Entity_t* door, uint8_t use_mode)
     }
 }
 
-void useButton(Tile_t* tile, Entity_t* button)
+void toggleButton(Entity_t* button)
 {
+    Tile_t* tile = getEntityTile(button->x, button->y);
+
     button->state ^= 1;
     tile->texture_id = (button->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
     if (Entities[button->data.button.target].type == ENT_DOOR)
@@ -194,6 +157,48 @@ void useButton(Tile_t* tile, Entity_t* button)
     else if (Entities[button->data.button.target].type == ENT_SPAWNER && Entities[button->data.button.target].data.spawner.toggleable == TRUE)
     {
         Entities[button->data.button.target].state ^= 1;
+    }
+}
+
+void toggleCounter(Entity_t* counter)
+{
+    switch (Entities[counter->data.counter.target_id].type)
+    {
+    case ENT_DOOR: toggleDoor(&Entities[counter->data.counter.target_id]); break;
+    case ENT_BUTTON: toggleButton(&Entities[counter->data.counter.target_id]); break;
+    }
+}
+
+void runCounter(Entity_t* counter)
+{
+    if (counter->data.counter.value == counter->data.counter.max_value)
+    {
+        toggleCounter(counter);
+        if (counter->data.counter.only_once == 1)
+            counter->type = ENT_DELETED;
+        else
+            counter->data.counter.value = 0;
+    }
+}
+
+void runPortal(Entity_t* portal)
+{
+    if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
+    {
+        playSounds(SOUND_PORTAL);
+        /*levelLoader(portal->data.portal.level_name, LOAD_PORTAL_LEVEL);*/
+        Game.Objects[0].position.x = portal->data.portal.x;
+        Game.Objects[0].position.y = portal->data.portal.y;
+        Game.Objects[0].angle = portal->data.portal.angle;
+    }
+}
+
+void deathTrigger(int object_id)
+{
+    switch (Entities[Game.Objects[object_id].trigger_on_death].type)
+    {
+    case ENT_DOOR: toggleDoor(&Entities[Game.Objects[object_id].trigger_on_death]); break;
+    case ENT_BUTTON: toggleButton(&Entities[Game.Objects[object_id].trigger_on_death]); break;
     }
 }
 
@@ -215,9 +220,78 @@ void useTile(Vec2 pos, Vec2 dir)
         {
         case ENT_DOOR: useDoor(ent, USE_DIRECTLY);
             break;
-        case ENT_BUTTON: playSounds(SOUND_SWITCH), useButton(tile, ent);
+        case ENT_BUTTON: playSounds(SOUND_SWITCH), toggleButton(ent);
             break;
         }
+    }
+}
+
+int checkForHit(Vec2 projectile, Vec2 target, int radius)
+{
+    int collision_left, collision_right, collision_top, collision_bottom;
+
+    collision_left = target.x - radius;
+    collision_right = target.x + radius;
+    collision_top = target.y - radius;
+    collision_bottom = target.y + radius;
+
+    if (projectile.x >= collision_left && projectile.x <= collision_right
+    && projectile.y >= collision_top && projectile.y <= collision_bottom)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
+{
+    int bulletpath, i;
+
+    for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
+    {
+        pos.x += dir.x * BULLET_STEP;
+        pos.y += dir.y * BULLET_STEP;
+
+        if (getTileBulletBlock(pos) == TRUE)
+        {
+            particleFx(pos, dir, FX_SPARKS);
+            break;
+        }
+        else
+        {
+            for (i = 0; i < Game.object_count; i++)
+            {
+                if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
+                {
+                    particleFx(pos, dir, FX_BLOOD);
+                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+                    if (Game.Objects[i].trigger_on_death != -1)
+                    {
+                        deathTrigger(i);
+                    }
+                }
+            }
+        }
+    }
+    particleFx(pos, dir, FX_DIRT);
+}
+
+void shootWeapon(Object_t* source)
+{
+    Vec2 bullet_loc, direction;
+    double angle;
+    int i;
+
+    playSounds(SOUND_SHOOT);
+    //particleFx(source->position, source->direction, FX_WATERGUN);
+
+    bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);
+    bullet_loc.y = source->position.y + direction.y * (source->radius * 1.5);
+
+    for (i = 1; i < 4; i++)
+    {
+        angle = source->angle + ((rand() % 20 - 10) * RAD_1);
+        direction = getDirVec2(angle);
+        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 -10));
     }
 }
 
@@ -233,6 +307,10 @@ void entityLoop()
                 runSpawner(&Entities[i]);
             else if (Entities[i].type == ENT_TRIGGER)
                 runTrigger(&Entities[i]);
+            else if (Entities[i].type == ENT_COUNTER)
+                runCounter(&Entities[i]);
+            else if (Entities[i].type == ENT_PORTAL)
+                runPortal(&Entities[i]);
         }
     }
 }
