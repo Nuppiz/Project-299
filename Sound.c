@@ -38,7 +38,7 @@ unsigned    musicVolume = 64;       /* music master volume */
 unsigned    SFXVolume = 64;         /* SFX master volume */
 int         error;
 
-char** SFX_files;
+char** SFX_filenames;
 ushort SFX_array[NUM_SFX];
 uint8_t music_on = FALSE;
 
@@ -293,7 +293,7 @@ void loadSFX()
 
     for (i = 0; i < NUM_SFX; i++)
     {
-        SFX_array[i] = LoadEffect(SFX_files[i], 0);
+        SFX_array[i] = LoadEffect(SFX_filenames[i], 0);
     }   
 }
 
@@ -378,15 +378,15 @@ void changeMusicVolume(int modifier)
 
 void generateSFXFileTable()
 {
-    FILE* SFX_file;
+    FILE* SFX_list_file;
     int i = 0;
     char filename[20];
 
-    SFX_file = fopen("SFX/SFXLIST.txt", "r");
+    SFX_list_file = fopen("SFX/SFXLIST.txt", "r");
 
-    if (SFX_file == NULL)
+    if (SFX_list_file == NULL)
     {
-        fclose(SFX_file);
+        fclose(SFX_list_file);
         setVideoMode(TEXT_MODE);
         printf("Unable to open SFX list file!\n");
         printf("Please check the file actually exists!\n");
@@ -395,13 +395,13 @@ void generateSFXFileTable()
 
     do
     {
-        fscanf(SFX_file, "%s", filename);
-        SFX_files[i] = malloc(strlen(filename) + 1);
-        strcpy(SFX_files[i], filename);
+        fscanf(SFX_list_file, "%s", filename);
+        SFX_filenames[i] = malloc(strlen(filename) + 1);
+        strcpy(SFX_filenames[i], filename);
         i++;
-    } while (fgetc(SFX_file) != EOF);
+    } while (fgetc(SFX_list_file) != EOF);
     
-    fclose(SFX_file);
+    fclose(SFX_list_file);
 }
 
 void initSounds()
@@ -432,11 +432,11 @@ void initSounds()
 
     /* Initialize array for sound effect filenames */
     printf("Generating SFX file name table...\n");
-    SFX_files = malloc(sizeof(char*) * NUM_SFX);
+    SFX_filenames = malloc(sizeof(char*) * NUM_SFX);
     generateSFXFileTable();
     printf("OK!\n");
     printf("Loading SFX files into memory...\n");
     loadSFX();
     printf("OK!\n");
-    free(SFX_files);
+    free(SFX_filenames);
 }
