@@ -289,8 +289,4 @@ void levelLoader(char* level_name, uint8_t load_type)
         loadTileset(tileset_file);
     }
     fclose(level_file);
-    ASSERT(Entities[7].type == ENT_PORTAL);
-    ASSERT(Entities[7].x == 10);
-    ASSERT(Entities[7].y == 10);
-    ASSERT(Entities[7].state == 1);
 }

@@ -37,7 +37,9 @@ unsigned    amplification;          /* current, amplification */
 unsigned    musicVolume = 64;       /* music master volume */
 unsigned    SFXVolume = 64;         /* SFX master volume */
 int         error;
-unsigned effect1, effect2, effect3, effect4, effect5, effect6, effect7, effect8, effect9, effect10;
+
+char** SFX_files;
+ushort SFX_array[NUM_SFX];
 uint8_t music_on = FALSE;
 
 /****************************************************************************\
@@ -285,37 +287,20 @@ void StopModule(mpModule *module)
     midasFreeModule(module);
 }
 
-// replace later with a for-loop or sth
-void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, char* file6, char* file7, char* file8, char* file9, char* file10)
-{    
-    effect1 = LoadEffect(file1, 0);
-    effect2 = LoadEffect(file2, 0);
-    effect3 = LoadEffect(file3, 0);
-    effect4 = LoadEffect(file4, 0);
-    effect5 = LoadEffect(file5, 0);
-    effect6 = LoadEffect(file6, 0);
-    effect7 = LoadEffect(file7, 0);
-    effect8 = LoadEffect(file8, 0);
-    effect9 = LoadEffect(file9, 0);
-    effect10 = LoadEffect(file10, 0);
+void loadSFX()
+{
+    int i;
+
+    for (i = 0; i < NUM_SFX; i++)
+    {
+        SFX_array[i] = LoadEffect(SFX_files[i], 0);
+    }   
 }
 
-// maybe replace later with a more elegant system
-void playSounds(int effect_id)
+// effect_id comes from the enum table SoundEffects
+void playSFX(int effect_id)
 {
-    switch (effect_id)
-    {
-    case SOUND_SHOOT: PlayEffect(effect1, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_EXPLO: PlayEffect(effect2, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_AARGH: PlayEffect(effect3, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_SWITCH: PlayEffect(effect4, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_LOCKED: PlayEffect(effect5, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_ITEM: PlayEffect(effect6, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_DOOR_O: PlayEffect(effect7, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_DOOR_C: PlayEffect(effect8, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_HURT: PlayEffect(effect9, FXRATE, SFXVolume, panMiddle); break;
-    case SOUND_PORTAL: PlayEffect(effect10, FXRATE, SFXVolume, panMiddle); break;
-    }
+    PlayEffect(SFX_array[effect_id], FXRATE, SFXVolume, panMiddle);
 }
 
 void changeSFXVolume(int modifier)
@@ -328,16 +313,12 @@ void changeSFXVolume(int modifier)
 
 void stopSFX()
 {
-    FreeEffect(effect1);                /* deallocate effect #1 */
-    FreeEffect(effect2);                /* deallocate effect #2 */
-    FreeEffect(effect3);                /* deallocate effect #3 */
-    FreeEffect(effect4);                /* deallocate effect #4 */
-    FreeEffect(effect5);                /* deallocate effect #5 */
-    FreeEffect(effect6);                /* deallocate effect #6 */
-    FreeEffect(effect7);                /* deallocate effect #7 */
-    FreeEffect(effect8);                /* deallocate effect #8 */
-    FreeEffect(effect9);                /* deallocate effect #9 */
-    FreeEffect(effect10);                /* deallocate effect #10 */
+    // deallocate memory for sound effects
+    int i;
+    for (i = 0; i < NUM_SFX; i++)
+    {
+        FreeEffect(SFX_array[i]);
+    }
 }
 
 void stopMusic()
@@ -395,6 +376,34 @@ void changeMusicVolume(int modifier)
     }
 }
 
+void generateSFXFileTable()
+{
+    FILE* SFX_file;
+    int i = 0;
+    char filename[20];
+
+    SFX_file = fopen("SFX/SFXLIST.txt", "r");
+
+    if (SFX_file == NULL)
+    {
+        fclose(SFX_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open SFX list file!\n");
+        printf("Please check the file actually exists!\n");
+        quit();
+    }
+
+    do
+    {
+        fscanf(SFX_file, "%s", filename);
+        SFX_files[i] = malloc(strlen(filename) + 1);
+        strcpy(SFX_files[i], filename);
+        i++;
+    } while (fgetc(SFX_file) != EOF);
+    
+    fclose(SFX_file);
+}
+
 void initSounds()
 {
     int         i, isConfig;
@@ -420,4 +429,14 @@ void initSounds()
     if ( (error = midasSD->GetAmplification(&defAmplify)) != OK )
         midasError(error);
     amplification = defAmplify;
+
+    /* Initialize array for sound effect filenames */
+    printf("Generating SFX file name table...\n");
+    SFX_files = malloc(sizeof(char*) * NUM_SFX);
+    generateSFXFileTable();
+    printf("OK!\n");
+    printf("Loading SFX files into memory...\n");
+    loadSFX();
+    printf("OK!\n");
+    free(SFX_files);
 }

@@ -112,11 +112,11 @@ void testButtons()
         deleteObject(2);
 
     if (KEY_WAS_HIT(KEY_7))
-        playSounds(1);
+        playSFX(1);
     if (KEY_WAS_HIT(KEY_8))
-        playSounds(2);
+        playSFX(2);
     if (KEY_WAS_HIT(KEY_9))
-        playSounds(3);
+        playSFX(3);
     if (KEY_WAS_HIT(KEY_PAGEUP))
         changeMusicVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAGEDOWN))

@@ -1,8 +1,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-void loadSFX(char* file1, char* file2, char* file3, char* file4, char* file5, char* file6, char* file7, char* file8, char* file9, char* file10);
-void playSounds(int effect_id);
+void playSFX(int effect_id);
 void changeSFXVolume(int modifier);
 void stopSFX();
 void stopMusic();

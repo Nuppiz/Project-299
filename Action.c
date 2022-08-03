@@ -30,14 +30,14 @@ void checkForInteractive() // temporary, will be replaced with better system lat
             {
                 key_acquired = TRUE;
                 Game.Map.tilemap[tilemap_loc + 1].entity_value = 0;
-                playSounds(SOUND_ITEM);
+                playSFX(SOUND_ITEM);
             }
             else if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_SPIKES)
             {
                 if (last_sfx_played + SFX_INTERVAL < System.ticks)
                 {
                     last_sfx_played = System.ticks;
-                    playSounds(SOUND_HURT);
+                    playSFX(SOUND_HURT);
                 }
             }
         }
@@ -94,7 +94,7 @@ void runTrigger(Entity_t* trigger)
     if (Game.Objects[0].grid_loc.x == trigger->x && Game.Objects[0].grid_loc.y == trigger->y && trigger->state == 0)
     {
         trigger->data.trigger.last_trigger_time = System.ticks;
-        playSounds(SOUND_DOOR_O);
+        playSFX(SOUND_DOOR_O);
         trigger->state = 1;
         for (i = 0; i < 4; i++)
         {
@@ -131,20 +131,20 @@ void useDoor(Entity_t* door, uint8_t use_mode)
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY & key_acquired == TRUE)
     {
-        playSounds(SOUND_DOOR_O);
+        playSFX(SOUND_DOOR_O);
         door->data.door.locked ^= 1;
         toggleDoor(door);
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
-        playSounds(SOUND_LOCKED);
+        playSFX(SOUND_LOCKED);
     else if (door->data.door.locked == FALSE && door->state == 0)
     {
-        playSounds(SOUND_DOOR_C);
+        playSFX(SOUND_DOOR_C);
         toggleDoor(door);
     }
     else if (door->data.door.locked == FALSE && door->state == 1)
     {
-        playSounds(SOUND_DOOR_O);
+        playSFX(SOUND_DOOR_O);
         toggleDoor(door);
     }
 }
@@ -188,7 +188,7 @@ void runPortal(Entity_t* portal)
 {
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
-        playSounds(SOUND_PORTAL);
+        playSFX(SOUND_PORTAL);
         /*levelLoader(portal->data.portal.level_name, LOAD_PORTAL_LEVEL);*/
         Game.Objects[0].position.x = portal->data.portal.x;
         Game.Objects[0].position.y = portal->data.portal.y;
@@ -223,7 +223,7 @@ void useTile(Vec2 pos, Vec2 dir)
         {
         case ENT_DOOR: useDoor(ent, USE_DIRECTLY);
             break;
-        case ENT_BUTTON: playSounds(SOUND_SWITCH), toggleButton(ent);
+        case ENT_BUTTON: playSFX(SOUND_SWITCH), toggleButton(ent);
             break;
         }
     }
@@ -284,7 +284,7 @@ void shootWeapon(Object_t* source)
     double angle;
     int i;
 
-    playSounds(SOUND_SHOOT);
+    playSFX(SOUND_SHOOT);
     //particleFx(source->position, source->direction, FX_WATERGUN);
 
     bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);

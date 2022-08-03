@@ -110,20 +110,19 @@ void initSystem()
 
 void soundInit()
 {
-    printf("Initializing sounds...");
+    printf("Initializing sounds...\n");
     patchMidasSetTimer(&setTimerBxHook);
     asm cli;
     old_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     // provide stub ISR to MIDAS so that it doesn't do anything
     _dos_setvect(TIME_KEEPER_INT, &stubISR);
     initSounds();
-    loadSFX("SFX/RIFLE.WAV", "SFX/EXPLOS1.VOC", "SFX/AARGH.VOC", "SFX/SWITCH.WAV", "SFX/LOCKED.WAV", "SFX/ITEMUP.WAV", "SFX/DOOR_O.WAV", "SFX/DOOR_C.WAV", "SFX/HURT.WAV", "SFX/PORTAL.WAV");
 	printf("OK\n");
 }
 
 void timerInit()
 {
-    printf("Initializing timer...");
+    printf("Initializing timer...\n");
     midas_Timer_ISR = _dos_getvect(TIME_KEEPER_INT);
     _dos_setvect(TIME_KEEPER_INT, Timer);
     setTimer(TIMER_1000HZ);
@@ -135,7 +134,7 @@ void gfxInit()
 {
     extern Palette_t NewPalette;
 
-	printf("Initializing graphics...");
+	printf("Initializing graphics...\n");
     setVideoMode(VGA_256_COLOR_MODE);
 	printf("Video mode OK\n");
     loadPalette("Pal.bmp", &NewPalette);
