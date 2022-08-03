@@ -23,6 +23,6 @@ typedef uint16_t flags_t;
 
 #if DEBUG == 1
 extern char debug[NUM_DEBUG][DEBUG_STR_LEN];
-#endif
+#endif /* COMMON_H */
 
 #endif/* COMMON_H */

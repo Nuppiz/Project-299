@@ -59,6 +59,7 @@ void loop()
 
                 accumulator -= System.tick_interval;
                 System.ticks++;
+                System.ticks_per_frame++;
             }
             while (accumulator >= System.tick_interval);
         }
@@ -77,11 +78,13 @@ void loop()
             System.frames++;
             frame_count++;
             accumulator += System.time - last_frame;
+            System.ticks_per_frame = 0;
 
             #if DEBUG == 1
             updateStats();
             #endif
         }
+
            
         #if DEBUG == 1
         if (last_time + 1000 < System.time) // FPS calculation; optional for debugging

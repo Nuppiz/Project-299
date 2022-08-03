@@ -331,9 +331,13 @@ void stopSFX()
     FreeEffect(effect1);                /* deallocate effect #1 */
     FreeEffect(effect2);                /* deallocate effect #2 */
     FreeEffect(effect3);                /* deallocate effect #3 */
-    FreeEffect(effect4);                /* deallocate effect #3 */
-    FreeEffect(effect5);                /* deallocate effect #3 */
-    FreeEffect(effect6);                /* deallocate effect #3 */
+    FreeEffect(effect4);                /* deallocate effect #4 */
+    FreeEffect(effect5);                /* deallocate effect #5 */
+    FreeEffect(effect6);                /* deallocate effect #6 */
+    FreeEffect(effect7);                /* deallocate effect #7 */
+    FreeEffect(effect8);                /* deallocate effect #8 */
+    FreeEffect(effect9);                /* deallocate effect #9 */
+    FreeEffect(effect10);                /* deallocate effect #10 */
 }
 
 void stopMusic()

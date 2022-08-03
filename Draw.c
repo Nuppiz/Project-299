@@ -603,8 +603,8 @@ void deleteParticle(int index)
 
 void drawParticle(Vec2* pos, Vec2 vel, uint8_t color)
 {
-    pos->x += vel.x;
-    pos->y += vel.y;
+    pos->x += vel.x * System.ticks_per_frame;
+    pos->y += vel.y * System.ticks_per_frame;
     if (boundaryCheck(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y))) == TRUE)
         SET_PIXEL(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y)), color);
 }
@@ -615,7 +615,7 @@ void particleArrayManager()
 
     while (i != particle_write)
     {
-        Particles[i].life--;
+        Particles[i].life -= System.ticks_per_frame;
         if (Particles[i].life <= 0)
         {
             deleteParticle(i);

@@ -16,6 +16,7 @@ typedef struct
     int    frame_rate;  // target frame rate
     int    fps;         // actual measured fps
     float  fps_avg;     // average fps (frames/seconds)
+    int    ticks_per_frame; // number of ticks per frame, varies based on frame rate
 } System_t;
 
 typedef struct

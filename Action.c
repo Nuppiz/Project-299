@@ -17,25 +17,28 @@ uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForInteractive() // temporary, will be replaced with better system later
 {
-    int player_tilemap_loc;
+    int tilemap_loc, i;
     static time_t last_sfx_played = 0;
 
-    player_tilemap_loc = Game.Objects[0].grid_loc.y * Game.Map.width + Game.Objects[0].grid_loc.x;
-
-    if (Game.Map.tilemap[player_tilemap_loc].is_entity == 0)
+    for (i = 0; i < Game.object_count; i++)
     {
-        if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_KEY_RED)
+        tilemap_loc = Game.Objects[i].grid_loc.y * Game.Map.width + Game.Objects[i].grid_loc.x;;
+        if (Game.Map.tilemap[tilemap_loc].is_entity == 0)
         {
-            key_acquired = TRUE;
-            Game.Map.tilemap[player_tilemap_loc].entity_value = 0;
-            playSounds(SOUND_ITEM);
-        }
-        else if (Game.Map.tilemap[player_tilemap_loc].entity_value == TILE_SPIKES)
-        {
-            if (last_sfx_played + SFX_INTERVAL < System.ticks)
+            // for whatever reason the key pickup happens really "late" if the code checks for its actual location
+            if (Game.Map.tilemap[tilemap_loc + 1].entity_value == TILE_KEY_RED && i == 0)
             {
-                last_sfx_played = System.ticks;
-                playSounds(SOUND_HURT);
+                key_acquired = TRUE;
+                Game.Map.tilemap[tilemap_loc + 1].entity_value = 0;
+                playSounds(SOUND_ITEM);
+            }
+            else if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_SPIKES)
+            {
+                if (last_sfx_played + SFX_INTERVAL < System.ticks)
+                {
+                    last_sfx_played = System.ticks;
+                    playSounds(SOUND_HURT);
+                }
             }
         }
     }
