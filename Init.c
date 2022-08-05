@@ -142,7 +142,6 @@ void gfxInit()
     setPalette_VGA(&NewPalette);
 	printf("Palette set\n");
     loadFontNew();
-    createErrorTexture();
 	printf("Basic textures loaded into memory\n");
 }
 
@@ -177,11 +176,6 @@ void titleInit()
 
 void gameInit()
 {
-    Game.object_capacity = 16;
-    Game.id_capacity = 16;
-    Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
-    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
-    Game.Map.level_num = 1;
     levelLoader("LEVELS/tiletest.txt", LOAD_NEW_LEVEL);
 	printf("Game variables OK\n");
 }

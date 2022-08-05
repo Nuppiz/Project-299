@@ -83,3 +83,25 @@ void deleteLastObject()
     if (Game.object_count > 0)
         deleteObject(Game.object_count-1);
 }
+
+void initGameData()
+{
+    //Entities = malloc(MAX_ENTITIES * sizeof(Entity_t));
+    Game.object_capacity = 16;
+    Game.id_capacity = 16;
+    Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
+    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
+}
+
+void freeGameData()
+{
+    memset(Game.Map.tilemap, 0, Game.Map.width * Game.Map.height);
+    free(Game.Map.tilemap);
+    Game.object_count = 0;
+    memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
+    free(Game.Objects);
+    Game.object_capacity = 0;
+    memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
+    free(Game.ObjectsById);
+    Game.id_capacity = 0;
+}

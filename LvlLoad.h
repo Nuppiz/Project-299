@@ -4,5 +4,7 @@
 #include "Common.h"
 
 void levelLoader(char* level_name, uint8_t load_type);
+void saveLevelState();
+void levelTransition(char* levelname);
 
 #endif /* LVLLOAD_H */

@@ -1,5 +1,6 @@
 #include <alloc.h>
 #include "Common.h"
+#include "Structs.h"
 #include "MIDAS/MIDAS.H"
 
 /* MIDAS Sound System and related functions */
@@ -38,7 +39,7 @@ unsigned    musicVolume = 64;       /* music master volume */
 unsigned    SFXVolume = 64;         /* SFX master volume */
 int         error;
 
-char** SFX_filenames;
+struct SFX_file SFX_filenames[NUM_SFX];
 ushort SFX_array[NUM_SFX];
 uint8_t music_on = FALSE;
 
@@ -293,7 +294,7 @@ void loadSFX()
 
     for (i = 0; i < NUM_SFX; i++)
     {
-        SFX_array[i] = LoadEffect(SFX_filenames[i], 0);
+        SFX_array[i] = LoadEffect(SFX_filenames[i].filename, SFX_filenames[i].looping);
     }   
 }
 
@@ -380,6 +381,7 @@ void generateSFXFileTable()
 {
     FILE* SFX_list_file;
     int i = 0;
+    int looping;
     char filename[20];
 
     SFX_list_file = fopen("SFX/SFXLIST.txt", "r");
@@ -395,9 +397,10 @@ void generateSFXFileTable()
 
     do
     {
-        fscanf(SFX_list_file, "%s", filename);
-        SFX_filenames[i] = malloc(strlen(filename) + 1);
-        strcpy(SFX_filenames[i], filename);
+        fscanf(SFX_list_file, "%s %d", filename, &looping);
+        SFX_filenames[i].filename = malloc(strlen(filename) + 1);
+        strcpy(SFX_filenames[i].filename, filename);
+        SFX_filenames[i].looping = looping;
         i++;
     } while (fgetc(SFX_list_file) != EOF);
     
@@ -432,7 +435,6 @@ void initSounds()
 
     /* Initialize array for sound effect filenames */
     printf("Generating SFX file name table...\n");
-    SFX_filenames = malloc(sizeof(char*) * NUM_SFX);
     generateSFXFileTable();
     printf("OK!\n");
     printf("Loading SFX files into memory...\n");

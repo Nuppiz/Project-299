@@ -159,4 +159,9 @@ typedef struct {
     } data;
 } Entity_t;
 
+struct SFX_file {
+    char* filename;
+    uint8_t looping;
+};
+
 #endif/* STRUCTS_H */

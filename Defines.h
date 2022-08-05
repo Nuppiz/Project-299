@@ -190,7 +190,7 @@
 #define BULLET_HIT_ANGLE       0.5
 
 #define LOAD_NEW_LEVEL         0
-#define LOAD_PORTAL_LEVEL      1
+#define LOAD_SAVED_LEVEL       1
 
 #define SFX_INTERVAL           50
 

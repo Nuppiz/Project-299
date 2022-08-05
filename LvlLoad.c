@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Structs.h"
 #include "Loadgfx.h"
+#include "Filech.h"
 
 /* Level data and entity loader */
 
@@ -41,8 +42,6 @@ void loadTileset(char* filename)
 
     if (tileset == NULL)
         tileset = fopen(DEFAULT_TILESET, "rb");
-
-    ASSERT(tileset != NULL);
 
     while ((c = fgetc(tileset)) != EOF)
     {
@@ -165,7 +164,7 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
                 ent->data.counter.only_once = only_once;
                 break;
     case ENT_PORTAL: fscanf(level_file, "%s %d %d %f", level_name, &portal_x, &portal_y, &angle),
-                strcpy(level_name, ent->data.portal.level_name);
+                strcpy(ent->data.portal.level_name, level_name),
                 ent->data.portal.x = portal_x,
                 ent->data.portal.y = portal_y,
                 ent->data.portal.angle = angle;
@@ -200,6 +199,14 @@ void levelLoader(char* level_name, uint8_t load_type)
     char interactive_name[20];
     int interactive_type, tilemap_location;
 
+    if (Entities != NULL && Textures != NULL && Game.Objects != NULL)
+    {
+        //memset(Entities, 0, MAX_ENTITIES * sizeof(Entity_t));
+        //free(Entities);
+        //freeAllTextures();
+        freeGameData();
+    }
+
     level_file = fopen(level_name, "r");
     
     if (level_file == NULL)
@@ -210,6 +217,9 @@ void levelLoader(char* level_name, uint8_t load_type)
         printf("Please check the file actually exists!\n");
         quit();
     }
+
+    createErrorTexture();
+    initGameData();
 
     while ((c = fgetc(level_file)) != EOF)
     {
@@ -239,13 +249,13 @@ void levelLoader(char* level_name, uint8_t load_type)
                     }
                 }
             }
-            else if (strcmp(buffer, "player") == 0 && load_type != LOAD_PORTAL_LEVEL)
+            else if (strcmp(buffer, "player") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
                 Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, -1, texture_filename);
             }
-            else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_PORTAL_LEVEL)
+            else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %s",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &trigger_on_death, texture_filename);
@@ -289,4 +299,48 @@ void levelLoader(char* level_name, uint8_t load_type)
         loadTileset(tileset_file);
     }
     fclose(level_file);
+}
+
+void saveGameState()
+{
+    // to do
+}
+
+void saveLevelState()
+{
+    // to do
+}
+
+void loadGameState()
+{
+    // to do
+}
+
+void loadLevelState()
+{
+    // to do
+}
+
+void levelTransition(char* levelname)
+{
+    char savefilename[20];
+
+    // create save file name
+    strncpy(savefilename, levelname, strlen(levelname) - 4); // drop the level filename ending
+    strcat(savefilename, ".SAV"); // replace with save filename ending
+
+    saveGameState(); // health, keys, jne. johonkin gamestate.sav tms.
+    saveLevelState(); // object positions, healths, etc. entities,  kentta.sav
+
+    if (checkFileExists(savefilename)) // jos levelilla on save tiedosto
+     {
+        levelLoader(levelname, LOAD_SAVED_LEVEL);
+        loadLevelState(); // lataa asiat kenttaan liittyen kentta.sav
+     }
+    else // levelissa ei oo kayty viela joten kutsutaan pelkka loadLevel ja sanotaan sille 0, eli lataa uudet asiat
+        levelLoader(levelname, LOAD_NEW_LEVEL);
+
+    loadGameState(); // palauttaa health, lives, keys inventory ammo kaikki,
+    // myos overwriteaa myos pelaajaobjektin healtit, inventoryt yms.
+    // (jotka juuri ladattiin muiden objektien kanssa)
 }

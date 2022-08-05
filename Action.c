@@ -7,12 +7,13 @@
 #include "Game.h"
 #include "Draw.h"
 #include "LvlLoad.h"
+#include "Filech.h"
 
 /* Various actions between the player and other entities/actors */
 
 extern System_t System;
 extern GameData_t Game;
-extern Entity_t Entities[];
+extern Entity_t Entities [];
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForInteractive() // temporary, will be replaced with better system later
@@ -184,15 +185,30 @@ void runCounter(Entity_t* counter)
     }
 }
 
-void runPortal(Entity_t* portal)
+void usePortal(Entity_t* portal)
 {
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
         playSFX(SOUND_PORTAL);
-        /*levelLoader(portal->data.portal.level_name, LOAD_PORTAL_LEVEL);*/
-        Game.Objects[0].position.x = portal->data.portal.x;
-        Game.Objects[0].position.y = portal->data.portal.y;
-        Game.Objects[0].angle = portal->data.portal.angle;
+        if (portal->data.portal.level_name != NULL)
+        {
+            if (checkFileExists(portal->data.portal.level_name) == FALSE)
+                return;
+            else
+            {
+                levelTransition(portal->data.portal.level_name);
+                Game.Objects[0].position.x = portal->data.portal.x;
+                Game.Objects[0].position.y = portal->data.portal.y;
+                Game.Objects[0].angle = portal->data.portal.angle;
+                saveLevelState();
+            }
+        }
+        else
+        {
+            Game.Objects[0].position.x = portal->data.portal.x;
+            Game.Objects[0].position.y = portal->data.portal.y;
+            Game.Objects[0].angle = portal->data.portal.angle;
+        }
     }
 }
 
@@ -313,7 +329,7 @@ void entityLoop()
             else if (Entities[i].type == ENT_COUNTER)
                 runCounter(&Entities[i]);
             else if (Entities[i].type == ENT_PORTAL)
-                runPortal(&Entities[i]);
+                usePortal(&Entities[i]);
         }
     }
 }

@@ -30,21 +30,17 @@ int findTexture(char* filename)
 void createErrorTexture()
 {
     int i;
-    ASSERT(Textures == NULL);
     if (Textures == NULL)
         Textures = malloc(sizeof(Texture_t));
     Textures[0].filename = "ERROR.7UP";
     Textures[0].width = 20;
     Textures[0].height = 20;
     Textures[0].pixels = malloc(Textures[0].width * Textures[0].height);
-    ASSERT(Textures[0].pixels != NULL);
     for (i = 0; i < 400; i++)
     {
         Textures[0].pixels[i] = COLOUR_RED;
     }
-    ASSERT(Textures[0].pixels[0] == COLOUR_RED);
     texture_count++;
-    ASSERT(texture_count == 1);
 }
 
 int loadTexture(char* filename)
@@ -93,4 +89,9 @@ int loadTexture(char* filename)
     fclose(file_ptr);
     
     return texture_id;
+}
+
+void freeAllTextures()
+{
+    free(Textures);
 }
