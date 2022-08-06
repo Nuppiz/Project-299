@@ -3,6 +3,30 @@
 
 /* Graphics loading functions */
 
+static uint8_t error_pixels[400] =
+{
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,5,5,5,0,5,5,0,0,5,5,0,0,0,0,0,0,0,0,0,
+0,5,0,0,0,5,0,5,0,5,0,5,0,0,0,0,0,0,0,0,
+0,5,5,5,0,5,5,0,0,5,5,0,0,0,0,0,0,0,0,0,
+0,5,0,0,0,5,0,5,0,5,0,5,0,0,0,0,0,0,0,0,
+0,5,5,5,0,5,0,5,0,5,0,5,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+};
+
 Texture_t* Textures = NULL;
 int texture_count = 0;
 
@@ -29,17 +53,12 @@ int findTexture(char* filename)
 
 void createErrorTexture()
 {
-    int i;
     if (Textures == NULL)
         Textures = malloc(sizeof(Texture_t));
     Textures[0].filename = "ERROR.7UP";
     Textures[0].width = 20;
     Textures[0].height = 20;
-    Textures[0].pixels = malloc(Textures[0].width * Textures[0].height);
-    for (i = 0; i < 400; i++)
-    {
-        Textures[0].pixels[i] = COLOUR_RED;
-    }
+    Textures[0].pixels = error_pixels;
     texture_count++;
 }
 
@@ -73,7 +92,6 @@ int loadTexture(char* filename)
     filename_length = strlen(filename) + 1;
     Textures[texture_id].filename = malloc(filename_length);
     strcpy(Textures[texture_id].filename, filename);
-    ASSERT(Textures[texture_id].filename != NULL);
 
     fread(&Textures[texture_id].width, 2, 1, file_ptr);
     fseek(file_ptr, 2, SEEK_SET);
@@ -93,5 +111,13 @@ int loadTexture(char* filename)
 
 void freeAllTextures()
 {
-    free(Textures);
+    int i;
+
+    for (i = 1; i < texture_count; i++)
+    {
+        free(Textures[i].filename);
+        free(Textures[i].pixels);
+    }
+    Textures = realloc(Textures, sizeof(Texture_t));
+    texture_count = 1;
 }

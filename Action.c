@@ -187,6 +187,7 @@ void runCounter(Entity_t* counter)
 
 void usePortal(Entity_t* portal)
 {
+    uint16_t portal_x, portal_y;
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
         playSFX(SOUND_PORTAL);
@@ -196,9 +197,11 @@ void usePortal(Entity_t* portal)
                 return;
             else
             {
+                portal_x = portal->data.portal.x;
+                portal_y = portal->data.portal.y;
                 levelTransition(portal->data.portal.level_name);
-                Game.Objects[0].position.x = portal->data.portal.x;
-                Game.Objects[0].position.y = portal->data.portal.y;
+                Game.Objects[0].position.x = portal_x;
+                Game.Objects[0].position.y = portal_y;
                 Game.Objects[0].angle = portal->data.portal.angle;
                 saveLevelState();
             }
