@@ -67,7 +67,7 @@ enum DebugIndex
     DEBUG_TESTFOV,
     DEBUG_CLOCK,
     DEBUG_SHOOT,
-    DEBUG_PORTAL,
+    DEBUG_ENTITIES,
     NUM_DEBUG
 };
 

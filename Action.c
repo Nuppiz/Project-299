@@ -3,7 +3,6 @@
 #include "Movecoll.h"
 #include "Sound.h"
 #include "Vectors.h"
-#include "Text.h"
 #include "Game.h"
 #include "Draw.h"
 #include "LvlLoad.h"
@@ -39,6 +38,10 @@ void checkForInteractive() // temporary, will be replaced with better system lat
                 {
                     last_sfx_played = System.ticks;
                     playSFX(SOUND_HURT);
+                    Game.Objects[i].health -= 10;
+                    #if DEBUG == 1
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
+                    #endif
                 }
             }
         }
@@ -72,7 +75,7 @@ void runSpawner(Entity_t* spawner)
             if (spawner->data.spawner.num_objects < spawner->data.spawner.max_objects || spawner->data.spawner.max_objects == -1)
             {
                 createObject(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
-                7, 0, 1, 0, Game.player_id, spawner->data.spawner.trigger_on_death, "SPRITES/DUDE2.7UP");
+                7, 0, 1, 0, Game.player_id, 100, spawner->data.spawner.trigger_on_death, "SPRITES/DUDE2.7UP");
                 spawner->data.spawner.num_objects++;
             }
             if (spawner->data.spawner.num_objects >= spawner->data.spawner.max_objects && spawner->data.spawner.max_objects != -1)
@@ -285,11 +288,11 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                 if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
                 {
                     particleFx(pos, dir, FX_BLOOD);
+                    #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-                    if (Game.Objects[i].trigger_on_death != -1)
-                    {
-                        deathTrigger(i);
-                    }
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
+                    #endif
+                    Game.Objects[i].health -= 8;
                 }
             }
         }
@@ -320,6 +323,23 @@ void shootWeapon(Object_t* source)
 void entityLoop()
 {
     int i;
+
+    for (i = 0; i < Game.object_count; i++)
+    {
+        if (Game.Objects[i].health <= 0)
+        {
+            playSFX(SOUND_AARGH);
+            if (Game.Objects[i].id == Game.player_id)    
+                levelTransition(Game.current_level_name);                 
+            else if (Game.Objects[i].trigger_on_death != -1)
+            {
+                deathTrigger(i);
+                deleteObject(Game.Objects[i].id);
+            }
+            else
+                deleteObject(Game.Objects[i].id);
+        }
+    }
 
     for (i = 0; i < MAX_ENTITIES; i++)
     {

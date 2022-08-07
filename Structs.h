@@ -84,6 +84,7 @@ typedef struct
 
     uint8_t color;
     id_t texture_id;
+    int health;
     int8_t trigger_on_death; // entity ID to trigger on death
 } Object_t;
 
@@ -116,6 +117,7 @@ typedef struct
 typedef struct
 {
     Map_t Map;
+    char* current_level_name;
     Object_t* Objects;
     Object_t** ObjectsById;
     id_t object_count;

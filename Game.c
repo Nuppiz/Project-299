@@ -25,7 +25,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int8_t trigger_on_death, char* texture_name)
+id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, int8_t trigger_on_death, char* texture_name)
 {
 	Vec2 direction; //temporary container for direction value
     id_t id = getNewId();
@@ -49,6 +49,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].ai_mode = ai_mode;
     Game.Objects[Game.object_count].ai_timer = ai_timer;
     Game.Objects[Game.object_count].target_id = ai_target;
+    Game.Objects[Game.object_count].health = health;
     Game.Objects[Game.object_count].trigger_on_death = trigger_on_death;
     Game.Objects[Game.object_count].texture_id = loadTexture(texture_name);
 	Game.Objects[Game.object_count].direction.x = direction.x;
@@ -84,12 +85,13 @@ void deleteLastObject()
         deleteObject(Game.object_count-1);
 }
 
-void initGameData()
+void initGameData(int levelname_length)
 {
     Game.object_capacity = 16;
     Game.id_capacity = 16;
     Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
     Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
+    Game.current_level_name = malloc(levelname_length);
 }
 
 void freeGameData()
@@ -103,4 +105,5 @@ void freeGameData()
     memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
     free(Game.ObjectsById);
     Game.id_capacity = 0;
+    free(Game.current_level_name);
 }

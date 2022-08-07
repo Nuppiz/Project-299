@@ -192,7 +192,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     FILE* level_file;
     char buffer[100];
     char c;
-    int i;
+    int i, levelname_length;
 
     // tileset variables
     int tileset_found = FALSE;
@@ -202,7 +202,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     // actor variables
     int x, y;
     double angle;
-    int radius, control, ai_mode, ai_timer, trigger_on_death;
+    int radius, control, ai_mode, ai_timer, health, trigger_on_death;
     id_t ai_target, texture_id;
 
     // entity variables
@@ -231,7 +231,9 @@ void levelLoader(char* level_name, uint8_t load_type)
         freeGameData();
     }
 
-    initGameData();
+    levelname_length = strlen(level_name + 1);
+    initGameData(levelname_length);
+    strcpy(Game.current_level_name, level_name);
 
     if (Textures == NULL)
         createErrorTexture();
@@ -268,13 +270,13 @@ void levelLoader(char* level_name, uint8_t load_type)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, -1, texture_filename);
+                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 100, -1, texture_filename);
             }
             else if ((strcmp(buffer, "dude") == 0) && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %s",
-                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &trigger_on_death, texture_filename);
-                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, trigger_on_death, texture_filename);
+                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %s",
+                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, texture_filename);
+                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0)
             {
