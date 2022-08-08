@@ -166,4 +166,10 @@ struct SFX_file {
     uint8_t looping;
 };
 
+typedef struct {
+    Vec2_int pos;
+    double angle;
+    int life;
+} Corpse_t;
+
 #endif/* STRUCTS_H */

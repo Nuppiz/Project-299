@@ -176,7 +176,7 @@ void titleInit()
 
 void gameInit()
 {
-    levelLoader("LEVELS/tiletest.txt", LOAD_NEW_LEVEL);
+    levelLoader("LEVELS/TILETEST.TXT", LOAD_NEW_LEVEL);
 	printf("Game variables OK\n");
 }
 

@@ -15,9 +15,14 @@ extern Texture_t* Textures;
 extern Tile_t TileSet[];
 
 Vec2 camera_offset;
+
 Particle_t Particles[MAX_PARTICLES] = {0};
 int particle_read = 0;
 int particle_write = 0;
+
+Corpse_t Corpses[MAX_CORPSES] = {0};
+int corpse_read = 0;
+int corpse_write = 0;
 
 int boundaryCheck(int x, int y)
 {

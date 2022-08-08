@@ -54,6 +54,7 @@ enum SoundEffects
     SOUND_DOOR_O,
     SOUND_DOOR_C,
     SOUND_HURT,
+    SOUND_HURT_E,
     SOUND_PORTAL,
     NUM_SFX
 };

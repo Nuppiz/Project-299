@@ -105,5 +105,6 @@ void freeGameData()
     memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
     free(Game.ObjectsById);
     Game.id_capacity = 0;
+    memset(Game.current_level_name, 0, strlen(Game.current_level_name) + 1 * sizeof(char));
     free(Game.current_level_name);
 }

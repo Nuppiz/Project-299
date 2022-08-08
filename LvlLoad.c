@@ -194,6 +194,8 @@ void levelLoader(char* level_name, uint8_t load_type)
     char c;
     int i, levelname_length;
 
+    char temp_level[30]; // temporary storage for the level name, as otherwise the filename pointers go bonkers
+
     // tileset variables
     int tileset_found = FALSE;
     char tileset_file[20] = DEFAULT_TILESET;
@@ -214,6 +216,9 @@ void levelLoader(char* level_name, uint8_t load_type)
     int interactive_type, tilemap_location;
 
     level_file = fopen(level_name, "r");
+
+    strcpy(temp_level, level_name);
+    levelname_length = strlen(level_name + 1);
     
     if (level_file == NULL)
     {
@@ -231,9 +236,8 @@ void levelLoader(char* level_name, uint8_t load_type)
         freeGameData();
     }
 
-    levelname_length = strlen(level_name + 1);
     initGameData(levelname_length);
-    strcpy(Game.current_level_name, level_name);
+    strcpy(Game.current_level_name, temp_level);
 
     if (Textures == NULL)
         createErrorTexture();

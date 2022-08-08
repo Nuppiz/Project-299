@@ -6,7 +6,7 @@
 /* MIDAS Sound System and related functions */
 
 /* number of sound effect channels: */
-#define FXCHANNELS 2
+#define FXCHANNELS 8
 
 /* maximum number of channels in music: */
 #define MAXMUSCHANNELS 8

@@ -89,6 +89,7 @@
 
 #define MAX_PARTICLES       128
 #define MAX_ENTITIES        32
+#define MAX_CORPSES         16
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
@@ -192,7 +193,8 @@
 #define LOAD_NEW_LEVEL         0
 #define LOAD_SAVED_LEVEL       1
 
-#define SFX_INTERVAL           50
+#define HURT_INTERVAL          40
+#define SFX_INTERVAL           20
 
 #define STATE_IS_ACTIVE        BIT_0
 #define STATE_ENABLE_UPDATE    BIT_1
