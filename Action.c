@@ -325,7 +325,7 @@ void shootWeapon(Object_t* source)
     {
         angle = source->angle + ((rand() % 20 - 10) * RAD_1);
         direction = getDirVec2(angle);
-        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 -10));
+        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 - 10));
     }
 }
 
@@ -343,10 +343,14 @@ void entityLoop()
             else if (Game.Objects[i].trigger_on_death != -1)
             {
                 deathTrigger(i);
+                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
             else
+            {
+                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
+            }
         }
     }
 

@@ -5,6 +5,8 @@
 
 void drawTexture(int x, int y, Texture_t* texture);
 void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type);
+void spawnCorpse(Vec2 pos, double angle, int8_t life);
+void emptyCorpseArray();
 void titleDraw();
 void gameDraw();
 void pauseDraw();

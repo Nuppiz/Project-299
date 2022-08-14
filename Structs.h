@@ -167,9 +167,9 @@ struct SFX_file {
 };
 
 typedef struct {
-    Vec2_int pos;
-    double angle;
+    Vec2 pos;
     int life;
+    Texture_t sprite;
 } Corpse_t;
 
 #endif/* STRUCTS_H */

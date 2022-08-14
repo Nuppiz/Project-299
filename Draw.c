@@ -15,6 +15,7 @@ extern Texture_t* Textures;
 extern Tile_t TileSet[];
 
 Vec2 camera_offset;
+int corpse_sprite_id; // temporary until better system in place
 
 Particle_t Particles[MAX_PARTICLES] = {0};
 int particle_read = 0;
@@ -340,6 +341,90 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
     free(rotated.pixels);
 }
 
+Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
+{
+    Texture_t rotated;
+    Vec2 sheared;
+    int w;
+    int h;
+    int w_half;
+    int h_half;
+    int i = 0;
+    float rot_i;
+    int rotated_size;
+    uint8_t mirror_flip = FALSE;
+
+    if (angle > RAD_270)
+        angle -= RAD_360;
+
+    else if (angle < -RAD_270)
+        angle += RAD_360;
+
+    if (angle >= RAD_90)
+    {
+        angle -= RAD_180;
+        mirror_flip = TRUE;
+    }
+
+    else if (angle <= -RAD_90)
+    {
+        angle += RAD_180;
+        mirror_flip = TRUE;
+    }
+
+    if (source->transparent == TRUE)
+        rotated.transparent = TRUE;
+
+    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 4;
+    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 4;
+
+    rotated.offset_x = (rotated.width - source->width) / 2;
+    rotated.offset_y = (rotated.height - source->height) / 2;
+
+    w_half = source->width / 2;
+    h_half = source->height / 2;
+
+    rotated.pixels = malloc(rotated.width * rotated.height);
+    rotated_size = rotated.width * rotated.height;
+    memset(rotated.pixels, bgcolor, rotated_size);
+
+    if (mirror_flip == TRUE)
+    {
+        for (h = -h_half; h < h_half; h++)
+        {
+            for (w = -w_half; w < w_half; w++)
+            {
+                sheared.x = w;
+                sheared.y = h;
+                sheared.x = rotateShearX(sheared, angle);
+                sheared.y = rotateShearY(sheared, angle);
+                sheared.x = rotateShearX(sheared, angle);
+                rot_i = ((rotated.height - ((int)sheared.y + rotated.offset_y + h_half))) * rotated.width + (rotated.width - (sheared.x + rotated.offset_x + w_half));
+                rotated.pixels[(int)rot_i] = source->pixels[i];
+                i++;
+            }
+        }
+    }
+    else
+    {
+        for (h = -h_half; h < h_half; h++)
+        {
+            for (w = -w_half; w < w_half; w++)
+            {
+                sheared.x = w;
+                sheared.y = h;
+                sheared.x = rotateShearX(sheared, angle);
+                sheared.y = rotateShearY(sheared, angle);
+                sheared.x = rotateShearX(sheared, angle);
+                rot_i = ((int)sheared.y + rotated.offset_y + h_half) * rotated.width + (sheared.x + rotated.offset_x + w_half);
+                rotated.pixels[(int)rot_i] = source->pixels[i];
+                i++;
+            }
+        }
+    }
+    return rotated;
+}
+
 void drawOctants(int center_x, int offset_x, int center_y, int offset_y, uint8_t color)
 {
     SET_PIXEL(center_x + offset_x, center_y + offset_y, color); // lower right octant
@@ -635,6 +720,89 @@ void particleArrayManager()
     }
 }
 
+void increaseCorpseRead()
+{
+    corpse_read++;
+
+    if (corpse_read == MAX_CORPSES)
+        corpse_read = 0;
+}
+
+void increaseCorpseWrite()
+{
+    corpse_write++;
+
+    if (corpse_write == MAX_CORPSES)
+        corpse_write = 0;
+
+    if (corpse_write == corpse_read)
+        increaseCorpseRead();
+}
+
+void decrementCorpseWrite()
+{
+    corpse_write--;
+
+    if (corpse_write < 0)
+        corpse_write = MAX_CORPSES - 1;
+}
+
+void spawnCorpse(Vec2 pos, double angle, int8_t life)
+{
+    Corpses[corpse_write].pos.x = pos.x;
+    Corpses[corpse_write].pos.y = pos.y;
+    Corpses[corpse_write].life = life;
+    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &Textures[corpse_sprite_id], TRANSPARENT_COLOR);
+
+    increaseCorpseWrite();
+}
+
+void deleteCorpse(int index)
+{
+    int last_corpse = (corpse_write == 0) ? MAX_CORPSES - 1 : corpse_write - 1;
+
+    if (last_corpse != corpse_read)
+        Corpses[index] = Corpses[last_corpse];
+
+    decrementCorpseWrite();
+}
+
+void corpseArrayManager()
+{
+    int i = corpse_read;
+
+    while (i != corpse_write)
+    {
+        if (Corpses[i].life != -1)
+        {
+            Corpses[i].life -= System.ticks_per_frame;
+            if (Corpses[i].life <= 0)
+            {
+                deleteCorpse(i);
+                continue;
+            }
+        }
+        if (boundaryCheck(((int)(Corpses[i].pos.x - camera_offset.x)), ((int)(Corpses[i].pos.y - camera_offset.y))) == TRUE)
+            drawTexturePartial(Corpses[i].pos.x - camera_offset.x, Corpses[i].pos.y - camera_offset.y, &Corpses[i].sprite);
+        i++;
+        if (i == MAX_CORPSES)
+        {
+            i = 0;
+        }
+    }
+}
+
+void emptyCorpseArray()
+{
+    int i;
+    for (i = 0; i < MAX_CORPSES; i++)
+    {
+        memset(&Corpses[i], 0, sizeof(Corpse_t));
+    }
+    corpse_read = 0;
+    corpse_write = 0;
+}
+
 void drawObjects()
 {
     int i = 0; // object array "index"
@@ -670,6 +838,7 @@ void gameDraw()
 {
     calcCameraOffset();
     drawMap();
+    corpseArrayManager();
     drawObjects();
     particleArrayManager();
 
