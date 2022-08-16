@@ -2,6 +2,7 @@
 #include "LvlLoad.h"
 #include "Loadgfx.h"
 #include "Draw.h"
+#include "Filech.h"
 
 /* State exit functions */
 
@@ -24,6 +25,10 @@ void gameExit()
     freeAllEntities();
     freeAllTextures();
     emptyCorpseArray();
+    if (checkFileExists("SAVES/CURRENT/CRTSTATE.SAV"))
+    {
+        remove("SAVES/CURRENT/CRTSTATE.SAV");
+    }
 }
 
 void pauseExit()

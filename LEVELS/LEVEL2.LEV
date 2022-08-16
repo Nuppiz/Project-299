@@ -27,7 +27,7 @@ BWWWWWWWWWWWWWWWWWWO
 
 $player 100 100 0.0 7 0 SPRITES/DUDE1.7UP
 
-$entity 0 Portal 10 10 1 LEVELS/TILETEST.TXT 200 150 0.0
+$entity 0 Portal 10 10 1 TILETEST.LEV 200 150 0.0
 $entity 1 Trigger 10 13 0 1000 2 -1 -1 -1 0
 $entity 2 Counter 5 3 0
 

@@ -190,10 +190,12 @@ void levelLoader(char* level_name, uint8_t load_type)
 {
     // general variables
     FILE* level_file;
+    FILE* state_file;
     char buffer[100];
     char c;
     int i, levelname_length;
 
+    char level_path[30] = LEVEL_PATH; // default level path
     char temp_level[30]; // temporary storage for the level name, as otherwise the filename pointers go bonkers
 
     // tileset variables
@@ -206,6 +208,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     double angle;
     int radius, control, ai_mode, ai_timer, health, trigger_on_death;
     id_t ai_target, texture_id;
+    int player_hp;
 
     // entity variables
     char entity_name[20];
@@ -215,7 +218,9 @@ void levelLoader(char* level_name, uint8_t load_type)
     char interactive_name[20];
     int interactive_type, tilemap_location;
 
-    level_file = fopen(level_name, "r");
+    strcat(level_path, level_name);
+
+    level_file = fopen(level_path, "r");
 
     strcpy(temp_level, level_name);
     levelname_length = strlen(level_name + 1);
@@ -275,6 +280,14 @@ void levelLoader(char* level_name, uint8_t load_type)
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
                 Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 100, -1, texture_filename);
+                if (checkFileExists("SAVES/CURRENT/CRTSTATE.SAV"))
+                {
+                    state_file = fopen("SAVES/CURRENT/CRTSTATE.SAV", "rb");
+                    fread(&player_hp, 2, 1, state_file);
+                    if (player_hp != 0) // avoid infinite death loop
+                        Game.Objects[0].health = player_hp;
+                    fclose(state_file);
+                }
             }
             else if ((strcmp(buffer, "dude") == 0) && load_type != LOAD_SAVED_LEVEL)
             {
@@ -324,12 +337,32 @@ void levelLoader(char* level_name, uint8_t load_type)
 
 void saveGameState()
 {
-    // to do
+    FILE* save_file;
+    char savefilename[30] = "SAVES/CURRENT/CRTSTATE.SAV";
+    save_file = fopen(savefilename, "wb");
+    if (!save_file)
+    {
+        perror("fopen");
+        delay(60000);
+    }
+    fwrite(&Game.Objects[0].health, 2, 1, save_file);
+    fclose(save_file);
 }
 
-void saveLevelState()
+void saveLevelState(char* levelname)
 {
-    // to do
+    FILE* save_file;
+    char savefilename[50] = "SAVES/CURRENT/";
+    strcat(levelname, ".SAV");
+    strcat(savefilename, levelname);
+    save_file = fopen(savefilename, "wb");
+    if (!save_file)
+    {
+        perror("fopen");
+        delay(60000);
+    }
+    fwrite(&Game.Objects[0].health, 2, 1, save_file);
+    fclose(save_file);
 }
 
 void loadGameState()
@@ -342,24 +375,26 @@ void loadLevelState()
     // to do
 }
 
-void levelTransition(char* levelname)
+void levelTransition(char* prevlevelname, char* newlevelname)
 {
-    char savefilename[20];
+    char prevsavename[30] = {'\0'};
+    char newsavename[30] = {'\0'};
 
-    // create save file name
-    strncpy(savefilename, levelname, strlen(levelname) - 4); // drop the level filename ending
-    strcat(savefilename, ".SAV"); // replace with save filename ending
+    // create save file names
+    strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
+    strncpy(newsavename, newlevelname, (strlen(newlevelname) - 4)); // drop the level filename ending
+    strcat(newsavename, ".SAV"); // replace with save filename ending
 
     saveGameState(); // health, keys, jne. johonkin gamestate.sav tms.
-    saveLevelState(); // object positions, healths, etc. entities,  kentta.sav
+    saveLevelState(prevsavename); // object positions, healths, etc. entities,  kentta.sav
 
-    if (checkFileExists(savefilename)) // jos levelilla on save tiedosto
+    if (checkFileExists(newsavename)) // jos levelilla on save tiedosto
      {
-        levelLoader(levelname, LOAD_SAVED_LEVEL);
+        levelLoader(newlevelname, LOAD_SAVED_LEVEL);
         loadLevelState(); // lataa asiat kenttaan liittyen kentta.sav
      }
     else // levelissa ei oo kayty viela joten kutsutaan pelkka loadLevel ja sanotaan sille 0, eli lataa uudet asiat
-        levelLoader(levelname, LOAD_NEW_LEVEL);
+        levelLoader(newlevelname, LOAD_NEW_LEVEL);
 
     loadGameState(); // palauttaa health, lives, keys inventory ammo kaikki,
     // myos overwriteaa myos pelaajaobjektin healtit, inventoryt yms.

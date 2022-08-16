@@ -6,6 +6,6 @@
 void freeAllEntities();
 void levelLoader(char* level_name, uint8_t load_type);
 void saveLevelState();
-void levelTransition(char* levelname);
+void levelTransition(char* prevlevelname, char* newlevelname);
 
 #endif /* LVLLOAD_H */

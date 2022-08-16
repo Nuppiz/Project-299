@@ -83,6 +83,7 @@
 #define TRANSPARENT_COLOR   251
 
 #define DEFAULT_TILESET     "LEVELS/Default.til"
+#define LEVEL_PATH          "LEVELS/"
 
 #define DOT_DISTANCE        30
 #define LOOK_DISTANCE       30

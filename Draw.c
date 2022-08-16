@@ -829,6 +829,14 @@ void drawObjects()
 
 void drawDebug();
 
+void drawHealth()
+{
+    char plr_health[10];
+
+    sprintf(plr_health, "HP: %d", Game.Objects[0].health);
+    drawText(250, 190, plr_health, COLOUR_WHITE);
+}
+
 void titleDraw()
 {
     drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
@@ -840,6 +848,7 @@ void gameDraw()
     drawMap();
     corpseArrayManager();
     drawObjects();
+    drawHealth();
     particleArrayManager();
 
     #if DEBUG == 1

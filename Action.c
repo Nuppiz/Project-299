@@ -194,22 +194,24 @@ void runCounter(Entity_t* counter)
 void usePortal(Entity_t* portal)
 {
     uint16_t portal_x, portal_y;
+    char levelpath[30] = LEVEL_PATH;
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
         playSFX(SOUND_PORTAL);
         if (portal->data.portal.level_name != NULL)
         {
-            if (checkFileExists(portal->data.portal.level_name) == FALSE)
+            strcat(levelpath, portal->data.portal.level_name);
+            if (checkFileExists(levelpath) == FALSE)
                 return;
             else
             {
                 portal_x = portal->data.portal.x;
                 portal_y = portal->data.portal.y;
-                levelTransition(portal->data.portal.level_name);
+                levelTransition(Game.current_level_name, portal->data.portal.level_name);
                 Game.Objects[0].position.x = portal_x;
                 Game.Objects[0].position.y = portal_y;
                 Game.Objects[0].angle = portal->data.portal.angle;
-                saveLevelState();
+                //saveLevelState();
             }
         }
         else
@@ -338,8 +340,10 @@ void entityLoop()
         if (Game.Objects[i].health <= 0)
         {
             playSFX(SOUND_AARGH);
-            if (Game.Objects[i].id == Game.player_id)    
-                levelTransition(Game.current_level_name);                 
+            if (Game.Objects[i].id == Game.player_id)
+            { 
+                levelTransition(Game.current_level_name, Game.current_level_name);
+            }       
             else if (Game.Objects[i].trigger_on_death != -1)
             {
                 deathTrigger(i);
