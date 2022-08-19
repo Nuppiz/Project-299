@@ -114,6 +114,22 @@ typedef struct
     Tile_t* tilemap;
 } Map_t;
 
+typedef struct {
+    uint8_t x, y;
+    uint8_t state : 1;
+    uint8_t type : 7;
+    union u_data {
+        struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
+        struct t_button {uint8_t target : 5;} button;
+        struct t_spawner {double angle; time_t last_spawn_time; int spawn_time_interval;
+        int8_t max_objects; uint8_t num_objects; uint16_t spawn_type: 5;
+        uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
+        struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
+        struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
+        struct t_portal {char* level_name; int x; int y; double angle;} portal;
+    } data;
+} Entity_t;
+
 typedef struct
 {
     Map_t Map;
@@ -122,7 +138,6 @@ typedef struct
     Object_t** ObjectsById;
     id_t object_count;
     id_t object_capacity;
-    id_t max_id;
     id_t id_capacity;
     id_t player_id;
 } GameData_t;
@@ -144,22 +159,6 @@ typedef struct {
     int8_t life;
     uint8_t color;
 } Particle_t;
-
-typedef struct {
-    uint8_t x, y;
-    uint8_t state : 1;
-    uint8_t type : 7;
-    union u_data {
-        struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
-        struct t_button {uint8_t target : 5;} button;
-        struct t_spawner {float angle; time_t last_spawn_time; int spawn_time_interval;
-        int8_t max_objects; uint8_t num_objects; uint16_t spawn_type: 5;
-        uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
-        struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
-        struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
-        struct t_portal {char* level_name; int x; int y; float angle;} portal;
-    } data;
-} Entity_t;
 
 struct SFX_file {
     char* filename;

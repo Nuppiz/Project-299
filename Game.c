@@ -89,7 +89,7 @@ void initGameData(int levelname_length)
 {
     Game.object_capacity = 16;
     Game.id_capacity = 16;
-    Game.Objects = malloc(Game.object_capacity * sizeof(Object_t));
+    Game.Objects = calloc(Game.object_capacity, sizeof(Object_t));
     Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
     Game.current_level_name = malloc(levelname_length);
 }

@@ -7,11 +7,7 @@
 /* State exit functions */
 
 extern State_t States[];
-extern GameData_t Game;
 extern uint8_t music_on;
-extern Entity_t Entities[];
-extern Texture_t* Textures;
-extern Corpse_t Corpses[];
 
 void titleExit()
 {

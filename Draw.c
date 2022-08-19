@@ -554,7 +554,7 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(PlayerObject->direction.y, PlayerObject->direction.x);
+    angle = atan2(Game.Objects[0].direction.y, Game.Objects[0].direction.x);
     pos.x = PlayerObject->position.x + cos(angle) * LOOK_DISTANCE;
     pos.y = PlayerObject->position.y + sin(angle) * LOOK_DISTANCE;
 
@@ -817,11 +817,11 @@ void drawObjects()
         // draw all circles in their current locations
         //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
         drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
-        drawDot(&Game.Objects[i]);
+        //drawDot(&Game.Objects[i]);
         #if DEBUG == 1
         str[0] = '\0';
         sprintf(str, "%u", Game.Objects[i].id);
-        drawTextClipped(start_x, start_y-10, str, COLOUR_YELLOW);
+        drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
         #endif
         i++;
     }

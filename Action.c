@@ -8,11 +8,11 @@
 #include "LvlLoad.h"
 #include "Filech.h"
 
-/* Various actions between the player and other entities/actors */
+/* Various actions between the player and other Entities/actors */
 
 extern System_t System;
 extern GameData_t Game;
-extern Entity_t Entities [];
+extern Entity_t Entities[];
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForInteractive() // temporary, will be replaced with better system later
@@ -194,6 +194,7 @@ void runCounter(Entity_t* counter)
 void usePortal(Entity_t* portal)
 {
     uint16_t portal_x, portal_y;
+    float portal_angle;
     char levelpath[30] = LEVEL_PATH;
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
@@ -210,8 +211,7 @@ void usePortal(Entity_t* portal)
                 levelTransition(Game.current_level_name, portal->data.portal.level_name);
                 Game.Objects[0].position.x = portal_x;
                 Game.Objects[0].position.y = portal_y;
-                Game.Objects[0].angle = portal->data.portal.angle;
-                //saveLevelState();
+                Game.Objects[0].angle = portal_angle;
             }
         }
         else
