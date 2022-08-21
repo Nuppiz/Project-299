@@ -20,7 +20,7 @@ id_t getNewId()
     // no free IDs found; allocate more
     Game.id_capacity += 16; // define as CHUNK or BLOCK or something
     Game.ObjectsById = realloc(Game.ObjectsById, Game.id_capacity * sizeof(void*));
-    memset(Game.ObjectsById, 0, 16 * sizeof(void*)); // set new pointers to NULL
+    memset(&Game.ObjectsById[Game.id_capacity - 16], 0, 16 * sizeof(void*)); // set new pointers to NULL
     // to do later: ensure successful allocation
     return id;
 }
@@ -67,7 +67,7 @@ void deleteObject(id_t id)
 {
     // overwrite memory
     if (Game.ObjectsById[id] != &Game.Objects[Game.object_count])
-        *Game.ObjectsById[id] = Game.Objects[Game.object_count-1];
+        Game.ObjectsById[id] = &Game.Objects[Game.object_count-1];
     Game.object_count--;
     // set hashmap value to NULL
     Game.ObjectsById[id] = NULL;
@@ -85,13 +85,12 @@ void deleteLastObject()
         deleteObject(Game.object_count-1);
 }
 
-void initGameData(int levelname_length)
+void initGameData()
 {
     Game.object_capacity = 16;
     Game.id_capacity = 16;
     Game.Objects = calloc(Game.object_capacity, sizeof(Object_t));
     Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
-    Game.current_level_name = malloc(levelname_length);
 }
 
 void freeGameData()
@@ -101,10 +100,7 @@ void freeGameData()
     memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
     free(Game.Objects);
     Game.object_count = 0;
-    Game.object_capacity = 0;
-    memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(void*));
+    memset(Game.ObjectsById, NULL, Game.id_capacity * sizeof(void*));
     free(Game.ObjectsById);
-    Game.id_capacity = 0;
-    memset(Game.current_level_name, 0, strlen(Game.current_level_name) + 1 * sizeof(char));
-    free(Game.current_level_name);
+    memset(Game.current_level_name, 0, strlen(Game.current_level_name) * sizeof(char));
 }

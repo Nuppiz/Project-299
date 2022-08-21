@@ -178,7 +178,7 @@ void titleInit()
 
 void gameInit()
 {
-    levelLoader("TILETEST.LEV", LOAD_NEW_LEVEL);
+    levelLoader("LEVEL1.LEV", LOAD_NEW_LEVEL);
     corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
 	printf("Game variables OK\n");
 }

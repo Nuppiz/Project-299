@@ -194,7 +194,7 @@ void runCounter(Entity_t* counter)
 void usePortal(Entity_t* portal)
 {
     uint16_t portal_x, portal_y;
-    float portal_angle;
+    double portal_angle;
     char levelpath[30] = LEVEL_PATH;
     if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
     {
@@ -208,10 +208,14 @@ void usePortal(Entity_t* portal)
             {
                 portal_x = portal->data.portal.x;
                 portal_y = portal->data.portal.y;
+                portal_angle = portal->data.portal.angle;
                 levelTransition(Game.current_level_name, portal->data.portal.level_name);
+                Game.Objects[0].velocity.x = 0.0;
+                Game.Objects[0].velocity.y = 0.0;
                 Game.Objects[0].position.x = portal_x;
                 Game.Objects[0].position.y = portal_y;
                 Game.Objects[0].angle = portal_angle;
+                updateGridLoc(&Game.Objects[0]);
             }
         }
         else
@@ -347,7 +351,7 @@ void entityLoop()
             else if (Game.Objects[i].trigger_on_death != -1)
             {
                 deathTrigger(i);
-                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
+                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
             else

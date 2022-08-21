@@ -126,14 +126,14 @@ typedef struct {
         uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
         struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
         struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
-        struct t_portal {char* level_name; int x; int y; double angle;} portal;
+        struct t_portal {char level_name[30]; int x; int y; double angle;} portal;
     } data;
 } Entity_t;
 
 typedef struct
 {
     Map_t Map;
-    char* current_level_name;
+    char current_level_name[30];
     Object_t* Objects;
     Object_t** ObjectsById;
     id_t object_count;

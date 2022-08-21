@@ -13,6 +13,7 @@ extern GameData_t Game;
 extern uint8_t far screen_buf[];
 extern Texture_t* Textures;
 extern Tile_t TileSet[];
+extern int texture_count;
 
 Vec2 camera_offset;
 int corpse_sprite_id; // temporary until better system in place
@@ -555,8 +556,8 @@ void calcCameraOffset()
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
     angle = atan2(Game.Objects[0].direction.y, Game.Objects[0].direction.x);
-    pos.x = PlayerObject->position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = PlayerObject->position.y + sin(angle) * LOOK_DISTANCE;
+    pos.x = Game.Objects[0].position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = Game.Objects[0].position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -795,10 +796,7 @@ void corpseArrayManager()
 void emptyCorpseArray()
 {
     int i;
-    for (i = 0; i < MAX_CORPSES; i++)
-    {
-        memset(&Corpses[i], 0, sizeof(Corpse_t));
-    }
+    memset(Corpses, 0, sizeof(Corpse_t) * MAX_CORPSES);
     corpse_read = 0;
     corpse_write = 0;
 }
@@ -816,8 +814,9 @@ void drawObjects()
         start_y = Game.Objects[i].position.y - camera_offset.y - Textures[Game.Objects[i].texture_id].height / 2;
         // draw all circles in their current locations
         //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
-        drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
-        //drawDot(&Game.Objects[i]);
+        if (&Textures[Game.Objects[i].texture_id] != NULL)
+            drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
+        drawDot(&Game.Objects[i]);
         #if DEBUG == 1
         str[0] = '\0';
         sprintf(str, "%u", Game.Objects[i].id);
@@ -837,6 +836,17 @@ void drawHealth()
     drawText(250, 190, plr_health, COLOUR_WHITE);
 }
 
+void drawStats()
+{
+    char tex_count[10];
+    char obj_count[10];
+
+    sprintf(tex_count, "TEX: %d", texture_count);
+    drawText(0, 190, tex_count, COLOUR_WHITE);
+    sprintf(obj_count, "OBJ: %d", Game.object_count);
+    drawText(80, 190, obj_count, COLOUR_WHITE);
+}
+
 void titleDraw()
 {
     drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
@@ -849,6 +859,7 @@ void gameDraw()
     corpseArrayManager();
     drawObjects();
     drawHealth();
+    drawStats();
     particleArrayManager();
 
     #if DEBUG == 1

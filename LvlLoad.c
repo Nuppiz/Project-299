@@ -4,6 +4,7 @@
 #include "Loadgfx.h"
 #include "Filech.h"
 #include "Vectors.h"
+#include "Draw.h"
 
 /* Level data and entity loader */
 
@@ -13,6 +14,7 @@ extern GameData_t Game;
 extern Texture_t* Textures;
 Tile_t TileSet[100];
 extern int texture_count;
+extern int corpse_sprite_id;
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
@@ -164,7 +166,6 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
                 ent->data.counter.only_once = only_once;
                 break;
     case ENT_PORTAL: fscanf(level_file, "%s %d %d %lf", level_name, &portal_x, &portal_y, &angle),
-                ent->data.portal.level_name = malloc(strlen(level_name) + 1);
                 strcpy(ent->data.portal.level_name, level_name),
                 ent->data.portal.x = portal_x,
                 ent->data.portal.y = portal_y,
@@ -181,8 +182,6 @@ void freeAllEntities()
         tilemap_loc = Entities[i].y * Game.Map.width + Entities[i].x;
         Game.Map.tilemap[tilemap_loc].is_entity = 0;
         Game.Map.tilemap[tilemap_loc].entity_value = 0;
-        if (Entities[i].type == ENT_PORTAL)
-            free(Entities[i].data.portal.level_name);
         memset(&Entities[i], 0, sizeof(Entity_t));
     }
 }
@@ -222,7 +221,6 @@ void levelLoader(char* level_name, uint8_t load_type)
     level_file = fopen(level_path, "r");
 
     strcpy(temp_level, level_name);
-    levelname_length = strlen(level_name + 1);
     
     if (level_file == NULL)
     {
@@ -238,9 +236,10 @@ void levelLoader(char* level_name, uint8_t load_type)
         freeAllEntities();
         freeAllTextures();
         freeGameData();
+        emptyCorpseArray();
     }
 
-    initGameData(levelname_length);
+    initGameData();
     strcpy(Game.current_level_name, temp_level);
 
     if (Textures == NULL)
@@ -274,13 +273,13 @@ void levelLoader(char* level_name, uint8_t load_type)
                     }
                 }
             }
-            else if ((strcmp(buffer, "player") == 0) && load_type != LOAD_SAVED_LEVEL)
+            else if (strcmp(buffer, "player") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
                 Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 100, -1, texture_filename);
             }
-            else if ((strcmp(buffer, "dude") == 0) && load_type != LOAD_SAVED_LEVEL)
+            else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %s",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, texture_filename);
@@ -353,8 +352,9 @@ void saveLevelState(char* levelname)
         delay(60000);
     }
     fwrite(&Game, sizeof(GameData_t), 1, save_file);
-    fwrite(&Game.Objects[0], sizeof(Object_t), Game.object_count, save_file);
-    fwrite(&Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
+    fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
+    fwrite(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
+    fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
 }
 
@@ -386,30 +386,29 @@ void loadLevelState(char* savename)
         perror("fopen");
         delay(60000);
     }
-    fseek(save_file, 0x16, SEEK_SET);
+    ASSERT(Game.Objects != NULL);
+    fseek(save_file, 0x30, SEEK_SET);
     fread(&Game.object_count, 2, 1, save_file);
-    fseek(save_file, 0x18, SEEK_SET);
+    fseek(save_file, 0x32, SEEK_SET);
     fread(&Game.object_capacity, 2, 1, save_file);
-    fseek(save_file, 0x1A, SEEK_SET);
+    fseek(save_file, 0x34, SEEK_SET);
     fread(&Game.id_capacity, 2, 1, save_file);
-    fseek(save_file, 0x1C, SEEK_SET);
+    fseek(save_file, 0x36, SEEK_SET);
     fread(&Game.player_id, 2, 1, save_file);
-    fseek(save_file, 0x1E, SEEK_SET);
+    fseek(save_file, 0x38, SEEK_SET);
+    fread(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
+    fread(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
+    fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
+    fclose(save_file);
+    for (i = 1; i < Game.object_count; i++)
+    {
+        Game.ObjectsById[i] = &Game.Objects[i - 1];
+    }
     for (i = 0; i < Game.object_count; i++)
     {
-        fread(&Game.Objects[i], sizeof(Object_t), 1, save_file);
-        Game.Objects[i].id = getNewId();
-        Game.Objects[i].velocity.x = 0.0;
-        Game.Objects[i].velocity.x = 0.0;
-        Game.Objects[i].direction = getDirVec2(Game.Objects[i].angle);
+        Game.Objects[i].texture_id = loadTexture("SPRITES/DUDE1.7UP"); // replace with proper sprite system
     }
-    fseek(save_file, 0xE4, SEEK_SET);
-    fread(&Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
-    ASSERT(Game.ObjectsById[2]->direction.x != 0);
-    ASSERT(Game.ObjectsById[2]->direction.y != 0);
-    ASSERT(PlayerObject->direction.x != 0);
-    ASSERT(PlayerObject->direction.y != 0);
-    fclose(save_file);
+    corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
 }
 
 void levelTransition(char* prevlevelname, char* newlevelname)
@@ -424,18 +423,16 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     strcat(newsavename, ".SAV"); // replace with save filename ending
     strcat(savepath, newsavename);
 
-    saveGameState(); // health, keys, jne. johonkin gamestate.sav tms.
-    saveLevelState(prevsavename); // object positions, healths, etc. entities,  kentta.sav
+    saveGameState();
+    saveLevelState(prevsavename);
 
-    if (checkFileExists(savepath)) // jos levelilla on save tiedosto
+    if (checkFileExists(savepath))
     {
         levelLoader(newlevelname, LOAD_SAVED_LEVEL);
-        loadLevelState(newsavename); // lataa asiat kenttaan liittyen kentta.sav
+        loadLevelState(newsavename);
     }
-    else // levelissa ei oo kayty viela joten kutsutaan pelkka loadLevel ja sanotaan sille 0, eli lataa uudet asiat
+    else
         levelLoader(newlevelname, LOAD_NEW_LEVEL);
 
-    loadGameState(); // palauttaa health, lives, keys inventory ammo kaikki,
-    // myos overwriteaa myos pelaajaobjektin healtit, inventoryt yms.
-    // (jotka juuri ladattiin muiden objektien kanssa)
+    loadGameState();
 }
