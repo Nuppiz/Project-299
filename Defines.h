@@ -185,7 +185,9 @@
 #define CONTROL_STRAFE_R    BIT_6
 #define CONTROL_STRAFE_MOD  BIT_7
 
-#define OBJ_FLAG_DEAD BIT_0
+#define OBJ_DEFAULT_CAPACITY   16
+
+#define OBJ_FLAG_DEAD          BIT_0
 
 #define BULLET_STEP            4
 #define BULLET_MAX_DISTANCE    150

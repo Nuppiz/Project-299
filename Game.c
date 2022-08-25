@@ -85,12 +85,10 @@ void deleteLastObject()
         deleteObject(Game.object_count-1);
 }
 
-void initGameData()
+void initGameData(id_t object_capacity, id_t id_capacity)
 {
-    Game.object_capacity = 16;
-    Game.id_capacity = 16;
-    Game.Objects = calloc(Game.object_capacity, sizeof(Object_t));
-    Game.ObjectsById = calloc(Game.id_capacity, sizeof(void*));
+    Game.Objects = malloc(object_capacity * sizeof(Object_t));
+    Game.ObjectsById = calloc(id_capacity, sizeof(void*));
 }
 
 void freeGameData()
