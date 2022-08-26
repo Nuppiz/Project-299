@@ -379,7 +379,7 @@ void loadGameState()
     {
         state_file = fopen("SAVES/CURRENT/CRTSTATE.SAV", "rb");
         fread(&player_hp, 2, 1, state_file);
-        if (player_hp != 0) // avoid infinite death loop
+        if (player_hp > 0) // avoid infinite death loop
             Game.Objects[0].health = player_hp;
         fclose(state_file);
     }
