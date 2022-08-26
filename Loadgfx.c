@@ -79,10 +79,7 @@ int loadTexture(char* filename)
     if (file_ptr == NULL)
         return 0;
 
-    if (Textures == NULL)
-        createErrorTexture();
-    else
-        Textures = realloc(Textures, (texture_count + 1) * sizeof(Texture_t));
+    Textures = realloc(Textures, (texture_count + 1) * sizeof(Texture_t));
 
     ASSERT(Textures != NULL);
 
