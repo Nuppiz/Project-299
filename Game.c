@@ -87,7 +87,7 @@ void deleteLastObject()
 
 void initGameData(id_t object_capacity, id_t id_capacity)
 {
-    Game.Objects = malloc(object_capacity * sizeof(Object_t));
+    Game.Objects = calloc(object_capacity, sizeof(Object_t));
     Game.ObjectsById = calloc(id_capacity, sizeof(void*));
 }
 
@@ -100,5 +100,6 @@ void freeGameData()
     Game.object_count = 0;
     memset(Game.ObjectsById, NULL, Game.id_capacity * sizeof(void*));
     free(Game.ObjectsById);
+    Game.id_capacity = 0;
     memset(Game.current_level_name, 0, strlen(Game.current_level_name) * sizeof(char));
 }

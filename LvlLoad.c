@@ -240,6 +240,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     }
 
     strcpy(Game.current_level_name, temp_level);
+
     if (load_type == LOAD_NEW_LEVEL)
         initGameData(OBJ_DEFAULT_CAPACITY, OBJ_DEFAULT_CAPACITY);
 
@@ -345,7 +346,11 @@ void saveLevelState(char* levelname)
     FILE* save_file;
     char savefilepath[50] = "SAVES/CURRENT/";
     int i;
-    long object_offset = (long)Game.Objects;
+    unsigned long object_offset = (unsigned long)&Game.Objects[0];
+    unsigned long objid_offset = (unsigned long)&Game.ObjectsById[0];
+    printf("S: %ld\n", object_offset);
+    printf("%ld\n", objid_offset);
+    delay(60000);
 
     strcat(levelname, ".SAV");
     strcat(savefilepath, levelname);
@@ -359,12 +364,12 @@ void saveLevelState(char* levelname)
     fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
     for (i = 0; i < Game.id_capacity; i++)
     {
-        Game.ObjectsById[i] -= object_offset;
+        Game.ObjectsById[i] -= (object_offset / sizeof(void*));
     }
-    fwrite(Game.ObjectsById, sizeof(void*), Game.object_count, save_file);
+    fwrite(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
     for (i = 0; i < Game.id_capacity; i++)
     {
-        Game.ObjectsById[i] += object_offset;
+        Game.ObjectsById[i] += (object_offset / sizeof(void*));
     }
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
@@ -390,7 +395,7 @@ void loadLevelState(char* savename)
     FILE* save_file;
     char savefilepath[50] = "SAVES/CURRENT/";
     int i;
-    long object_offset;
+    unsigned long obj_offset, objid_offset;
 
     strcat(savefilepath, savename);
     save_file = fopen(savefilepath, "rb");
@@ -406,7 +411,8 @@ void loadLevelState(char* savename)
     fseek(save_file, 0x34, SEEK_SET);
     fread(&Game.id_capacity, 2, 1, save_file);
     initGameData(Game.object_capacity, Game.id_capacity);
-    object_offset = (long)Game.Objects;
+    obj_offset = (unsigned long)&Game.Objects[0];
+    objid_offset = (unsigned long)&Game.ObjectsById[0];
     fseek(save_file, 0x36, SEEK_SET);
     fread(&Game.player_id, 2, 1, save_file);
     fseek(save_file, 0x38, SEEK_SET);
@@ -416,13 +422,16 @@ void loadLevelState(char* savename)
     fclose(save_file);
     for (i = 0; i < Game.id_capacity; i++)
     {
-        Game.ObjectsById[i] += object_offset;
+        Game.ObjectsById[i] += (obj_offset / sizeof(void*));
     }
     for (i = 0; i < Game.object_count; i++)
     {
         Game.Objects[i].texture_id = loadTexture("SPRITES/DUDE1.7UP"); // replace with proper sprite system
     }
     corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
+    printf("L: %ld\n", obj_offset);
+    printf("%ld\n", objid_offset);
+    delay(60000);
 }
 
 void levelTransition(char* prevlevelname, char* newlevelname)
