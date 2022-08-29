@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Filech.h"
 #include "LvlLoad.h"
 #include "Loadgfx.h"
 #include "Sound.h"
@@ -152,6 +153,10 @@ void otherInit()
     initKeyboard();
 	printf("Keyboard OK\n");
     initSystem();
+    if (!checkDirectoryExists("SAVES"))
+        createDirectory("SAVES");
+    if (!checkDirectoryExists("SAVES/CURRENT"))
+        createDirectory("SAVES/CURRENT");
 	printf("System variables OK\n");
     #if DEBUG == 1
     initDebug();

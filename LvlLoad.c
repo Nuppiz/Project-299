@@ -347,10 +347,6 @@ void saveLevelState(char* levelname)
     char savefilepath[50] = "SAVES/CURRENT/";
     int i;
     unsigned long object_offset = (unsigned long)&Game.Objects[0];
-    unsigned long objid_offset = (unsigned long)&Game.ObjectsById[0];
-    printf("S: %ld\n", object_offset);
-    printf("%ld\n", objid_offset);
-    delay(60000);
 
     strcat(levelname, ".SAV");
     strcat(savefilepath, levelname);
@@ -395,7 +391,7 @@ void loadLevelState(char* savename)
     FILE* save_file;
     char savefilepath[50] = "SAVES/CURRENT/";
     int i;
-    unsigned long obj_offset, objid_offset;
+    unsigned long obj_offset;
 
     strcat(savefilepath, savename);
     save_file = fopen(savefilepath, "rb");
@@ -411,8 +407,6 @@ void loadLevelState(char* savename)
     fseek(save_file, 0x34, SEEK_SET);
     fread(&Game.id_capacity, 2, 1, save_file);
     initGameData(Game.object_capacity, Game.id_capacity);
-    obj_offset = (unsigned long)&Game.Objects[0];
-    objid_offset = (unsigned long)&Game.ObjectsById[0];
     fseek(save_file, 0x36, SEEK_SET);
     fread(&Game.player_id, 2, 1, save_file);
     fseek(save_file, 0x38, SEEK_SET);
@@ -429,9 +423,6 @@ void loadLevelState(char* savename)
         Game.Objects[i].texture_id = loadTexture("SPRITES/DUDE1.7UP"); // replace with proper sprite system
     }
     corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
-    printf("L: %ld\n", obj_offset);
-    printf("%ld\n", objid_offset);
-    delay(60000);
 }
 
 void levelTransition(char* prevlevelname, char* newlevelname)
