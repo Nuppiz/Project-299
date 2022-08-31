@@ -125,6 +125,7 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
     {
         ent->x = ent_x;
         ent->y = ent_y;
+        ent->id = entity_id;
         ent->state = state;
     }
 
@@ -345,8 +346,6 @@ void saveLevelState(char* levelname)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/CURRENT/";
-    int i;
-    unsigned long object_offset = (unsigned long)&Game.Objects[0];
 
     strcat(levelname, ".SAV");
     strcat(savefilepath, levelname);
@@ -358,15 +357,7 @@ void saveLevelState(char* levelname)
     }
     fwrite(&Game, sizeof(GameData_t), 1, save_file);
     fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
-    for (i = 0; i < Game.id_capacity; i++)
-    {
-        Game.ObjectsById[i] -= (object_offset / sizeof(void*));
-    }
     fwrite(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
-    for (i = 0; i < Game.id_capacity; i++)
-    {
-        Game.ObjectsById[i] += (object_offset / sizeof(void*));
-    }
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
 }
@@ -386,12 +377,39 @@ void loadGameState()
     }
 }
 
+void setEntityTilemap()
+{
+    int i, tilemap_location;
+
+    for (i = 0; i < MAX_ENTITIES; i++)
+    {
+        if (Entities[i].type != ENT_COUNTER)
+        {
+            tilemap_location = Entities[i].y * Game.Map.width + Entities[i].x;
+
+            Game.Map.tilemap[tilemap_location].is_entity = 1;
+            Game.Map.tilemap[tilemap_location].entity_value = Entities[i].id;
+            if (Entities[i].type == ENT_DOOR || Entities[i].type == ENT_BUTTON)
+            {
+                if (Entities[i].state == 1)
+                {
+                    Game.Map.tilemap[tilemap_location].texture_id++;
+                    if (Entities[i].type == ENT_DOOR)
+                    {
+                        Game.Map.tilemap[tilemap_location].obstacle = 0;
+                        Game.Map.tilemap[tilemap_location].block_bullets = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void loadLevelState(char* savename)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/CURRENT/";
     int i;
-    unsigned long obj_offset;
 
     strcat(savefilepath, savename);
     save_file = fopen(savefilepath, "rb");
@@ -414,15 +432,12 @@ void loadLevelState(char* savename)
     fread(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
-    for (i = 0; i < Game.id_capacity; i++)
-    {
-        Game.ObjectsById[i] += (obj_offset / sizeof(void*));
-    }
     for (i = 0; i < Game.object_count; i++)
     {
         Game.Objects[i].texture_id = loadTexture("SPRITES/DUDE1.7UP"); // replace with proper sprite system
     }
     corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
+    setEntityTilemap();
 }
 
 void levelTransition(char* prevlevelname, char* newlevelname)

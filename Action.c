@@ -351,7 +351,7 @@ void entityLoop()
             else if (Game.Objects[i].trigger_on_death != -1)
             {
                 deathTrigger(i);
-                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
+                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
             else

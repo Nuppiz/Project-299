@@ -115,12 +115,12 @@ typedef struct
 } Map_t;
 
 typedef struct {
-    uint8_t x, y;
+    uint8_t x, y, id;
     uint8_t state : 1;
     uint8_t type : 7;
     union u_data {
         struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
-        struct t_button {uint8_t target : 5;} button;
+        struct t_button {uint8_t target;} button;
         struct t_spawner {double angle; time_t last_spawn_time; int spawn_time_interval;
         int8_t max_objects; uint8_t num_objects; uint16_t spawn_type: 5;
         uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
