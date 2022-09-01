@@ -11,9 +11,10 @@ extern System_t System;
 extern GameData_t Game;
 
 extern uint8_t far screen_buf[];
-extern Texture_t* Textures;
+extern Texture_array BaseTextures;
+extern Texture_array ActorTextures;
+extern Texture_array TileTextures;
 extern Tile_t TileSet[];
-extern int texture_count;
 
 Vec2 camera_offset;
 int corpse_sprite_id; // temporary until better system in place
@@ -511,10 +512,10 @@ void drawMap()
         {
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
-                drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
+                drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
                 i++;
                 if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
-                    drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
+                    drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
             }
         }
         else
@@ -524,9 +525,9 @@ void drawMap()
                 // eliminate unnecessary drawing on the left of the screen
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
-                    drawTextureClipped(x_pixel, y_pixel, &Textures[Game.Map.tilemap[i].texture_id]);
+                    drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
                     if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
-                        drawTexturePartial(x_pixel, y_pixel, &Textures[TileSet['K' - 32].texture_id]);
+                        drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
                 }
                 i++;
             }
@@ -753,7 +754,7 @@ void spawnCorpse(Vec2 pos, double angle, int8_t life)
     Corpses[corpse_write].pos.x = pos.x;
     Corpses[corpse_write].pos.y = pos.y;
     Corpses[corpse_write].life = life;
-    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &Textures[corpse_sprite_id], TRANSPARENT_COLOR);
+    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &BaseTextures.textures[TEX_CORPSE], TRANSPARENT_COLOR);
 
     increaseCorpseWrite();
 }
@@ -810,12 +811,10 @@ void drawObjects()
 
     while (i < Game.object_count)
     {
-        start_x = Game.Objects[i].position.x - camera_offset.x - Textures[Game.Objects[i].texture_id].width / 2;
-        start_y = Game.Objects[i].position.y - camera_offset.y - Textures[Game.Objects[i].texture_id].height / 2;
-        // draw all circles in their current locations
-        //drawCircle(&Game.Objects[i].position, Game.Objects[i].radius, Game.Objects[i].color);
-        if (&Textures[Game.Objects[i].texture_id] != NULL)
-            drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &Textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
+        start_x = Game.Objects[i].position.x - camera_offset.x - ActorTextures.textures[Game.Objects[i].texture_id].width / 2;
+        start_y = Game.Objects[i].position.y - camera_offset.y - ActorTextures.textures[Game.Objects[i].texture_id].height / 2;
+        if (&ActorTextures.textures[Game.Objects[i].texture_id] != NULL)
+            drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &ActorTextures.textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
         drawDot(&Game.Objects[i]);
         #if DEBUG == 1
         str[0] = '\0';
@@ -838,11 +837,8 @@ void drawHealth()
 
 void drawStats()
 {
-    char tex_count[10];
     char obj_count[10];
 
-    sprintf(tex_count, "TEX: %d", texture_count);
-    drawText(0, 190, tex_count, COLOUR_WHITE);
     sprintf(obj_count, "OBJ: %d", Game.object_count);
     drawText(80, 190, obj_count, COLOUR_WHITE);
 }

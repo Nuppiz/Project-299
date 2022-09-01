@@ -7,6 +7,7 @@
 /* Game data and object array functions */
 
 GameData_t Game = {0};
+extern Texture_array ActorTextures;
 
 id_t getNewId()
 {
@@ -15,19 +16,19 @@ id_t getNewId()
     // fixed bug where only every other number was used
     // start id count from 1 so 0 is never used; assign 0 as "no id" if needed
     for (id = 1; id < Game.id_capacity; id++)
-        if (Game.ObjectsById[id] == NULL)
+        if (Game.ObjectsById[id] == 0)
             return id;
     // no free IDs found; allocate more
     Game.id_capacity += 16; // define as CHUNK or BLOCK or something
-    Game.ObjectsById = realloc(Game.ObjectsById, Game.id_capacity * sizeof(void*));
-    memset(&Game.ObjectsById[Game.id_capacity - 16], 0, 16 * sizeof(void*)); // set new pointers to NULL
+    Game.ObjectsById = realloc(Game.ObjectsById, Game.id_capacity * sizeof(id_t));
+    memset(&Game.ObjectsById[Game.id_capacity - 16], 0, 16 * sizeof(id_t)); // set new ids to 0
     // to do later: ensure successful allocation
     return id;
 }
 
 id_t createObject(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, int8_t trigger_on_death, char* texture_name)
 {
-	Vec2 direction; //temporary container for direction value
+	Vec2 direction; // temporary container for direction value
     id_t id = getNewId();
 	direction = getDirVec2(angle);
 
@@ -37,8 +38,8 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
         Game.Objects = realloc(Game.Objects, Game.object_capacity * sizeof(Object_t));
         // to do later: ensure successful allocation
     }
-    // set the ID entry in the hashmap (ObjectsById) to point to the newly created object
-    Game.ObjectsById[id] = &Game.Objects[Game.object_count];
+
+    Game.ObjectsById[id] = Game.object_count + 1;
 
     Game.Objects[Game.object_count].id = id;
     Game.Objects[Game.object_count].position.x = x;
@@ -51,7 +52,7 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
     Game.Objects[Game.object_count].target_id = ai_target;
     Game.Objects[Game.object_count].health = health;
     Game.Objects[Game.object_count].trigger_on_death = trigger_on_death;
-    Game.Objects[Game.object_count].texture_id = loadTexture(texture_name);
+    Game.Objects[Game.object_count].texture_id = loadTexture(texture_name, &ActorTextures);
 	Game.Objects[Game.object_count].direction.x = direction.x;
 	Game.Objects[Game.object_count].direction.y = direction.y;
 	
@@ -65,12 +66,9 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
 
 void deleteObject(id_t id)
 {
-    // overwrite memory
-    if (Game.ObjectsById[id] != &Game.Objects[Game.object_count])
-        Game.ObjectsById[id] = &Game.Objects[Game.object_count-1];
     Game.object_count--;
     // set hashmap value to NULL
-    Game.ObjectsById[id] = NULL;
+    Game.ObjectsById[id] = 0;
 
     if (Game.object_count < Game.object_capacity - 16)
     {
@@ -88,7 +86,7 @@ void deleteLastObject()
 void initGameData(id_t object_capacity, id_t id_capacity)
 {
     Game.Objects = calloc(object_capacity, sizeof(Object_t));
-    Game.ObjectsById = calloc(id_capacity, sizeof(void*));
+    Game.ObjectsById = calloc(id_capacity, sizeof(id_t));
 }
 
 void freeGameData()
@@ -98,7 +96,7 @@ void freeGameData()
     memset(Game.Objects, 0, Game.object_capacity * sizeof(Object_t));
     free(Game.Objects);
     Game.object_count = 0;
-    memset(Game.ObjectsById, NULL, Game.id_capacity * sizeof(void*));
+    memset(Game.ObjectsById, 0, Game.id_capacity * sizeof(id_t));
     free(Game.ObjectsById);
     Game.id_capacity = 0;
     memset(Game.current_level_name, 0, strlen(Game.current_level_name) * sizeof(char));

@@ -123,7 +123,7 @@ void think(Object_t* obj)
 {
     if (Game.ObjectsById[obj->target_id] != NULL)
     {
-        obj->move_target = Game.ObjectsById[obj->target_id]->position;
+        obj->move_target = Game.Objects[Game.ObjectsById[obj->target_id - 1]].position;
         // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
         if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
         {

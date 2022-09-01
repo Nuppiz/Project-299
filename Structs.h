@@ -54,6 +54,13 @@ typedef struct
     int offset_x, offset_y;
 } Texture_t;
 
+typedef struct
+{
+    Texture_t* textures;
+    int texture_count;
+} Texture_array;
+
+
 /*
 typedef struct
 {
@@ -135,7 +142,7 @@ typedef struct
     Map_t Map;
     char current_level_name[30];
     Object_t* Objects;
-    Object_t** ObjectsById;
+    id_t* ObjectsById;
     id_t object_count;
     id_t object_capacity;
     id_t id_capacity;

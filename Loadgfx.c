@@ -27,8 +27,9 @@ static uint8_t error_pixels[400] =
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-Texture_t* Textures = NULL;
-int texture_count = 0;
+Texture_array BaseTextures = {0};
+Texture_array ActorTextures = {0};
+Texture_array TileTextures = {0};
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -39,30 +40,66 @@ void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
     fclose(file_ptr);
 }
 
-int findTexture(char* filename)
+void loadTexturesFromList(char* list_filename, Texture_array* array)
+{
+    FILE* tex_list_file;
+    char filename[20];
+
+    tex_list_file = fopen(list_filename, "r");
+
+    if (tex_list_file == NULL)
+    {
+        fclose(tex_list_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open texture list file!\n");
+        printf("Please check the file actually exists!\n");
+        quit();
+    }
+
+    do
+    {
+        fscanf(tex_list_file, "%s", filename);
+        loadTexture(filename, array);
+    } while (fgetc(tex_list_file) != EOF);
+    
+    fclose(tex_list_file);
+}
+
+int findTexture(char* filename, Texture_array* array)
 {
     int i;
 
-    for (i = 0; i < texture_count; i++)
+    for (i = 0; i < array->texture_count; i++)
     {
-        if (strcmp(filename, Textures[i].filename) == 0)
+        if (strcmp(filename, array->textures[i].filename) == 0)
             return i;
     }
     return 0;
 }
 
-void createErrorTexture()
+void createErrorTextures()
 {
-    if (Textures == NULL)
-        Textures = malloc(sizeof(Texture_t));
-    Textures[0].filename = "ERROR.7UP";
-    Textures[0].width = 20;
-    Textures[0].height = 20;
-    Textures[0].pixels = error_pixels;
-    texture_count++;
+    BaseTextures.textures = malloc(sizeof(Texture_t));
+    ActorTextures.textures = malloc(sizeof(Texture_t));
+    TileTextures.textures = malloc(sizeof(Texture_t));
+    BaseTextures.textures[0].filename = "ERROR.7UP";
+    BaseTextures.textures[0].width = 20;
+    BaseTextures.textures[0].height = 20;
+    BaseTextures.textures[0].pixels = error_pixels;
+    BaseTextures.texture_count++;
+    ActorTextures.textures[0].filename = "ERROR.7UP";
+    ActorTextures.textures[0].width = 20;
+    ActorTextures.textures[0].height = 20;
+    ActorTextures.textures[0].pixels = error_pixels;
+    ActorTextures.textures[0].filename = "ERROR.7UP";
+    ActorTextures.texture_count++;
+    TileTextures.textures[0].width = 20;
+    TileTextures.textures[0].height = 20;
+    TileTextures.textures[0].pixels = error_pixels;
+    TileTextures.texture_count++;
 }
 
-int loadTexture(char* filename)
+int loadTexture(char* filename, Texture_array* array)
 {
     //loop all textures here to check if it was already loaded,
     //return id of that texture if it was found.
@@ -72,49 +109,64 @@ int loadTexture(char* filename)
 
     //return 0;
 
-    if ((texture_id = findTexture(filename)) != 0)
+    if ((texture_id = findTexture(filename, array)) != 0)
         return texture_id;
 
     file_ptr = fopen(filename, "rb");
     if (file_ptr == NULL)
         return 0;
 
-    Textures = realloc(Textures, (texture_count + 1) * sizeof(Texture_t));
+    array->textures = realloc(array->textures, (array->texture_count + 1) * sizeof(Texture_t));
 
-    ASSERT(Textures != NULL);
+    ASSERT(array->textures != NULL);
 
-    texture_id = texture_count;
-    texture_count++;
+    texture_id = array->texture_count;
+    array->texture_count++;
 
     filename_length = strlen(filename) + 1;
-    Textures[texture_id].filename = malloc(filename_length);
-    strcpy(Textures[texture_id].filename, filename);
+    array->textures[texture_id].filename = malloc(filename_length);
+    strcpy(array->textures[texture_id].filename, filename);
 
-    fread(&Textures[texture_id].width, 2, 1, file_ptr);
+    fread(&array->textures[texture_id].width, 2, 1, file_ptr);
     fseek(file_ptr, 2, SEEK_SET);
-    fread(&Textures[texture_id].height, 2, 1, file_ptr);
+    fread(&array->textures[texture_id].height, 2, 1, file_ptr);
     fseek(file_ptr, 6, SEEK_SET);
-    fread(&Textures[texture_id].transparent, 2, 1, file_ptr);
+    fread(&array->textures[texture_id].transparent, 2, 1, file_ptr);
 	fseek(file_ptr, 8, SEEK_SET);
-    Textures[texture_id].pixels = malloc(Textures[texture_id].width * Textures[texture_id].height);
-    fread(Textures[texture_id].pixels, 1, Textures[texture_id].width * Textures[texture_id].height, file_ptr);
-    Textures[texture_id].offset_x = 0;
-    Textures[texture_id].offset_y = 0;
+    array->textures[texture_id].pixels = malloc(array->textures[texture_id].width * array->textures[texture_id].height);
+    fread(array->textures[texture_id].pixels, 1, array->textures[texture_id].width * array->textures[texture_id].height, file_ptr);
+    array->textures[texture_id].offset_x = 0;
+    array->textures[texture_id].offset_y = 0;
 
     fclose(file_ptr);
     
     return texture_id;
 }
 
+void loadBaseTextures()
+{
+    loadTexturesFromList("SPRITES/BASETEX.txt", &BaseTextures);
+    ASSERT(BaseTextures.texture_count == 3);
+    loadTexturesFromList("SPRITES/ACTORTEX.txt", &ActorTextures);
+}
+
 void freeAllTextures()
 {
     int i;
 
-    for (i = 1; i < texture_count; i++)
+    for (i = 1; i < TileTextures.texture_count; i++)
     {
-        free(Textures[i].filename);
-        free(Textures[i].pixels);
+        free(TileTextures.textures[i].filename);
+        free(TileTextures.textures[i].pixels);
     }
-    Textures = realloc(Textures, sizeof(Texture_t));
-    texture_count = 1;
+    TileTextures.textures = realloc(TileTextures.textures, sizeof(Texture_t));
+    TileTextures.texture_count = 1;
+
+    /*for (i = 1; i < ActorTextures.texture_count; i++)
+    {
+        free(ActorTextures.textures[i].filename);
+        free(ActorTextures.textures[i].pixels);
+    }
+    ActorTextures.textures = realloc(ActorTextures.textures, sizeof(Texture_t));
+    ActorTextures.texture_count = 1;*/
 }

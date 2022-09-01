@@ -145,6 +145,8 @@ void gfxInit()
     setPalette_VGA(&NewPalette);
 	printf("Palette set\n");
     loadFontNew();
+    createErrorTextures();
+    loadBaseTextures();
 	printf("Basic textures loaded into memory\n");
 }
 
@@ -184,7 +186,6 @@ void titleInit()
 void gameInit()
 {
     levelLoader("LEVEL1.LEV", LOAD_NEW_LEVEL);
-    corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
 	printf("Game variables OK\n");
 }
 

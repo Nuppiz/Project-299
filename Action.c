@@ -209,7 +209,7 @@ void usePortal(Entity_t* portal)
                 portal_x = portal->data.portal.x;
                 portal_y = portal->data.portal.y;
                 portal_angle = portal->data.portal.angle;
-                levelTransition(Game.current_level_name, portal->data.portal.level_name);
+                levelTransition(Game.current_level_name, portal->data.portal.level_name, FALSE);
                 Game.Objects[0].velocity.x = 0.0;
                 Game.Objects[0].velocity.y = 0.0;
                 Game.Objects[0].position.x = portal_x;
@@ -346,7 +346,7 @@ void entityLoop()
             playSFX(SOUND_AARGH);
             if (Game.Objects[i].id == Game.player_id)
             { 
-                levelTransition(Game.current_level_name, Game.current_level_name);
+                levelTransition(Game.current_level_name, Game.current_level_name, TRUE);
             }       
             else if (Game.Objects[i].trigger_on_death != -1)
             {

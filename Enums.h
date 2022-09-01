@@ -59,6 +59,13 @@ enum SoundEffects
     NUM_SFX
 };
 
+enum BaseTextures
+{
+    TEX_ERROR,
+    TEX_CORPSE,
+    TEX_KEY
+};
+
 enum DebugIndex
 {
     DEBUG_FPS,

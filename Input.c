@@ -108,6 +108,9 @@ void testButtons()
             playMusic("MUSIC/PELIMUSA.S3M");        
     }
 
+    if (KEY_WAS_HIT(KEY_K))
+        Game.Objects[0].health = 10;
+
     if (KEY_WAS_HIT(KEY_2))
         deleteObject(2);
 

@@ -5,15 +5,15 @@
 #include "Filech.h"
 #include "Vectors.h"
 #include "Draw.h"
+#include "Movecoll.h"
 
 /* Level data and entity loader */
 
 Entity_t Entities[MAX_ENTITIES];
 extern System_t System;
 extern GameData_t Game;
-extern Texture_t* Textures;
+extern Texture_array TileTextures;
 Tile_t TileSet[100];
-extern int texture_count;
 extern int corpse_sprite_id;
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
@@ -52,15 +52,15 @@ void loadTileset(char* filename)
         {
             symbol = fgetc(tileset) - 32;
             fscanf(tileset, "%s", name);
-            tex_id = loadTexture(name);
+            tex_id = loadTexture(name, &TileTextures);
             TileSet[symbol].texture_id = tex_id;
 
             while((c = fgetc(tileset)) != '\n' && c != EOF)
             {
                 switch (c)
                 {
-                case 'D': Textures[tex_id].material_type = MAT_DEFAULT; continue;
-                case 'G': Textures[tex_id].material_type = MAT_GRASS; continue;
+                case 'D': TileTextures.textures[tex_id].material_type = MAT_DEFAULT; continue;
+                case 'G': TileTextures.textures[tex_id].material_type = MAT_GRASS; continue;
                 case 'O': TileSet[symbol].obstacle = 1; continue;
                 case 'B': TileSet[symbol].block_bullets = 1; continue;
                 
@@ -232,7 +232,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         quit();
     }
 
-    if (Entities != NULL && Textures != NULL && Game.Objects != NULL)
+    if (Entities != NULL && TileTextures.textures != NULL && Game.Objects != NULL)
     {
         freeAllEntities();
         freeAllTextures();
@@ -244,9 +244,6 @@ void levelLoader(char* level_name, uint8_t load_type)
 
     if (load_type == LOAD_NEW_LEVEL)
         initGameData(OBJ_DEFAULT_CAPACITY, OBJ_DEFAULT_CAPACITY);
-
-    if (Textures == NULL)
-        createErrorTexture();
 
     while ((c = fgetc(level_file)) != EOF)
     {
@@ -339,6 +336,8 @@ void saveGameState()
         delay(60000);
     }
     fwrite(&Game.Objects[0].health, 2, 1, save_file);
+    fwrite(&Game.Objects[0].position.x, 8, 1, save_file);
+    fwrite(&Game.Objects[0].position.y, 8, 1, save_file);
     fclose(save_file);
 }
 
@@ -357,7 +356,7 @@ void saveLevelState(char* levelname)
     }
     fwrite(&Game, sizeof(GameData_t), 1, save_file);
     fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
-    fwrite(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
+    fwrite(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
 }
@@ -366,6 +365,7 @@ void loadGameState()
 {
     FILE* state_file;
     int player_hp;
+    Vec2 player_loc;
 
     if (checkFileExists("SAVES/CURRENT/CRTSTATE.SAV"))
     {
@@ -373,6 +373,11 @@ void loadGameState()
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
             Game.Objects[0].health = player_hp;
+        fread(&player_loc.x, 8, 1, state_file);
+        fread(&player_loc.y, 8, 1, state_file);
+        Game.Objects[0].position.x = player_loc.x;
+        Game.Objects[0].position.y = player_loc.y;
+        updateGridLoc(&Game.Objects[0]);
         fclose(state_file);
     }
 }
@@ -429,18 +434,13 @@ void loadLevelState(char* savename)
     fread(&Game.player_id, 2, 1, save_file);
     fseek(save_file, 0x38, SEEK_SET);
     fread(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
-    fread(Game.ObjectsById, sizeof(void*), Game.id_capacity, save_file);
+    fread(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fclose(save_file);
-    for (i = 0; i < Game.object_count; i++)
-    {
-        Game.Objects[i].texture_id = loadTexture("SPRITES/DUDE1.7UP"); // replace with proper sprite system
-    }
-    corpse_sprite_id = loadTexture("SPRITES/CORPSE.7UP");
     setEntityTilemap();
 }
 
-void levelTransition(char* prevlevelname, char* newlevelname)
+void levelTransition(char* prevlevelname, char* newlevelname, uint8_t player_death)
 {
     char prevsavename[30] = {'\0'};
     char newsavename[30] = {'\0'};
@@ -452,8 +452,11 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     strcat(newsavename, ".SAV"); // replace with save filename ending
     strcat(savepath, newsavename);
 
-    saveGameState();
-    saveLevelState(prevsavename);
+    if (player_death == FALSE)
+    {
+        saveGameState();
+        saveLevelState(prevsavename);
+    }
 
     if (checkFileExists(savepath))
     {
