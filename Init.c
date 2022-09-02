@@ -9,8 +9,6 @@ extern System_t System;
 extern State_t States[];
 extern GameData_t Game;
 
-extern int corpse_sprite_id;
-
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
 #endif

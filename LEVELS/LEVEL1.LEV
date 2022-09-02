@@ -36,7 +36,7 @@ WGGGGGGGGGGGGGGGGGGGGGGGGGGGGW
 WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 
 $player 300 300 1.0 7 0 SPRITES/DUDE1.7UP
-$dude 280 90 1.0 7 0 1 1 4 100 1 SPRITES/DUDE3.7UP
+$dude 280 90 1.0 7 0 1 1 3 100 1 SPRITES/DUDE3.7UP
 
 $entity 0 Door 28 0 0 1 0
 $entity 1 Button 27 0 0 0
@@ -47,5 +47,5 @@ $entity 5 Trigger 10 16 0 1000 6 -1 -1 -1 0
 $entity 6 Counter 5 3 0
 $entity 7 Portal 10 10 1 LEVEL2.LEV 30 30 0.0
 
-$interactive Key_Red 86
-$interactive Spikes 536
+$interactive Key_Red 86 1
+$interactive Spikes 536 1

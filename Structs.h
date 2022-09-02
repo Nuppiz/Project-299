@@ -137,6 +137,12 @@ typedef struct {
     } data;
 } Entity_t;
 
+typedef struct {
+    int index; // tilemap index
+    uint8_t state : 1; // enabled/disabled
+    uint8_t type : 7; // type of interactive tile
+} Interactive_t;
+
 typedef struct
 {
     Map_t Map;
@@ -146,6 +152,8 @@ typedef struct
     id_t object_count;
     id_t object_capacity;
     id_t id_capacity;
+    uint8_t interactive_count;
+    uint8_t interactive_capacity;
     id_t player_id;
 } GameData_t;
 

@@ -13,38 +13,42 @@
 extern System_t System;
 extern GameData_t Game;
 extern Entity_t Entities[];
+extern Interactive_t* Interactives;
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForInteractive() // temporary, will be replaced with better system later
 {
-    int tilemap_loc, i;
+    int tilemap_loc, i, a;
     static time_t last_env_damage = 0;
 
     for (i = 0; i < Game.object_count; i++)
     {
-        tilemap_loc = Game.Objects[i].grid_loc.y * Game.Map.width + Game.Objects[i].grid_loc.x;;
-        if (Game.Map.tilemap[tilemap_loc].is_entity == 0)
+        tilemap_loc = Game.Objects[i].grid_loc.y * Game.Map.width + Game.Objects[i].grid_loc.x;
+        for (a = 0; a < Game.interactive_count; a++)
         {
-            // for whatever reason the key pickup happens really "late" if the code checks for its actual location
-            if (Game.Map.tilemap[tilemap_loc + 1].entity_value == TILE_KEY_RED && i == 0)
+            if (tilemap_loc == Interactives[a].index && Interactives[a].state == 1)
             {
-                key_acquired = TRUE;
-                Game.Map.tilemap[tilemap_loc + 1].entity_value = 0;
-                playSFX(SOUND_ITEM);
-            }
-            else if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_SPIKES)
-            {
-                if (last_env_damage + HURT_INTERVAL < System.ticks)
+                // for whatever reason the key pickup happens really "late" if the code checks for its actual location
+                if (Interactives[a].type == TILE_KEY_RED && i == 0)
                 {
-                    last_env_damage = System.ticks;
-                    if (Game.Objects[i].id == Game.player_id)
-                        playSFX(SOUND_HURT);
-                    else
-                        playSFX(SOUND_HURT_E);
-                    Game.Objects[i].health -= 10;
-                    #if DEBUG == 1
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
-                    #endif
+                    key_acquired = TRUE;
+                    Interactives[a].state = 0;
+                    playSFX(SOUND_ITEM);
+                }
+                else if (Interactives[a].type == TILE_SPIKES)
+                {
+                    if (last_env_damage + HURT_INTERVAL < System.ticks)
+                    {
+                        last_env_damage = System.ticks;
+                        if (Game.Objects[i].id == Game.player_id)
+                            playSFX(SOUND_HURT);
+                        else
+                            playSFX(SOUND_HURT_E);
+                        Game.Objects[i].health -= 10;
+                        #if DEBUG == 1
+                        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
+                        #endif
+                    }
                 }
             }
         }

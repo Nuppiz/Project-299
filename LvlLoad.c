@@ -14,7 +14,7 @@ extern System_t System;
 extern GameData_t Game;
 extern Texture_array TileTextures;
 Tile_t TileSet[100];
-extern int corpse_sprite_id;
+Interactive_t* Interactives;
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
@@ -215,7 +215,7 @@ void levelLoader(char* level_name, uint8_t load_type)
 
     // interactive tile variables
     char interactive_name[20];
-    int interactive_type, tilemap_location;
+    int interactive_type, tilemap_location, state;
 
     strcat(level_path, level_name);
 
@@ -238,12 +238,22 @@ void levelLoader(char* level_name, uint8_t load_type)
         freeAllTextures();
         freeGameData();
         emptyCorpseArray();
+        if (Interactives != NULL)
+        {
+            free(Interactives);
+            Game.interactive_capacity = 0;
+        }
     }
 
     strcpy(Game.current_level_name, temp_level);
 
     if (load_type == LOAD_NEW_LEVEL)
+    {
         initGameData(OBJ_DEFAULT_CAPACITY, OBJ_DEFAULT_CAPACITY);
+        Game.interactive_capacity = 16;
+        Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
+        memset(Interactives, 0, Game.interactive_capacity * sizeof(Interactive_t));
+    }
 
     while ((c = fgetc(level_file)) != EOF)
     {
@@ -300,9 +310,9 @@ void levelLoader(char* level_name, uint8_t load_type)
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
-            else if (strcmp(buffer, "interactive") == 0)
+            else if (strcmp(buffer, "interactive") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%s %d", interactive_name, &tilemap_location);
+                fscanf(level_file, "%s %d %d", interactive_name, &tilemap_location, &state);
                 interactive_type = interactiveTypeCheck(interactive_name);
                 if (interactive_type == RETURN_ERROR)
                 {
@@ -313,8 +323,15 @@ void levelLoader(char* level_name, uint8_t load_type)
                     printf("Please check the level file!\n");
                     quit();
                 }
-                Game.Map.tilemap[tilemap_location].is_entity = 0;
-                Game.Map.tilemap[tilemap_location].entity_value = interactive_type;
+                Interactives[Game.interactive_count].index = tilemap_location;
+                Interactives[Game.interactive_count].state = state;
+                Interactives[Game.interactive_count].type = interactive_type;
+                Game.interactive_count++;
+                if (Game.interactive_count >= Game.interactive_capacity)
+                {
+                    Game.interactive_capacity += 8;
+                    Interactives = realloc(Interactives, Game.interactive_capacity* sizeof(Interactive_t));
+                }
             }
         }
     }
@@ -358,6 +375,7 @@ void saveLevelState(char* levelname)
     fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
     fwrite(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
+    fwrite(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
     fclose(save_file);
 }
 
@@ -375,7 +393,7 @@ void loadGameState()
             Game.Objects[0].health = player_hp;
         fread(&player_loc.x, 8, 1, state_file);
         fread(&player_loc.y, 8, 1, state_file);
-        Game.Objects[0].position.x = player_loc.x;
+        Game.Objects[0].position.x = player_loc.x - 30;
         Game.Objects[0].position.y = player_loc.y;
         updateGridLoc(&Game.Objects[0]);
         fclose(state_file);
@@ -431,11 +449,16 @@ void loadLevelState(char* savename)
     fread(&Game.id_capacity, 2, 1, save_file);
     initGameData(Game.object_capacity, Game.id_capacity);
     fseek(save_file, 0x36, SEEK_SET);
-    fread(&Game.player_id, 2, 1, save_file);
+    fread(&Game.interactive_count, 1, 1, save_file);
+    fread(&Game.interactive_capacity, 1, 1, save_file);
+    Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
     fseek(save_file, 0x38, SEEK_SET);
+    fread(&Game.player_id, 2, 1, save_file);
+    fseek(save_file, 0x3A, SEEK_SET);
     fread(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
     fread(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
+    fread(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
     fclose(save_file);
     setEntityTilemap();
 }

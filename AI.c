@@ -121,9 +121,9 @@ void chaseTarget(Object_t* chaser)
 
 void think(Object_t* obj)
 {
-    if (Game.ObjectsById[obj->target_id] != NULL)
+    if (Game.ObjectsById[obj->target_id] != UINT16_MAX)
     {
-        obj->move_target = Game.Objects[Game.ObjectsById[obj->target_id - 1]].position;
+        obj->move_target = Game.Objects[Game.ObjectsById[obj->target_id]].position;
         // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
         if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
         {
@@ -167,6 +167,12 @@ void act(Object_t* obj)
         {
             chaseTarget(obj);
             obj->ai_timer--;
+            if (Game.ObjectsById[obj->target_id] == UINT16_MAX) // if target is deleted
+            {
+                obj->target_id = UINT16_MAX; // remove chase target
+                obj->ai_mode = AI_IDLE;
+                obj->control = 0; // same as clearing all bits
+            }
         }
         else
         {

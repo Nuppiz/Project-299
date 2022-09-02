@@ -15,9 +15,9 @@ extern Texture_array BaseTextures;
 extern Texture_array ActorTextures;
 extern Texture_array TileTextures;
 extern Tile_t TileSet[];
+extern Interactive_t* Interactives;
 
 Vec2 camera_offset;
-int corpse_sprite_id; // temporary until better system in place
 
 Particle_t Particles[MAX_PARTICLES] = {0};
 int particle_read = 0;
@@ -504,6 +504,7 @@ void drawMap()
     int num_cols; // number of "columns" traversed in the array
     int max_cols = Game.Map.width - xi - 1; // max columns to draw
     int max_rows = Game.Map.height; // max rows to draw
+    int a; // array index for Interactives array
 
     // run loops until maximum number of squares is drawn and the edges of the screen have been reached
     for (y_pixel = 0 - camera_offset.y, num_rows = 0; y_pixel < SCREEN_HEIGHT && num_rows < max_rows; y_pixel += SQUARE_SIZE)
@@ -513,9 +514,15 @@ void drawMap()
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
                 drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
+                for (a = 0; a < Game.interactive_count; a++)
+                {
+                    if (Interactives[a].state == 1)
+                    {                    
+                        if (i == Interactives[a].index && Interactives[a].type == TILE_KEY_RED)
+                            drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
+                    }
+                }
                 i++;
-                if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
-                    drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
             }
         }
         else
@@ -526,8 +533,14 @@ void drawMap()
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
                     drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
-                    if (Game.Map.tilemap[i].is_entity == 0 && Game.Map.tilemap[i].entity_value == TILE_KEY_RED)
-                        drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
+                    for (a = 0; a < Game.interactive_count; a++)
+                    {
+                        if (Interactives[a].state == 1)
+                        {                    
+                            if (i == Interactives[a].index && Interactives[a].type == TILE_KEY_RED)
+                                drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
+                        }
+                    }
                 }
                 i++;
             }

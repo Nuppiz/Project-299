@@ -16,12 +16,12 @@ id_t getNewId()
     // fixed bug where only every other number was used
     // start id count from 1 so 0 is never used; assign 0 as "no id" if needed
     for (id = 1; id < Game.id_capacity; id++)
-        if (Game.ObjectsById[id] == 0)
+        if (Game.ObjectsById[id] == UINT16_MAX)
             return id;
     // no free IDs found; allocate more
     Game.id_capacity += 16; // define as CHUNK or BLOCK or something
     Game.ObjectsById = realloc(Game.ObjectsById, Game.id_capacity * sizeof(id_t));
-    memset(&Game.ObjectsById[Game.id_capacity - 16], 0, 16 * sizeof(id_t)); // set new ids to 0
+    memset(&Game.ObjectsById[Game.id_capacity - 16], UINT8_MAX, 16 * sizeof(id_t)); // set new ids to -1
     // to do later: ensure successful allocation
     return id;
 }
@@ -39,7 +39,9 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
         // to do later: ensure successful allocation
     }
 
-    Game.ObjectsById[id] = Game.object_count + 1;
+    Game.ObjectsById[id] = Game.object_count;
+
+    memset(&Game.Objects[Game.object_count], 0, sizeof(Object_t));
 
     Game.Objects[Game.object_count].id = id;
     Game.Objects[Game.object_count].position.x = x;
@@ -66,9 +68,15 @@ id_t createObject(float x, float y, double angle, int radius, uint8_t control, u
 
 void deleteObject(id_t id)
 {
+    if (Game.ObjectsById[id] != Game.object_count - 1)
+    {
+        Game.Objects[Game.ObjectsById[id]] = Game.Objects[Game.object_count - 1];
+        Game.ObjectsById[Game.object_count] = Game.object_count;
+    }
+    
     Game.object_count--;
-    // set hashmap value to NULL
-    Game.ObjectsById[id] = 0;
+    // set id value to UINT16_MAX so it can be reused
+    Game.ObjectsById[id] = UINT16_MAX;
 
     if (Game.object_count < Game.object_capacity - 16)
     {
@@ -80,13 +88,14 @@ void deleteObject(id_t id)
 void deleteLastObject()
 {
     if (Game.object_count > 0)
-        deleteObject(Game.object_count-1);
+        deleteObject(Game.object_count - 1);
 }
 
 void initGameData(id_t object_capacity, id_t id_capacity)
 {
     Game.Objects = calloc(object_capacity, sizeof(Object_t));
     Game.ObjectsById = calloc(id_capacity, sizeof(id_t));
+    memset(Game.ObjectsById, UINT8_MAX, id_capacity * sizeof(id_t));
 }
 
 void freeGameData()
