@@ -183,7 +183,7 @@ void titleInit()
 
 void gameInit()
 {
-    levelLoader("LEVEL1.LEV", LOAD_NEW_LEVEL);
+    levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
 	printf("Game variables OK\n");
 }
 

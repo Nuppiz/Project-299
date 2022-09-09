@@ -2,6 +2,7 @@
 #include "Movecoll.h"
 #include "Structs.h"
 #include "Vectors.h"
+#include "Action.h"
 
 /* AI functions */
 
@@ -133,6 +134,7 @@ void think(Object_t* obj)
     }
     else
     {
+        Game.ObjectsById[obj->target_id] = UINT16_MAX;
         obj->ai_mode = AI_IDLE;
         obj->control = 0; // same as clearing all bits
     }
@@ -166,7 +168,12 @@ void act(Object_t* obj)
         if (obj->ai_timer > 0)
         {
             chaseTarget(obj);
+            if (obj->last_shot + obj->shot_delay < System.ticks);
+            {
+                shootWeapon(obj);
+            }
             obj->ai_timer--;
+
             if (Game.ObjectsById[obj->target_id] == UINT16_MAX) // if target is deleted
             {
                 obj->target_id = UINT16_MAX; // remove chase target

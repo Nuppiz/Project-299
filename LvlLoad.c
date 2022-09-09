@@ -13,7 +13,7 @@ Entity_t Entities[MAX_ENTITIES];
 extern System_t System;
 extern GameData_t Game;
 extern Texture_array TileTextures;
-Tile_t TileSet[100];
+Tile_t TileSet[TILESET_MAX];
 Interactive_t* Interactives;
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
@@ -232,7 +232,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         quit();
     }
 
-    if (Entities != NULL && TileTextures.textures != NULL && Game.Objects != NULL)
+    if (Entities != NULL || TileTextures.textures != NULL || Game.Objects != NULL)
     {
         freeAllEntities();
         freeAllTextures();
@@ -282,18 +282,19 @@ void levelLoader(char* level_name, uint8_t load_type)
                         i++;
                     }
                 }
+                memset(TileSet, 0, TILESET_MAX * sizeof(Tile_t));
             }
             else if (strcmp(buffer, "player") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 100, -1, texture_filename);
+                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, 20, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %s",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, texture_filename);
-                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, texture_filename);
+                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, 20, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {

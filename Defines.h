@@ -82,6 +82,7 @@
 #define COLOUR_PEACH        64
 #define TRANSPARENT_COLOR   251
 
+#define TILESET_MAX         100
 #define DEFAULT_TILESET     "LEVELS/Default.til"
 #define LEVEL_PATH          "LEVELS/"
 

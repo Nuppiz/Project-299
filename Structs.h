@@ -93,6 +93,8 @@ typedef struct
     id_t texture_id;
     int health;
     int8_t trigger_on_death; // entity ID to trigger on death
+    time_t last_shot; // last shot taken
+    uint16_t shot_delay; // delay between shots
 } Object_t;
 
 typedef struct

@@ -82,7 +82,7 @@ void runSpawner(Entity_t* spawner)
             if (spawner->data.spawner.num_objects < spawner->data.spawner.max_objects || spawner->data.spawner.max_objects == -1)
             {
                 createObject(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
-                7, 0, 1, 0, Game.player_id, 100, spawner->data.spawner.trigger_on_death, "SPRITES/DUDE2.7UP");
+                7, 0, 1, 0, Game.player_id, 100, spawner->data.spawner.trigger_on_death, 20, "SPRITES/DUDE2.7UP");
                 spawner->data.spawner.num_objects++;
             }
             if (spawner->data.spawner.num_objects >= spawner->data.spawner.max_objects && spawner->data.spawner.max_objects != -1)
@@ -307,10 +307,14 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
                     #endif
                     Game.Objects[i].health -= 8;
+                    Game.Objects[i].target_id = source_id; // infighting mechanic
                     if (last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         last_sfx = System.ticks;
-                        playSFX(SOUND_HURT_E);
+                        if (i == 0)
+                            playSFX(SOUND_HURT);
+                        else
+                            playSFX(SOUND_HURT_E);
                     }
                 }
             }
@@ -325,17 +329,21 @@ void shootWeapon(Object_t* source)
     double angle;
     int i;
 
-    playSFX(SOUND_SHOOT);
-    //particleFx(source->position, source->direction, FX_WATERGUN);
-
-    bullet_loc.x = source->position.x + direction.x * (source->radius * 1.5);
-    bullet_loc.y = source->position.y + direction.y * (source->radius * 1.5);
-
-    for (i = 1; i < 4; i++)
+    if (source->last_shot + source->shot_delay < System.ticks)
     {
-        angle = source->angle + ((rand() % 20 - 10) * RAD_1);
-        direction = getDirVec2(angle);
-        bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 - 10));
+        source->last_shot = System.ticks;
+        playSFX(SOUND_SHOOT);
+        //particleFx(source->position, source->direction, FX_WATERGUN);
+
+        bullet_loc.x = source->position.x + source->direction.x * (source->radius * 1.5);
+        bullet_loc.y = source->position.y + source->direction.y * (source->radius * 1.5);
+
+        for (i = 1; i < 4; i++)
+        {
+            angle = source->angle + ((rand() % 20 - 10) * RAD_1);
+            direction = getDirVec2(angle);
+            bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 - 10));
+        }
     }
 }
 
