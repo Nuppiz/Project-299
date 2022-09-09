@@ -13,6 +13,7 @@
 #include "Text.h"
 #include "Video.h"
 #include "State.h"
+#include "Exit.h"
 
 System_t System = {0};
 extern State_t* Stack[NUM_STATES];
@@ -21,6 +22,7 @@ extern stack_top;
 
 void quit()
 {
+    gameExit();
     deinitClock();
     deinitKeyboard();
     setVideoMode(TEXT_MODE);

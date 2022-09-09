@@ -25,6 +25,26 @@ void gameExit()
     {
         remove("SAVES/CURRENT/CRTSTATE.SAV");
     }
+    if (checkFileExists("SAVES/CURRENT/LEVEL1.SAV"))
+    {
+        remove("SAVES/CURRENT/LEVEL1.SAV");
+    }
+    if (checkFileExists("SAVES/CURRENT/LEVEL2.SAV"))
+    {
+        remove("SAVES/CURRENT/LEVEL2.SAV");
+    }
+    if (checkFileExists("SAVES/CURRENT/LEVEL3.SAV"))
+    {
+        remove("SAVES/CURRENT/LEVEL3.SAV");
+    }
+    if (checkFileExists("SAVES/CURRENT/LEVEL4.SAV"))
+    {
+        remove("SAVES/CURRENT/LEVEL4.SAV");
+    }
+    if (checkFileExists("SAVES/CURRENT/LEVEL5.SAV"))
+    {
+        remove("SAVES/CURRENT/LEVEL5.SAV");
+    }
 }
 
 void pauseExit()
