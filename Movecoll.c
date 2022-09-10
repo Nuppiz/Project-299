@@ -7,6 +7,7 @@
 /* Object_t movement and collision detection */
 
 extern GameData_t Game;
+extern Entity_t Entities[];
 
 void updateGridLoc(Object_t* obj) // object's location on the grid
 {   
@@ -47,6 +48,56 @@ int getTileBulletBlock(Vec2 pos)
     tile_bullet = Game.Map.tilemap[object_tile].block_bullets; // check bullet block flag at that index
     
     return tile_bullet; // return said data
+}
+
+int checkForPortal(Vec2_int grid_location)
+{
+    int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
+    
+    // check which grid_array index it corresponds to
+    object_tile = grid_location.y * Game.Map.width + grid_location.x;
+    
+    if (Game.Map.tilemap[object_tile].is_entity == 1 && Entities[Game.Map.tilemap[object_tile].entity_value].type == ENT_PORTAL) // check if there's a portal at that tile
+        return TRUE;
+    
+    return FALSE;
+}
+
+Vec2 moveFromPortal(Vec2 pos)
+{
+    Vec2 temp_position;
+    Vec2 new_position;
+
+    temp_position.x = pos.x;
+    temp_position.y = pos.y - SQUARE_SIZE;
+    if (getTileCollision(temp_position) == FALSE)
+    {
+        new_position = temp_position;
+        return new_position;
+    }
+    temp_position.x = pos.x + SQUARE_SIZE;
+    temp_position.y = pos.y;
+    if (getTileCollision(temp_position) == FALSE)
+    {
+        new_position = temp_position;
+        return new_position;
+    }
+    temp_position.x = pos.x;
+    temp_position.y = pos.y + SQUARE_SIZE;
+    if (getTileCollision(temp_position) == FALSE)
+    {
+        new_position = temp_position;
+        return new_position;
+    }
+    temp_position.x = pos.x - SQUARE_SIZE;
+    temp_position.y = pos.y;
+    if (getTileCollision(temp_position) == FALSE)
+    {
+        new_position = temp_position;
+        return new_position;
+    }
+    // can't move, return original position
+    return pos;
 }
 
 void edgeDetectObject(Object_t* obj)

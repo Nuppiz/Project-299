@@ -40,11 +40,14 @@ void checkForInteractive() // temporary, will be replaced with better system lat
                     if (last_env_damage + HURT_INTERVAL < System.ticks)
                     {
                         last_env_damage = System.ticks;
-                        if (Game.Objects[i].id == Game.player_id)
-                            playSFX(SOUND_HURT);
-                        else
-                            playSFX(SOUND_HURT_E);
                         Game.Objects[i].health -= 10;
+                        if(Game.Objects[i].health < 0)
+                        {
+                            if (Game.Objects[i].id == Game.player_id)
+                                playSFX(SOUND_HURT);
+                            else
+                                playSFX(SOUND_HURT_E);
+                        }
                         #if DEBUG == 1
                         sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
                         #endif
@@ -148,12 +151,12 @@ void useDoor(Entity_t* door, uint8_t use_mode)
     }
     else if (door->data.door.locked == TRUE && use_mode == USE_DIRECTLY)
         playSFX(SOUND_LOCKED);
-    else if (door->data.door.locked == FALSE && door->state == 0)
+    else if (door->data.door.locked == FALSE && door->state == 1)
     {
         playSFX(SOUND_DOOR_C);
         toggleDoor(door);
     }
-    else if (door->data.door.locked == FALSE && door->state == 1)
+    else if (door->data.door.locked == FALSE && door->state == 0)
     {
         playSFX(SOUND_DOOR_O);
         toggleDoor(door);
@@ -213,7 +216,7 @@ void usePortal(Entity_t* portal)
                 portal_x = portal->data.portal.x;
                 portal_y = portal->data.portal.y;
                 portal_angle = portal->data.portal.angle;
-                levelTransition(Game.current_level_name, portal->data.portal.level_name, FALSE);
+                levelTransition(Game.current_level_name, portal->data.portal.level_name);
                 Game.Objects[0].velocity.x = 0.0;
                 Game.Objects[0].velocity.y = 0.0;
                 Game.Objects[0].position.x = portal_x;
@@ -245,8 +248,8 @@ void useTile(Vec2 pos, Vec2 dir)
     Vec2_int target;
     Tile_t* tile;
     uint8_t tile_x, tile_y;
-    target.x = pos.x + dir.x * 30;
-    target.y = pos.y + dir.y * 30;
+    target.x = pos.x + dir.x * 20;
+    target.y = pos.y + dir.y * 20;
 
     tile_x = target.x / SQUARE_SIZE;
     tile_y = target.y / SQUARE_SIZE;
@@ -355,19 +358,21 @@ void entityLoop()
     {
         if (Game.Objects[i].health <= 0)
         {
-            playSFX(SOUND_AARGH);
             if (Game.Objects[i].id == Game.player_id)
             { 
-                levelTransition(Game.current_level_name, Game.current_level_name, TRUE);
+                playSFX(SOUND_DEATH);
+                loadAfterDeath(Game.current_level_name);
             }       
             else if (Game.Objects[i].trigger_on_death != -1)
             {
+                playSFX(SOUND_DEATH_E);
                 deathTrigger(i);
                 spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
             else
             {
+                playSFX(SOUND_DEATH_E);
                 spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
