@@ -105,7 +105,7 @@ void runTrigger(Entity_t* trigger)
 {
     int i, tilemap_loc;
 
-    if (Game.Objects[0].grid_loc.x == trigger->x && Game.Objects[0].grid_loc.y == trigger->y && trigger->state == 0)
+    if (PlayerObject.grid_loc.x == trigger->x && PlayerObject.grid_loc.y == trigger->y && trigger->state == 0)
     {
         trigger->data.trigger.last_trigger_time = System.ticks;
         playSFX(SOUND_DOOR_O);
@@ -203,7 +203,7 @@ void usePortal(Entity_t* portal)
     uint16_t portal_x, portal_y;
     double portal_angle;
     char levelpath[30] = LEVEL_PATH;
-    if (Game.Objects[0].grid_loc.x == portal->x && Game.Objects[0].grid_loc.y == portal->y && portal->state == 1)
+    if (PlayerObject.grid_loc.x == portal->x && PlayerObject.grid_loc.y == portal->y && portal->state == 1)
     {
         playSFX(SOUND_PORTAL);
         if (portal->data.portal.level_name != NULL)
@@ -217,19 +217,20 @@ void usePortal(Entity_t* portal)
                 portal_y = portal->data.portal.y;
                 portal_angle = portal->data.portal.angle;
                 levelTransition(Game.current_level_name, portal->data.portal.level_name);
-                Game.Objects[0].velocity.x = 0.0;
-                Game.Objects[0].velocity.y = 0.0;
-                Game.Objects[0].position.x = portal_x;
-                Game.Objects[0].position.y = portal_y;
-                Game.Objects[0].angle = portal_angle;
-                updateGridLoc(&Game.Objects[0]);
+                PlayerObject.velocity.x = 0.0;
+                PlayerObject.velocity.y = 0.0;
+                PlayerObject.position.x = portal_x;
+                PlayerObject.position.y = portal_y;
+                PlayerObject.angle = portal_angle;
+                updateGridLoc(&PlayerObject);
+                saveGameState();
             }
         }
         else
         {
-            Game.Objects[0].position.x = portal->data.portal.x;
-            Game.Objects[0].position.y = portal->data.portal.y;
-            Game.Objects[0].angle = portal->data.portal.angle;
+            PlayerObject.position.x = portal->data.portal.x;
+            PlayerObject.position.y = portal->data.portal.y;
+            PlayerObject.angle = portal->data.portal.angle;
         }
     }
 }

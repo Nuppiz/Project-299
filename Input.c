@@ -5,6 +5,7 @@
 #include "Vectors.h"
 #include "Keyb.h"
 #include "Action.h"
+#include "LvlLoad.h"
 
 flags_t player_control = 0;
 extern System_t System;
@@ -76,10 +77,10 @@ void playerControl()
         pushState(STATE_PAUSE);
     }
     if (KEY_WAS_HIT(KEY_SPACEBAR))
-        shootWeapon(&Game.Objects[0]);
+        shootWeapon(&PlayerObject);
 
     if (KEY_WAS_HIT(KEY_E))
-        useTile(Game.Objects[0].position, Game.Objects[0].direction);
+        useTile(PlayerObject.position, PlayerObject.direction);
 
     #if DEBUG == 1
     d[0] = '\0';
@@ -109,17 +110,11 @@ void testButtons()
     }
 
     if (KEY_WAS_HIT(KEY_K))
-        Game.Objects[0].health = 10;
+        PlayerObject.health = 10;
 
     if (KEY_WAS_HIT(KEY_2))
         deleteObject(2);
 
-    if (KEY_WAS_HIT(KEY_7))
-        playSFX(1);
-    if (KEY_WAS_HIT(KEY_8))
-        playSFX(2);
-    if (KEY_WAS_HIT(KEY_9))
-        playSFX(3);
     if (KEY_WAS_HIT(KEY_PAGEUP))
         changeMusicVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAGEDOWN))
@@ -128,6 +123,14 @@ void testButtons()
         changeSFXVolume(VOLUME_UP);
     if (KEY_WAS_HIT(KEY_PAD_MINUS))
         changeSFXVolume(VOLUME_DOWN);
+    if (KEY_WAS_HIT(KEY_F5))
+    {
+        quickSave(Game.current_level_name);
+    }
+    if (KEY_WAS_HIT(KEY_F6))
+    {
+        quickLoad(Game.current_level_name);
+    }
 }
 
 void processKeyEvents() // unused right now

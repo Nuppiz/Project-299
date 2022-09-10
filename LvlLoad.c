@@ -3,7 +3,7 @@
 #include "Structs.h"
 #include "Loadgfx.h"
 #include "Filech.h"
-#include "Vectors.h"
+#include "Text.h"
 #include "Draw.h"
 #include "Movecoll.h"
 
@@ -381,9 +381,9 @@ void saveGameState()
         perror("fopen");
         delay(60000);
     }
-    fwrite(&Game.Objects[0].health, 2, 1, save_file);
-    fwrite(&Game.Objects[0].position.x, 8, 1, save_file);
-    fwrite(&Game.Objects[0].position.y, 8, 1, save_file);
+    fwrite(&PlayerObject.health, 2, 1, save_file);
+    fwrite(&PlayerObject.position.x, 8, 1, save_file);
+    fwrite(&PlayerObject.position.y, 8, 1, save_file);
     fclose(save_file);
 }
 
@@ -420,16 +420,17 @@ void loadGameState()
         state_file = fopen("SAVES/CURRENT/CURSTATE.SAV", "rb");
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
-            Game.Objects[0].health = player_hp;
+            PlayerObject.health = player_hp;
         fread(&player_loc.x, 8, 1, state_file);
         fread(&player_loc.y, 8, 1, state_file);
-        Game.Objects[0].position.x = player_loc.x;
-        Game.Objects[0].position.y = player_loc.y;
-        updateGridLoc(&Game.Objects[0]);
-        if (checkForPortal(Game.Objects[0].grid_loc) == TRUE)
+        PlayerObject.position.x = player_loc.x;
+        PlayerObject.position.y = player_loc.y;
+        updateGridLoc(&PlayerObject);
+        // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
+        if (checkForPortal(PlayerObject.grid_loc) == TRUE)
         {
-            Game.Objects[0].position = moveFromPortal(Game.Objects[0].position);
-            updateGridLoc(&Game.Objects[0]);
+            PlayerObject.position = moveFromPortal(PlayerObject.position);
+            updateGridLoc(&PlayerObject);
         }
         fclose(state_file);
     }
@@ -476,7 +477,7 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     char prevsavename[30] = {'\0'};
     char newsavename[30] = {'\0'};
     char loadsavename[30] = {'\0'};
-    char savepath[50] = "SAVES/CURRENT/";
+    char savepath[45] = "SAVES/CURRENT/";
 
     // create save file names
     strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
@@ -487,6 +488,7 @@ void levelTransition(char* prevlevelname, char* newlevelname)
 
     // save the level we're exiting and stats
     saveLevelState(prevsavename);
+    saveGameState();
 
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
@@ -499,14 +501,14 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     // save current status of the level we're entering
     saveLevelState(newsavename);
 
-    // save stats
-    saveGameState();
+    // load stats
+    loadGameState();
 }
 
 void loadAfterDeath(char* currentlevel)
 {
     char loadsavename[30] = {'\0'};
-    char savepath[50] = "SAVES/CURRENT/";
+    char savepath[45] = "SAVES/CURRENT/";
 
     strncpy(loadsavename, currentlevel, (strlen(currentlevel) - 4)); // drop the level filename ending
     strcat(loadsavename, ".SAV"); // add save filename ending
@@ -520,4 +522,28 @@ void loadAfterDeath(char* currentlevel)
     }
     else // else load everything from level file
         levelLoader(currentlevel, LOAD_NEW_LEVEL);
+}
+
+void quickSave(char* levelname)
+{
+    char savename[30] = {'\0'};
+    strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+    saveLevelState(savename);
+    saveGameState();
+}
+
+void quickLoad(char* levelname)
+{
+    char loadname[30] = {'\0'};
+    char savepath[45] = "SAVES/CURRENT/";
+    strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+    strcat(loadname, ".SAV"); // add save filename ending
+    strcat(savepath, loadname); // construct folder path
+
+    if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
+    {
+        levelLoader(levelname, LOAD_SAVED_LEVEL);
+        loadLevelState(loadname);
+        loadGameState();
+    }
 }

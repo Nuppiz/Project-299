@@ -569,9 +569,9 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(Game.Objects[0].direction.y, Game.Objects[0].direction.x);
-    pos.x = Game.Objects[0].position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = Game.Objects[0].position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(PlayerObject.direction.y, PlayerObject.direction.x);
+    pos.x = PlayerObject.position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = PlayerObject.position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -844,7 +844,7 @@ void drawHealth()
 {
     char plr_health[10];
 
-    sprintf(plr_health, "HP: %d", Game.Objects[0].health);
+    sprintf(plr_health, "HP: %d", PlayerObject.health);
     drawText(250, 190, plr_health, COLOUR_WHITE);
 }
 
