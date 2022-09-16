@@ -16,13 +16,14 @@
 #include "Exit.h"
 
 System_t System = {0};
+Timer_t Timers = {0};
 extern State_t* Stack[NUM_STATES];
 extern state_count;
 extern stack_top;
 
 void quit()
 {
-    gameExit();
+    //gameExit();
     deinitClock();
     deinitKeyboard();
     setVideoMode(TEXT_MODE);
@@ -30,27 +31,24 @@ void quit()
 
 void updateStats()
 {
+    #if DEBUG == 1
     sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
         System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
     //sprintf(debug[DEBUG_FPS], "BX=%u RC=%u T=%lu", setTimerBxHookBx, recomputeMidasTickRate, System.time);
+    #endif
 }
 
 void loop()
 {
-    time_t last_time   = 0; // Used for accumulating seconds & FPS calculation
-    time_t last_tick   = 0; // Tracks time elapsed since last tick started
-    time_t last_frame  = 0; // Tracks time elapsed since last draw started
-    time_t accumulator = 0; // Incremented by frame draw duration, decremented by ticks
-    int frame_count    = 0; // Counts frames in a second so far; used by debug
     int i;
 
     while (System.running == 1)
     {  
-        if (last_tick + System.tick_interval < System.time) // tick
+        if (Timers.last_tick + System.tick_interval < System.time) // tick
         {
             do
             {
-                last_tick = System.time;
+                Timers.last_tick = System.time;
                 Stack[stack_top]->input(); // only handle input from the state at the top of the stack
                 clearKeys();
                 for (i = 0; i < state_count; i++)
@@ -59,16 +57,16 @@ void loop()
                         Stack[i]->update();
                 }
 
-                accumulator -= System.tick_interval;
+                Timers.accumulator -= System.tick_interval;
                 System.ticks++;
                 System.ticks_per_frame++;
             }
-            while (accumulator >= System.tick_interval);
+            while (Timers.accumulator >= System.tick_interval);
         }
 
-        if (last_frame + System.frame_interval < System.time) // frame
+        if (Timers.last_frame + System.frame_interval < System.time) // frame
         {
-            last_frame = System.time;
+            Timers.last_frame = System.time;
 
             for (i = 0; i < state_count; i++)
             {
@@ -78,8 +76,8 @@ void loop()
             render();
 
             System.frames++;
-            frame_count++;
-            accumulator += System.time - last_frame;
+            Timers.frame_count++;
+            Timers.accumulator += System.time - Timers.last_frame;
             System.ticks_per_frame = 0;
 
             #if DEBUG == 1
@@ -89,13 +87,13 @@ void loop()
 
            
         #if DEBUG == 1
-        if (last_time + 1000 < System.time) // FPS calculation; optional for debugging
+        if (Timers.last_time + 1000 < System.time) // FPS calculation; optional for debugging
         {
-            last_time += 1000;
+            Timers.last_time += 1000;
             System.seconds++;
             System.fps_avg = (float)System.frames/System.seconds;
-            System.fps = frame_count;
-            frame_count = 0;
+            System.fps = Timers.frame_count;
+            Timers.frame_count = 0;
         }
         #endif
     }

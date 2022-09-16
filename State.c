@@ -21,6 +21,14 @@ State_t States[NUM_STATES] = {
     0
 },
 {
+    menuInit,
+    menuInput,
+    menuUpdate,
+    menuDraw,
+    menuExit,
+    0
+},
+{
     gameInit,
     gameInput,
     gameUpdate,

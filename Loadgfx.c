@@ -1,7 +1,10 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Exit.h"
 
 /* Graphics loading functions */
+
+extern System_t System;
 
 static uint8_t error_pixels[400] =
 {
@@ -53,7 +56,7 @@ void loadTexturesFromList(char* list_filename, Texture_array* array)
         setVideoMode(TEXT_MODE);
         printf("Unable to open texture list file!\n");
         printf("Please check the file actually exists!\n");
-        quit();
+        System.running = 0;
     }
 
     do

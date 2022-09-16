@@ -19,6 +19,19 @@ typedef struct
     int    ticks_per_frame; // number of ticks per frame, varies based on frame rate
 } System_t;
 
+typedef struct 
+{
+    time_t last_midas_time; // used for synchronising the MIDAS Sound System
+    time_t last_time; // Used for accumulating seconds & FPS calculation
+    time_t last_tick; // Tracks time elapsed since last tick started
+    time_t last_frame; // Tracks time elapsed since last draw started
+    time_t accumulator; // Incremented by frame draw duration, decremented by ticks
+    int frame_count; // Counts frames in a second so far; used by debug
+    time_t last_env_damage; // timer for environmental damage
+    time_t last_sfx; // timer for sound effects
+} Timer_t;
+
+
 typedef struct
 {
     uint8_t keycode;
@@ -169,6 +182,24 @@ typedef struct {
     fnp exit;
     flags_t flags;
 } State_t;
+
+typedef struct
+{
+    char* text;
+    fnp action;
+} Option_t;
+
+typedef struct
+{
+    //char* bgfilename;
+    int num_selections;
+    int cursor_loc;
+    int start_y;
+    int cursor_y;
+    int cursor_x;
+    int cursor_spacing;
+    Option_t* options;
+} Menu_t;
 
 typedef struct {
     Vec2 pos;

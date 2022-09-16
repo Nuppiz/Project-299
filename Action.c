@@ -11,6 +11,7 @@
 /* Various actions between the player and other Entities/actors */
 
 extern System_t System;
+extern Timer_t Timers;
 extern GameData_t Game;
 extern Entity_t Entities[];
 extern Interactive_t* Interactives;
@@ -19,7 +20,6 @@ uint8_t key_acquired = 0; // replace later with proper inventory system
 void checkForInteractive() // temporary, will be replaced with better system later
 {
     int tilemap_loc, i, a;
-    static time_t last_env_damage = 0;
 
     for (i = 0; i < Game.object_count; i++)
     {
@@ -28,7 +28,6 @@ void checkForInteractive() // temporary, will be replaced with better system lat
         {
             if (tilemap_loc == Interactives[a].index && Interactives[a].state == 1)
             {
-                // for whatever reason the key pickup happens really "late" if the code checks for its actual location
                 if (Interactives[a].type == TILE_KEY_RED && i == 0)
                 {
                     key_acquired = TRUE;
@@ -37,11 +36,11 @@ void checkForInteractive() // temporary, will be replaced with better system lat
                 }
                 else if (Interactives[a].type == TILE_SPIKES)
                 {
-                    if (last_env_damage + HURT_INTERVAL < System.ticks)
+                    if (Timers.last_env_damage + HURT_INTERVAL < System.ticks)
                     {
-                        last_env_damage = System.ticks;
+                        Timers.last_env_damage = System.ticks;
                         Game.Objects[i].health -= 10;
-                        if(Game.Objects[i].health < 0)
+                        if(Game.Objects[i].health > 0)
                         {
                             if (Game.Objects[i].id == Game.player_id)
                                 playSFX(SOUND_HURT);
@@ -223,7 +222,8 @@ void usePortal(Entity_t* portal)
                 PlayerObject.position.y = portal_y;
                 PlayerObject.angle = portal_angle;
                 updateGridLoc(&PlayerObject);
-                saveGameState();
+                saveGameState("AUTO/");
+                saveGameState("CURRENT/");
             }
         }
         else
@@ -287,7 +287,6 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
 void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
 {
     int bulletpath, i;
-    static time_t last_sfx = 0;
 
     for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
@@ -312,9 +311,9 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                     #endif
                     Game.Objects[i].health -= 8;
                     Game.Objects[i].target_id = source_id; // infighting mechanic
-                    if (last_sfx + SFX_INTERVAL < System.ticks)
+                    if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
-                        last_sfx = System.ticks;
+                        Timers.last_sfx = System.ticks;
                         if (i == 0)
                             playSFX(SOUND_HURT);
                         else
@@ -394,5 +393,5 @@ void entityLoop()
                 usePortal(&Entities[i]);
         }
     }
-    sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
+    //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
 }

@@ -5,10 +5,10 @@
 
 void freeAllEntities();
 void levelLoader(char* level_name, uint8_t load_type);
-void saveGameState();
-void saveLevelState(char* levelname);
-void loadGameState();
-void loadLevelState(char* savename);
+void saveGameState(char* foldername);
+void saveLevelState(char* foldername, char* levelname);
+void loadGameState(char* foldername);
+void loadLevelState(char* foldername, char* savename);
 void levelTransition(char* prevlevelname, char* newlevelname);
 void loadAfterDeath(char* currentlevel);
 void quickSave(char* levelname);

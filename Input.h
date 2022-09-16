@@ -5,6 +5,7 @@ void processKeyEvents();
 void clearKeys();
 void gameInput();
 void titleInput();
+void menuInput();
 void pauseInput();
 
 #endif/* INPUT_H */

@@ -2,6 +2,7 @@
 #define UPDATE_H
 
 void titleUpdate();
+void menuUpdate();
 void gameUpdate();
 void pauseUpdate();
 

@@ -856,6 +856,12 @@ void drawStats()
     drawText(80, 190, obj_count, COLOUR_WHITE);
 }
 
+void menuDraw()
+{
+    memset(screen_buf, 0, SCREEN_SIZE);
+    drawMenuText();
+}
+
 void titleDraw()
 {
     drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
@@ -868,7 +874,6 @@ void gameDraw()
     corpseArrayManager();
     drawObjects();
     drawHealth();
-    drawStats();
     particleArrayManager();
 
     #if DEBUG == 1

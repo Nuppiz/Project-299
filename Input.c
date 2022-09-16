@@ -2,10 +2,11 @@
 #include "Structs.h"
 #include "State.h"
 #include "Game.h"
-#include "Vectors.h"
 #include "Keyb.h"
 #include "Action.h"
 #include "LvlLoad.h"
+#include "Filech.h" // test, delete later
+#include "Menu.h"
 
 flags_t player_control = 0;
 extern System_t System;
@@ -13,6 +14,7 @@ extern Keyboard_t Keyboard;
 extern State_t States[];
 extern GameData_t Game;
 extern uint8_t music_on;
+extern Menu_t* current_menu;
 
 int control_up = KEY_UP;
 int control_down = KEY_DOWN;
@@ -131,6 +133,11 @@ void testButtons()
     {
         quickLoad(Game.current_level_name);
     }
+    if (KEY_WAS_HIT(KEY_L))
+    {
+        listSubdirectories("SAVES");
+        delay(60000);
+    }
 }
 
 void processKeyEvents() // unused right now
@@ -155,9 +162,7 @@ void gameInput()
 {
     playerControl();
 
-    #if DEBUG == 1
     testButtons();
-    #endif
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
@@ -169,9 +174,33 @@ void titleInput()
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
     {
         popState();
-        pushState(STATE_INGAME);
+        pushState(STATE_MENU);
     }
     
+    // F10 always exits, wherever you are
+    if (KEY_WAS_HIT(KEY_F10))
+        System.running = 0;
+}
+
+void menuInput()
+{
+    if (KEY_WAS_HIT(KEY_ENTER))
+        current_menu->options[current_menu->cursor_loc].action();
+
+    else if (KEY_WAS_HIT(KEY_UP))
+    {
+        cursorUp();
+    }
+
+    else if (KEY_WAS_HIT(KEY_DOWN))
+    {
+        cursorDown();
+    }
+
+    if (KEY_WAS_HIT(KEY_ESC))
+    {
+        menuMain();
+    }
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
         System.running = 0;

@@ -4,10 +4,14 @@
 #include "LvlLoad.h"
 #include "Loadgfx.h"
 #include "Sound.h"
+#include "Menu.h"
 
 extern System_t System;
+extern Timer_t Timers;
 extern State_t States[];
 extern GameData_t Game;
+extern Menu_t* current_menu;
+extern Menu_t mainmenu;
 
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
@@ -39,7 +43,6 @@ skipRecompute:
 void interrupt far Timer(void)
 {
     static long last_clock_time = 0;
-    static long last_midas_time = 0;
 
     asm pushf;
     asm cli;
@@ -49,13 +52,13 @@ void interrupt far Timer(void)
     if (recomputeMidasTickRate)
     {
         midasTickRate = 1000UL / (1193100UL / setTimerBxHookBx);
-        last_midas_time = System.time;
+        Timers.last_midas_time = System.time;
         recomputeMidasTickRate = 0;
     }
 
-    if (last_midas_time + midasTickRate < System.time)
+    if (Timers.last_midas_time + midasTickRate < System.time)
     {
-        last_midas_time = System.time;
+        Timers.last_midas_time = System.time;
         midas_Timer_ISR();
     }
 
@@ -154,9 +157,9 @@ void otherInit()
 	printf("Keyboard OK\n");
     initSystem();
     if (!checkDirectoryExists("SAVES"))
+    {
         createDirectory("SAVES");
-    if (!checkDirectoryExists("SAVES/CURRENT"))
-        createDirectory("SAVES/CURRENT");
+    }
 	printf("System variables OK\n");
     #if DEBUG == 1
     initDebug();
@@ -181,10 +184,20 @@ void titleInit()
     // do nothing atm
 }
 
+void menuInit()
+{
+    current_menu = &mainmenu;
+}
+
 void gameInit()
 {
     levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
-	printf("Game variables OK\n");
+    if (!checkDirectoryExists("SAVES/CURRENT"))
+    {
+        createDirectory("SAVES/CURRENT");
+    }
+    else
+        deleteDirectoryContents("SAVES/CURRENT");
 }
 
 void pauseInit()

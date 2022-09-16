@@ -7,10 +7,11 @@
 #include "Draw.h"
 #include "Movecoll.h"
 
-/* Level data and entity loader */
+/* Level data and entity loader, savegame functionalities*/
 
 Entity_t Entities[MAX_ENTITIES];
 extern System_t System;
+extern Timer_t Timers;
 extern GameData_t Game;
 extern Texture_array TileTextures;
 Tile_t TileSet[TILESET_MAX];
@@ -229,7 +230,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         setVideoMode(TEXT_MODE);
         printf("Unable to open file: %s", level_name);
         printf("Please check the file actually exists!\n");
-        quit();
+        System.running = 0;
     }
 
     if (Entities != NULL || TileTextures.textures != NULL || Game.Objects != NULL)
@@ -307,7 +308,7 @@ void levelLoader(char* level_name, uint8_t load_type)
                     setVideoMode(TEXT_MODE);
                     printf("Level load error: invalid entity type.\n");
                     printf("Please check the level file!\n");
-                    quit();
+                    System.running = 0;
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
@@ -322,7 +323,7 @@ void levelLoader(char* level_name, uint8_t load_type)
                     setVideoMode(TEXT_MODE);
                     printf("Level load error: invalid interactive tile type.\n");
                     printf("Please check the level file!\n");
-                    quit();
+                    System.running = 0;
                 }
                 Interactives[Game.interactive_count].index = tilemap_location;
                 Interactives[Game.interactive_count].state = state;
@@ -371,11 +372,19 @@ void setEntityTilemap()
     }
 }
 
-void saveGameState()
+void saveGameState(char* foldername)
 {
     FILE* save_file;
-    char savefilename[30] = "SAVES/CURRENT/CURSTATE.SAV";
-    save_file = fopen(savefilename, "wb");
+    char savefilepath[50] = "SAVES/";
+
+    strcat(savefilepath, foldername);
+    if (!checkDirectoryExists(savefilepath))
+    {
+        createDirectory(savefilepath);
+    }
+    strcat(savefilepath, "CURSTATE.SAV");
+
+    save_file = fopen(savefilepath, "wb");
     if (!save_file)
     {
         perror("fopen");
@@ -384,16 +393,26 @@ void saveGameState()
     fwrite(&PlayerObject.health, 2, 1, save_file);
     fwrite(&PlayerObject.position.x, 8, 1, save_file);
     fwrite(&PlayerObject.position.y, 8, 1, save_file);
+    fwrite(&System, sizeof(System_t), 1, save_file);
+    fwrite(&Timers, sizeof(Timer_t), 1, save_file);
+    fwrite(Game.current_level_name, 30, 1, save_file);
     fclose(save_file);
 }
 
-void saveLevelState(char* levelname)
+void saveLevelState(char* foldername, char* levelname)
 {
     FILE* save_file;
-    char savefilepath[50] = "SAVES/CURRENT/";
+    char savefilepath[50] = "SAVES/";
+
+    strcat(savefilepath, foldername);
+    if (!checkDirectoryExists(savefilepath))
+    {
+        createDirectory(savefilepath);
+    }
 
     strcat(levelname, ".SAV");
     strcat(savefilepath, levelname);
+
     save_file = fopen(savefilepath, "wb");
     if (!save_file)
     {
@@ -409,15 +428,19 @@ void saveLevelState(char* levelname)
     fclose(save_file);
 }
 
-void loadGameState()
+void loadGameState(char* foldername)
 {
     FILE* state_file;
     int player_hp;
     Vec2 player_loc;
+    char savefilepath[50] = "SAVES/";
 
-    if (checkFileExists("SAVES/CURRENT/CURSTATE.SAV"))
+    strcat(savefilepath, foldername);
+    strcat(savefilepath, "CURSTATE.SAV");
+
+    if (checkFileExists(savefilepath))
     {
-        state_file = fopen("SAVES/CURRENT/CURSTATE.SAV", "rb");
+        state_file = fopen(savefilepath, "rb");
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
             PlayerObject.health = player_hp;
@@ -432,17 +455,20 @@ void loadGameState()
             PlayerObject.position = moveFromPortal(PlayerObject.position);
             updateGridLoc(&PlayerObject);
         }
+        fread(&System, sizeof(System_t), 1, state_file);
+        fread(&Timers, sizeof(Timer_t), 1, state_file);
         fclose(state_file);
     }
 }
 
-void loadLevelState(char* savename)
+void loadLevelState(char* foldername, char* savename)
 {
     FILE* save_file;
-    char savefilepath[50] = "SAVES/CURRENT/";
-    int i;
+    char savefilepath[50] = "SAVES/";
 
+    strcat(savefilepath, foldername);
     strcat(savefilepath, savename);
+
     save_file = fopen(savefilepath, "rb");
     if (!save_file)
     {
@@ -484,25 +510,31 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     strncpy(newsavename, newlevelname, (strlen(newlevelname) - 4)); // drop the level filename ending
     strcpy(loadsavename, newsavename); // copy the name of the new level
     strcat(loadsavename, ".SAV"); // add save filename ending
-    strcat(savepath, loadsavename); // construct folder path
+    strcat(savepath, loadsavename); // construct folder path for file existence check
 
     // save the level we're exiting and stats
-    saveLevelState(prevsavename);
-    saveGameState();
+    saveLevelState("AUTO/", prevsavename);
+    saveGameState("AUTO/");
+    memset(prevsavename, 0, 30); // empty the char array
+    strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
+    saveLevelState("CURRENT/", prevsavename);
+    saveGameState("CURRENT/");
 
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
+        printf("L: %s\n", savepath);
+        delay(60000);
         levelLoader(newlevelname, LOAD_SAVED_LEVEL);
-        loadLevelState(loadsavename);
+        loadLevelState("CURRENT/", loadsavename);
     }
     else // else load everything from level file
         levelLoader(newlevelname, LOAD_NEW_LEVEL);
 
     // save current status of the level we're entering
-    saveLevelState(newsavename);
+    saveLevelState("CURRENT/", newsavename);
 
     // load stats
-    loadGameState();
+    loadGameState("CURRENT/");
 }
 
 void loadAfterDeath(char* currentlevel)
@@ -512,13 +544,13 @@ void loadAfterDeath(char* currentlevel)
 
     strncpy(loadsavename, currentlevel, (strlen(currentlevel) - 4)); // drop the level filename ending
     strcat(loadsavename, ".SAV"); // add save filename ending
-    strcat(savepath, loadsavename); // construct folder path
+    strcat(savepath, loadsavename); // construct folder path for file existence check
 
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
         levelLoader(currentlevel, LOAD_SAVED_LEVEL);
-        loadLevelState(loadsavename);
-        loadGameState();
+        loadLevelState("CURRENT/", loadsavename);
+        loadGameState("CURRENT/");
     }
     else // else load everything from level file
         levelLoader(currentlevel, LOAD_NEW_LEVEL);
@@ -528,14 +560,18 @@ void quickSave(char* levelname)
 {
     char savename[30] = {'\0'};
     strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
-    saveLevelState(savename);
-    saveGameState();
+    saveLevelState("QUICK/", savename);
+    saveGameState("QUICK/");
+    memset(savename, 0, 30); // empty the char array
+    strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+    saveLevelState("CURRENT/", savename);
+    saveGameState("CURRENT/");
 }
 
 void quickLoad(char* levelname)
 {
     char loadname[30] = {'\0'};
-    char savepath[45] = "SAVES/CURRENT/";
+    char savepath[45] = "SAVES/QUICK/";
     strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending
     strcat(savepath, loadname); // construct folder path
@@ -543,7 +579,27 @@ void quickLoad(char* levelname)
     if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
     {
         levelLoader(levelname, LOAD_SAVED_LEVEL);
-        loadLevelState(loadname);
-        loadGameState();
+        loadLevelState("QUICK/", loadname);
+        loadGameState("QUICK/");
     }
+}
+
+// check level name from save file
+char* checkCurrentLevel(char* foldername)
+{
+    FILE* save_file;
+    char savefilepath[50] = "SAVES/";
+    char levelname[10] = {'\0'};
+
+    strcat(savefilepath, foldername);
+    strcat(savefilepath, "CURSTATE.SAV");
+
+    if (checkFileExists(savefilepath))
+    {
+        fseek(save_file, 0x56, SEEK_SET);
+        fread(levelname, 10, 1, save_file);
+        printf("%s", levelname);
+        delay(60000);
+    }
+    return levelname;
 }

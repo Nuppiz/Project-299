@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "MIDAS/MIDAS.H"
+#include "Exit.h"
 
 /* MIDAS Sound System and related functions */
 
@@ -42,6 +43,8 @@ int         error;
 struct SFX_file SFX_filenames[NUM_SFX];
 ushort SFX_array[NUM_SFX];
 uint8_t music_on = FALSE;
+uint8_t SFX_on = TRUE;
+extern System_t System;
 
 /****************************************************************************\
 *
@@ -301,7 +304,8 @@ void loadSFX()
 // effect_id comes from the enum table SoundEffects
 void playSFX(int effect_id)
 {
-    PlayEffect(SFX_array[effect_id], FXRATE, SFXVolume, panMiddle);
+    if (SFX_on == TRUE)
+        PlayEffect(SFX_array[effect_id], FXRATE, SFXVolume, panMiddle);
 }
 
 void changeSFXVolume(int modifier)
@@ -392,7 +396,7 @@ void generateSFXFileTable()
         setVideoMode(TEXT_MODE);
         printf("Unable to open SFX list file!\n");
         printf("Please check the file actually exists!\n");
-        quit();
+        System.running = 0;
     }
 
     do

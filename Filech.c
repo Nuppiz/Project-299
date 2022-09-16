@@ -1,6 +1,7 @@
 #include "Common.h"
 #include <dir.h>
 #include <sys/stat.h>
+#include <dirent.h>
 
 /* File and directory check, creation and deletion functions */
 
@@ -39,30 +40,40 @@ void createDirectory(char* path)
     }
 }
 
-void deleteAutosaves()
+int listSubdirectories(char* directory)
 {
-    if (checkFileExists("SAVES/CURRENT/CURSTATE.SAV"))
+    struct dirent* dir;
+
+    DIR* dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        remove("SAVES/CURRENT/CURSTATE.SAV");
+        printf("Could not open current directory" );
+        return 0;
     }
-    if (checkFileExists("SAVES/CURRENT/LEVEL1.SAV"))
+
+    while ((dir = readdir(dr)) != NULL)
     {
-        remove("SAVES/CURRENT/LEVEL1.SAV");
+        if (dir->d_name[0] != '.')
+            printf("%s\n", dir->d_name);
     }
-    if (checkFileExists("SAVES/CURRENT/LEVEL2.SAV"))
+  
+    closedir(dr);    
+    return 0;
+}
+
+void deleteDirectoryContents(char* directory)
+{
+
+    DIR* folder = opendir(directory);
+    struct dirent* next_file;
+    char filepath[50];
+
+    while ((next_file = readdir(folder)) != NULL)
     {
-        remove("SAVES/CURRENT/LEVEL2.SAV");
+        // build the path for each file in the folder
+        sprintf(filepath, "%s/%s", directory, next_file->d_name);
+        remove(filepath);
     }
-    if (checkFileExists("SAVES/CURRENT/LEVEL3.SAV"))
-    {
-        remove("SAVES/CURRENT/LEVEL3.SAV");
-    }
-    if (checkFileExists("SAVES/CURRENT/LEVEL4.SAV"))
-    {
-        remove("SAVES/CURRENT/LEVEL4.SAV");
-    }
-    if (checkFileExists("SAVES/CURRENT/LEVEL5.SAV"))
-    {
-        remove("SAVES/CURRENT/LEVEL5.SAV");
-    }
+    closedir(folder);
 }

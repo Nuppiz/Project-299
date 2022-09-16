@@ -4,6 +4,7 @@
 int checkFileExists(char* filename);
 int checkDirectoryExists(char* directory);
 void createDirectory(char* path);
-void deleteAutosaves();
+int listSubdirectories(char* directory);
+void deleteDirectoryContents(char* directory);
 
 #endif /* FILECH_H */

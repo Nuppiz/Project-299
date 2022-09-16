@@ -1,7 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#define DEBUG               1
+#define DEBUG               0
 #define DEBUG_STR_LEN       128
 
 #define FRAME_RATE          30
@@ -106,7 +106,7 @@
 
 #define CHASE_DISTANCE          75
 #define CHASE_DISTANCE_SQ       (CHASE_DISTANCE*CHASE_DISTANCE)
-#define MIN_CHASE_DISTANCE      30
+#define MIN_CHASE_DISTANCE      60
 #define MIN_CHASE_DISTANCE_SQ   (MIN_CHASE_DISTANCE*MIN_CHASE_DISTANCE)
 #define CHASE_TIMEOUT           200
 #define TURN_THRESHOLD          5.0

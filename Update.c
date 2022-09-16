@@ -11,6 +11,11 @@ void titleUpdate()
     // do nothing atm
 }
 
+void menuUpdate()
+{
+    // do nothing atm
+}
+
 void gameUpdate()
 {
     AILoop();

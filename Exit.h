@@ -2,6 +2,7 @@
 #define EXIT_H
 
 void titleExit();
+void menuExit();
 void gameExit();
 void pauseExit();
 

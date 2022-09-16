@@ -1,8 +1,10 @@
 #include "Common.h"
+#include "Structs.h"
 
 /* Text drawing functions */
 
 extern uint8_t far screen_buf [];
+extern Menu_t* current_menu;
 uint8_t alphabet [4240]; // Array to hold the typeface graphics
 
 void loadFont()
@@ -116,7 +118,22 @@ void drawDebug()
 
     for (i = 0; i < NUM_DEBUG; i++)
     {
+        #if DEBUG == 1
         if (debug[i][0] != '\0')
             y += (drawText(0, y, debug[i], COLOUR_WHITE) + 1) * 10;
+        #endif
     }
+}
+
+void drawMenuText()
+{
+    int i;
+    int y = current_menu->start_y;
+
+    for (i = 0; i < current_menu->num_selections; i++)
+    {
+        drawText(current_menu->cursor_x + 20, y, current_menu->options[i].text, COLOUR_WHITE);
+        y += current_menu->cursor_spacing;
+    }
+    drawText(current_menu->cursor_x, current_menu->cursor_y, "->", COLOUR_WHITE);
 }

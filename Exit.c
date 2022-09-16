@@ -14,6 +14,11 @@ void titleExit()
     // do nothing atm
 }
 
+void menuExit()
+{
+    
+}
+
 void gameExit()
 {
     if (music_on == TRUE)
@@ -21,7 +26,6 @@ void gameExit()
     freeAllEntities();
     freeAllTextures();
     emptyCorpseArray();
-    deleteAutosaves();
 }
 
 void pauseExit()
