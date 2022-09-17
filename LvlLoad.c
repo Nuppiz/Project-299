@@ -390,12 +390,12 @@ void saveGameState(char* foldername)
         perror("fopen");
         delay(60000);
     }
+    fwrite(&Game.current_level_name, 15, 1, save_file);
     fwrite(&PlayerObject.health, 2, 1, save_file);
     fwrite(&PlayerObject.position.x, 8, 1, save_file);
     fwrite(&PlayerObject.position.y, 8, 1, save_file);
     fwrite(&System, sizeof(System_t), 1, save_file);
     fwrite(&Timers, sizeof(Timer_t), 1, save_file);
-    fwrite(Game.current_level_name, 30, 1, save_file);
     fclose(save_file);
 }
 
@@ -441,6 +441,7 @@ void loadGameState(char* foldername)
     if (checkFileExists(savefilepath))
     {
         state_file = fopen(savefilepath, "rb");
+        fseek(state_file, 0x0F, SEEK_SET);
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
             PlayerObject.health = player_hp;
@@ -476,20 +477,15 @@ void loadLevelState(char* foldername, char* savename)
         perror("fopen");
         delay(60000);
     }
-    fseek(save_file, 0x30, SEEK_SET);
+    fseek(save_file, 0x21, SEEK_SET);
     fread(&Game.object_count, 2, 1, save_file);
-    fseek(save_file, 0x32, SEEK_SET);
     fread(&Game.object_capacity, 2, 1, save_file);
-    fseek(save_file, 0x34, SEEK_SET);
     fread(&Game.id_capacity, 2, 1, save_file);
     initGameData(Game.object_capacity, Game.id_capacity);
-    fseek(save_file, 0x36, SEEK_SET);
     fread(&Game.interactive_count, 1, 1, save_file);
     fread(&Game.interactive_capacity, 1, 1, save_file);
     Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
-    fseek(save_file, 0x38, SEEK_SET);
     fread(&Game.player_id, 2, 1, save_file);
-    fseek(save_file, 0x3A, SEEK_SET);
     fread(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
     fread(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
@@ -503,7 +499,7 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     char prevsavename[30] = {'\0'};
     char newsavename[30] = {'\0'};
     char loadsavename[30] = {'\0'};
-    char savepath[45] = "SAVES/CURRENT/";
+    char savepath[45] = "SAVES/AUTO/";
 
     // create save file names
     strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
@@ -515,32 +511,26 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     // save the level we're exiting and stats
     saveLevelState("AUTO/", prevsavename);
     saveGameState("AUTO/");
-    memset(prevsavename, 0, 30); // empty the char array
-    strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
-    saveLevelState("CURRENT/", prevsavename);
-    saveGameState("CURRENT/");
 
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
-        printf("L: %s\n", savepath);
-        delay(60000);
         levelLoader(newlevelname, LOAD_SAVED_LEVEL);
-        loadLevelState("CURRENT/", loadsavename);
+        loadLevelState("AUTO/", loadsavename);
     }
     else // else load everything from level file
         levelLoader(newlevelname, LOAD_NEW_LEVEL);
 
     // save current status of the level we're entering
-    saveLevelState("CURRENT/", newsavename);
+    saveLevelState("AUTO/", newsavename);
 
     // load stats
-    loadGameState("CURRENT/");
+    loadGameState("AUTO/");
 }
 
 void loadAfterDeath(char* currentlevel)
 {
     char loadsavename[30] = {'\0'};
-    char savepath[45] = "SAVES/CURRENT/";
+    char savepath[45] = "SAVES/AUTO/";
 
     strncpy(loadsavename, currentlevel, (strlen(currentlevel) - 4)); // drop the level filename ending
     strcat(loadsavename, ".SAV"); // add save filename ending
@@ -549,8 +539,8 @@ void loadAfterDeath(char* currentlevel)
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
         levelLoader(currentlevel, LOAD_SAVED_LEVEL);
-        loadLevelState("CURRENT/", loadsavename);
-        loadGameState("CURRENT/");
+        loadLevelState("AUTO/", loadsavename);
+        loadGameState("AUTO/");
     }
     else // else load everything from level file
         levelLoader(currentlevel, LOAD_NEW_LEVEL);
@@ -562,16 +552,37 @@ void quickSave(char* levelname)
     strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     saveLevelState("QUICK/", savename);
     saveGameState("QUICK/");
-    memset(savename, 0, 30); // empty the char array
-    strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
-    saveLevelState("CURRENT/", savename);
-    saveGameState("CURRENT/");
 }
 
-void quickLoad(char* levelname)
+// check level name from save file
+char* checkLevelFromSave(char* foldername)
+{
+    FILE* save_file;
+    char savefilepath[50] = "SAVES/";
+    char* levelname = calloc(15, sizeof(char));
+    int i;
+
+    strcat(savefilepath, foldername);
+    strcat(savefilepath, "CURSTATE.SAV");
+
+    if (checkFileExists(savefilepath))
+    {
+        save_file = fopen(savefilepath, "rb");
+        for (i = 0; i < 15; i++)
+        {
+            fread(&levelname[i], 1, 1, save_file);
+        }
+    }
+    fclose(save_file);
+    return levelname;
+}
+
+void quickLoad()
 {
     char loadname[30] = {'\0'};
     char savepath[45] = "SAVES/QUICK/";
+    char* levelname = calloc(15, sizeof(char));
+    levelname = checkLevelFromSave("QUICK/");
     strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending
     strcat(savepath, loadname); // construct folder path
@@ -582,24 +593,4 @@ void quickLoad(char* levelname)
         loadLevelState("QUICK/", loadname);
         loadGameState("QUICK/");
     }
-}
-
-// check level name from save file
-char* checkCurrentLevel(char* foldername)
-{
-    FILE* save_file;
-    char savefilepath[50] = "SAVES/";
-    char levelname[10] = {'\0'};
-
-    strcat(savefilepath, foldername);
-    strcat(savefilepath, "CURSTATE.SAV");
-
-    if (checkFileExists(savefilepath))
-    {
-        fseek(save_file, 0x56, SEEK_SET);
-        fread(levelname, 10, 1, save_file);
-        printf("%s", levelname);
-        delay(60000);
-    }
-    return levelname;
 }

@@ -223,7 +223,6 @@ void usePortal(Entity_t* portal)
                 PlayerObject.angle = portal_angle;
                 updateGridLoc(&PlayerObject);
                 saveGameState("AUTO/");
-                saveGameState("CURRENT/");
             }
         }
         else
@@ -287,6 +286,7 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
 void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
 {
     int bulletpath, i;
+    uint8_t hit_something = FALSE;
 
     for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
@@ -296,14 +296,16 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
         if (getTileBulletBlock(pos) == TRUE)
         {
             particleFx(pos, dir, FX_SPARKS);
+            hit_something = TRUE;
             break;
         }
-        else
+        else if (hit_something == FALSE)
         {
             for (i = 0; i < Game.object_count; i++)
             {
                 if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
                 {
+                    hit_something = TRUE;
                     particleFx(pos, dir, FX_BLOOD);
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
@@ -319,11 +321,13 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                         else
                             playSFX(SOUND_HURT_E);
                     }
+                    break;
                 }
+                else if (hit_something == FALSE)
+                    particleFx(pos, dir, FX_DIRT);
             }
         }
     }
-    particleFx(pos, dir, FX_DIRT);
 }
 
 void shootWeapon(Object_t* source)
@@ -367,13 +371,13 @@ void entityLoop()
             {
                 playSFX(SOUND_DEATH_E);
                 deathTrigger(i);
-                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
+                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
             else
             {
                 playSFX(SOUND_DEATH_E);
-                spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
+                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
                 deleteObject(Game.Objects[i].id);
             }
         }

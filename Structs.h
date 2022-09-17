@@ -161,7 +161,7 @@ typedef struct {
 typedef struct
 {
     Map_t Map;
-    char current_level_name[30];
+    char current_level_name[15];
     Object_t* Objects;
     id_t* ObjectsById;
     id_t object_count;

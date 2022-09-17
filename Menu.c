@@ -4,7 +4,7 @@
 #include "LvlLoad.h"
 #include "Text.h"
 #include "State.h"
-#include "Exit.h"
+#include "Filech.h"
 
 // Menu functionalities
 
@@ -31,7 +31,16 @@ Option_t mainmenu_options[] =
 
 Option_t loadmenu_options[] =
 {
-    {"LOAD GAME", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", menuLoadGame},
 };
 
 Option_t settings_options[] =
@@ -166,7 +175,17 @@ void menuMain()
 
 void menuLoadGame()
 {
+    int directory_count, i;
+    char** directory_list;
+
     current_menu = &loadmenu;
+    directory_count = countSubdirectories("SAVES");
+    directory_list = malloc(directory_count * sizeof(char*));
+    directory_list = listSubdirectories("SAVES", directory_count);
+    for (i = 0; i < directory_count; i++)
+    {
+        strcpy(loadmenu_options[i].text, directory_list[i]);
+    }
     changeMenu();
 }
 

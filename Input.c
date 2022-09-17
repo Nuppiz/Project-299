@@ -131,12 +131,7 @@ void testButtons()
     }
     if (KEY_WAS_HIT(KEY_F6))
     {
-        quickLoad(Game.current_level_name);
-    }
-    if (KEY_WAS_HIT(KEY_L))
-    {
-        listSubdirectories("SAVES");
-        delay(60000);
+        quickLoad();
     }
 }
 
