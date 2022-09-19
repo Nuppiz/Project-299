@@ -390,7 +390,7 @@ void saveGameState(char* foldername)
         perror("fopen");
         delay(60000);
     }
-    fwrite(&Game.current_level_name, 15, 1, save_file);
+    fwrite(&Game.current_level_name, LEVEL_NAME_MAX, 1, save_file);
     fwrite(&PlayerObject.health, 2, 1, save_file);
     fwrite(&PlayerObject.position.x, 8, 1, save_file);
     fwrite(&PlayerObject.position.y, 8, 1, save_file);
@@ -560,7 +560,7 @@ char* checkLevelFromSave(char* foldername)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/";
-    char* levelname = calloc(15, sizeof(char));
+    char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
     int i;
 
     strcat(savefilepath, foldername);
@@ -569,7 +569,7 @@ char* checkLevelFromSave(char* foldername)
     if (checkFileExists(savefilepath))
     {
         save_file = fopen(savefilepath, "rb");
-        for (i = 0; i < 15; i++)
+        for (i = 0; i < LEVEL_NAME_MAX; i++)
         {
             fread(&levelname[i], 1, 1, save_file);
         }
@@ -582,7 +582,7 @@ void quickLoad()
 {
     char loadname[30] = {'\0'};
     char savepath[45] = "SAVES/QUICK/";
-    char* levelname = calloc(15, sizeof(char));
+    char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
     levelname = checkLevelFromSave("QUICK/");
     strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending

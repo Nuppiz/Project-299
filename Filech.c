@@ -5,8 +5,6 @@
 
 /* File and directory check, creation and deletion functions */
 
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-
 int checkFileExists(char* filename)
 {
     FILE* fp = fopen(filename, "r");
@@ -26,7 +24,7 @@ int checkDirectoryExists(char* directory)
     stat(directory, &stats);
 
     // Check for folder existence
-    if (S_ISDIR(stats.st_mode))
+    if (stats.st_mode & S_IFDIR)
         return TRUE;
 
     return FALSE;
@@ -56,8 +54,8 @@ char** listSubdirectories(char* directory, int directory_count)
 
     while ((dir = readdir(dr)) != NULL)
     {
-        stat(directory, &stats);
-        if (S_ISDIR(stats.st_mode)) // only list folders (dirent can be both a file or a folder)
+        stat(dir->d_name, &stats);
+        if (stats.st_mode & S_IFDIR) // only list folders (dirent can be both a file or a folder)
         {
             if (dir->d_name[0] != '.')
             {
@@ -87,8 +85,8 @@ int countSubdirectories(char* directory)
 
     while ((dir = readdir(dr)) != NULL)
     {
-        stat(directory, &stats);
-        if (S_ISDIR(stats.st_mode)) // only count folders (dirent can be both a file or a folder)
+        stat(dir->d_name, &stats);
+        if (stats.st_mode & S_IFDIR) // only count folders (dirent can be both a file or a folder)
         {
             if (dir->d_name[0] != '.')
             {
