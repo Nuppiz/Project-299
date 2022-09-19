@@ -549,6 +549,7 @@ void loadAfterDeath(char* currentlevel)
 void quickSave(char* levelname)
 {
     char savename[30] = {'\0'};
+    copyAllFolderToFolder("SAVES/AUTO/", "SAVES/QUICK/"); // copy all contents of the autosave folder
     strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     saveLevelState("QUICK/", savename);
     saveGameState("QUICK/");
