@@ -13,6 +13,7 @@ extern unsigned musicVolume;
 extern unsigned SFXVolume;
 extern uint8_t music_on;
 extern uint8_t SFX_on;
+extern char* levelname_global;
 extern System_t System;
 
 uint8_t story_text[] =
@@ -31,16 +32,16 @@ Option_t mainmenu_options[] =
 
 Option_t loadmenu_options[] =
 {
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
-    {"EMPTY         ", menuLoadGame},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY         ", loadGameFromMenu},
 };
 
 Option_t settings_options[] =
@@ -181,11 +182,12 @@ void menuLoadGame()
     current_menu = &loadmenu;
     directory_count = countSubdirectories("SAVES");
     directory_list = malloc(directory_count * sizeof(char*));
-    directory_list = listSubdirectories("SAVES", directory_count);
+    listSubdirectories("SAVES", directory_list);
     for (i = 0; i < directory_count; i++)
     {
         strcpy(loadmenu_options[i].text, directory_list[i]);
     }
+    free(directory_list);
     changeMenu();
 }
 
@@ -218,6 +220,13 @@ void menuNewGame()
 {
     popState();
     pushState(STATE_INGAME);
+    levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
+    if (!checkDirectoryExists("SAVES/AUTO"))
+    {
+        createDirectory("SAVES/AUTO");
+    }
+    else
+        deleteDirectoryContents("SAVES/AUTO");
 }
 
 void quitGame()
@@ -264,6 +273,54 @@ void optMusicVolume()
 void dummy()
 {
 
+}
+
+void loadGameFromMenu()
+{
+    char foldername[15];
+    char savepath[45] = {'\0'};
+    char curstatepath[45];
+    char* levelname;
+    char savefilename[15] = {'\0'};
+
+    strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
+
+    // if entry is labelled as empty, stop the function
+    if (strcmp(foldername, "EMPTY         ") != 0)
+    {
+        // allocate memory and construct the basic strings
+        levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
+
+        strcpy(savepath, "SAVES/");
+
+        strcat(foldername, "/"); // add slash to the save subfolder name
+        strcat(savepath, foldername); // construct full folder path
+
+        strcpy(curstatepath, savepath);
+        strcat(curstatepath, "CURSTATE.SAV");
+
+        // make sure the folder contains CURSTATE
+        if (checkFileExists(curstatepath))
+        {
+            // check current level from the save folder
+            checkLevelFromSave(foldername);
+            strcpy(levelname, levelname_global);
+
+            strncpy(savefilename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+            strcat(savefilename, ".SAV"); // add save filename ending
+            strcat(savepath, savefilename);
+            if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
+            {
+                popState();
+                pushState(STATE_INGAME);
+                levelLoader(levelname, LOAD_SAVED_LEVEL);
+                loadLevelState(foldername, savefilename);
+                loadGameState(foldername);
+            }
+        }
+        free(levelname);
+        free(levelname_global);
+    }
 }
 
 void menuController()

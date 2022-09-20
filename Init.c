@@ -191,13 +191,10 @@ void menuInit()
 
 void gameInit()
 {
-    levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
     if (!checkDirectoryExists("SAVES/AUTO"))
     {
         createDirectory("SAVES/AUTO");
     }
-    else
-        deleteDirectoryContents("SAVES/AUTO");
 }
 
 void pauseInit()

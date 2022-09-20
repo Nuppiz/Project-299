@@ -555,8 +555,10 @@ void quickSave(char* levelname)
     saveGameState("QUICK/");
 }
 
+char* levelname_global;
+
 // check level name from save file
-char* checkLevelFromSave(char* foldername)
+void checkLevelFromSave(char* foldername)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/";
@@ -575,7 +577,7 @@ char* checkLevelFromSave(char* foldername)
         }
     }
     fclose(save_file);
-    return levelname;
+    strcpy(levelname_global, levelname);
 }
 
 void quickLoad()
@@ -583,7 +585,8 @@ void quickLoad()
     char loadname[30] = {'\0'};
     char savepath[45] = "SAVES/QUICK/";
     char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
-    levelname = checkLevelFromSave("QUICK/");
+    checkLevelFromSave("QUICK/");
+    levelname = levelname_global;
     strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending
     strcat(savepath, loadname); // construct folder path
@@ -594,4 +597,6 @@ void quickLoad()
         loadLevelState("QUICK/", loadname);
         loadGameState("QUICK/");
     }
+    free(levelname);
+    free(levelname_global);
 }

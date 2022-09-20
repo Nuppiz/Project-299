@@ -18,5 +18,6 @@ void optMusicVolume();
 void optKeyconf();
 void quitGame();
 void dummy();
+void loadGameFromMenu();
 
 #endif /* MENU_H */

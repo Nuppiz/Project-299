@@ -38,18 +38,16 @@ void createDirectory(char* path)
     }
 }
 
-char** listSubdirectories(char* directory, int directory_count)
+void listSubdirectories(char* directory, char** dir_list)
 {
     struct dirent* dir;
     struct stat stats;
-    char** dir_list = malloc(directory_count * sizeof(char*));
     int dir_i = 0;
     DIR* dr = opendir(directory);
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
         printf("Could not open current directory");
-        return NULL;
     }
 
     while ((dir = readdir(dr)) != NULL)
@@ -67,7 +65,6 @@ char** listSubdirectories(char* directory, int directory_count)
     }
   
     closedir(dr);
-    return dir_list;
 }
 
 int countSubdirectories(char* directory)
@@ -95,7 +92,7 @@ int countSubdirectories(char* directory)
         }
     }
   
-    closedir(dr);    
+    closedir(dr);
     return dir_count;
 }
 
