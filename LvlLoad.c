@@ -586,7 +586,7 @@ void quickLoad()
     char savepath[45] = "SAVES/QUICK/";
     char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
     checkLevelFromSave("QUICK/");
-    levelname = levelname_global;
+    strcpy(levelname, levelname_global);
     strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending
     strcat(savepath, loadname); // construct folder path
