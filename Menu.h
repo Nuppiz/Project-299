@@ -11,6 +11,7 @@ void menuHelp();
 void menuStory();
 void menuNewGame();
 void menuLoadGame();
+void menuSaveGame();
 void optSfxToggle();
 void optMusicToggle();
 void optSfxVolume();
@@ -19,5 +20,6 @@ void optKeyconf();
 void quitGame();
 void dummy();
 void loadGameFromMenu();
+void saveGameFromMenu();
 
 #endif /* MENU_H */

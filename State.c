@@ -43,7 +43,13 @@ State_t States[NUM_STATES] = {
     pauseDraw,
     pauseExit,
     0
-}
+},
+    ingameMenuInit,
+    ingameMenuInput,
+    ingameMenuUpdate,
+    ingameMenuDraw,
+    ingameMenuExit,
+    0
 };
 
 void pushState(int state_index)

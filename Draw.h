@@ -11,5 +11,6 @@ void titleDraw();
 void menuDraw();
 void gameDraw();
 void pauseDraw();
+void ingameMenuDraw();
 
 #endif/* DRAW_H */

@@ -5,5 +5,6 @@ void titleExit();
 void menuExit();
 void gameExit();
 void pauseExit();
+void ingameMenuExit();
 
 #endif /* EXIT_H */

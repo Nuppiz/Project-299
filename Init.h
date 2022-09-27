@@ -7,5 +7,6 @@ void titleInit();
 void menuInit();
 void gameInit();
 void pauseInit();
+void ingameMenuInit();
 
 #endif /* INIT_H */

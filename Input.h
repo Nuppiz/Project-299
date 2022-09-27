@@ -7,5 +7,6 @@ void gameInput();
 void titleInput();
 void menuInput();
 void pauseInput();
+void ingameMenuInput();
 
 #endif/* INPUT_H */

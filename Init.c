@@ -12,6 +12,7 @@ extern State_t States[];
 extern GameData_t Game;
 extern Menu_t* current_menu;
 extern Menu_t mainmenu;
+extern Menu_t ingamemenu;
 
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
@@ -200,6 +201,12 @@ void gameInit()
 void pauseInit()
 {
     States[STATE_INGAME].flags &= ~STATE_ENABLE_UPDATE;
+}
+
+void ingameMenuInit()
+{
+    States[STATE_INGAME].flags &= ~STATE_ENABLE_UPDATE;
+    current_menu = &ingamemenu;
 }
 
 void deinitClock()

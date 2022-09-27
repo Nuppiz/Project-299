@@ -15,6 +15,8 @@ extern uint8_t music_on;
 extern uint8_t SFX_on;
 extern char* levelname_global;
 extern System_t System;
+extern Timer_t Timers;
+extern GameData_t Game;
 
 uint8_t story_text[] =
     "I COULD WRITE A FANCY STORY BUT\n" 
@@ -65,6 +67,30 @@ Option_t keyconf_options[] =
 Option_t basic_options[] =
 {
   {"BACK TO MAIN", menuMain}
+};
+
+Option_t ingamemenu_options[] =
+{
+    {"NEW GAME",  menuNewGame},
+    {"LOAD GAME", menuLoadGame},
+    {"SAVE GAME", menuSaveGame},
+    {"OPTIONS",   menuOptions},
+    {"HELP!",     menuHelp},
+    {"QUIT",      quitGame}
+};
+
+Option_t savemenu_options[] =
+{
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY         ", saveGameFromMenu},
 };
 
 Menu_t mainmenu =
@@ -131,6 +157,28 @@ Menu_t storymenu =
   80,
   0,
   basic_options
+};
+
+Menu_t savemenu =
+{
+  10,
+  0,
+  5,
+  5,
+  105,
+  15,
+  savemenu_options
+};
+
+Menu_t ingamemenu =
+{
+  6,
+  0,
+  65,
+  65,
+  105,
+  15,
+  ingamemenu_options
 };
 
 void changeMenu()
@@ -227,6 +275,14 @@ void menuNewGame()
     }
     else
         deleteDirectoryContents("SAVES/AUTO");
+    Timers.accumulator = 0;
+    Timers.frame_count = 0;
+    Timers.last_env_damage = 0;
+    Timers.last_frame = 0;
+    Timers.last_midas_time = 0;
+    Timers.last_sfx = 0;
+    Timers.last_tick = 0;
+    Timers.last_time = 0;
 }
 
 void quitGame()
@@ -321,6 +377,57 @@ void loadGameFromMenu()
         free(levelname);
         free(levelname_global);
     }
+}
+
+void menuSaveGame()
+{
+    int directory_count, i;
+    char** directory_list;
+
+    current_menu = &savemenu;
+    directory_count = countSubdirectories("SAVES");
+    directory_list = malloc(directory_count * sizeof(char*));
+    listSubdirectories("SAVES", directory_list);
+    for (i = 0; i < directory_count; i++)
+    {
+        strcpy(savemenu_options[i].text, directory_list[i]);
+    }
+    free(directory_list);
+    changeMenu();
+}
+
+void saveGameFromMenu()
+{
+    // replace scanf with proper text input and printf with proper text output
+
+    char foldername[15];
+    char savepath[25] = "SAVES/"; // needed for the copy function
+    char response = 'Y';
+
+    strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
+
+    while (response != 'N' || response != 'n')
+    {
+        // if entry is not labelled as empty, ask if user wants to overwrite
+        if (strcmp(foldername, "EMPTY         ") != 0)
+        {
+            printf("Save slot already in use, overwrite Y/N?)");
+            scanf("%c", response);
+        }
+        memset(foldername, 0, 15);
+
+        scanf("%9s", foldername);
+        strcat(foldername, "/"); // add slash to the save subfolder name
+        strcat(savepath, foldername);
+
+        if (!checkDirectoryExists(foldername)) // if folder doesn't exist, create it
+            createDirectory(foldername);
+
+        copyAllFolderToFolder("SAVES/AUTO/", savepath);
+        saveLevelState(foldername, Game.current_level_name);
+        saveGameState(foldername);
+    }
+    popState();
 }
 
 void menuController()

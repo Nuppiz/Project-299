@@ -15,6 +15,7 @@ extern State_t States[];
 extern GameData_t Game;
 extern uint8_t music_on;
 extern Menu_t* current_menu;
+extern Menu_t ingamemenu;
 
 int control_up = KEY_UP;
 int control_down = KEY_DOWN;
@@ -71,8 +72,7 @@ void playerControl()
 
     if (KEY_WAS_HIT(KEY_ESC))
     {
-        popState();
-        pushState(STATE_TITLE);
+        pushState(STATE_MENU_INGAME);
     }
     if (KEY_WAS_HIT(KEY_P))
     {
@@ -169,7 +169,7 @@ void titleInput()
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
     {
         popState();
-        pushState(STATE_MENU);
+        pushState(STATE_MENU_MAIN);
     }
     
     // F10 always exits, wherever you are
@@ -212,6 +212,33 @@ void pauseInput()
     testButtons();
     #endif
     
+    // F10 always exits, wherever you are
+    if (KEY_WAS_HIT(KEY_F10))
+        System.running = 0;
+}
+
+void ingameMenuInput()
+{
+    if (KEY_WAS_HIT(KEY_ENTER))
+        current_menu->options[current_menu->cursor_loc].action();
+
+    else if (KEY_WAS_HIT(KEY_UP))
+    {
+        cursorUp();
+    }
+
+    else if (KEY_WAS_HIT(KEY_DOWN))
+    {
+        cursorDown();
+    }
+
+    if (KEY_WAS_HIT(KEY_ESC))
+    {
+        if (current_menu != &ingamemenu)
+            current_menu = &ingamemenu;
+        else
+            popState();
+    }
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))
         System.running = 0;

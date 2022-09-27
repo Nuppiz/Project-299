@@ -32,3 +32,8 @@ void pauseExit()
 {
     States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
 }
+
+void ingameMenuExit()
+{
+    States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
+}

@@ -28,3 +28,8 @@ void pauseUpdate()
 {
     // do nothing atm
 }
+
+void ingameMenuUpdate()
+{
+    // do nothing atm
+}

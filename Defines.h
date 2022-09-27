@@ -55,18 +55,18 @@
 #define degToRad(degree)    ((degree)*M_PI/180.0)
 
 #define RAD_360             (2*M_PI)
-#define RAD_270             (4.172)
+#define RAD_270             (1.5*M_PI)
 #define RAD_180             M_PI
 #define RAD_120             (M_PI/1.5)
-#define RAD_105             (M_PI-1.3)
-#define RAD_90              (M_PI/2)
-#define RAD_60              (M_PI/3)
-#define RAD_45              (M_PI/4)
-#define RAD_30              (M_PI/6)
-#define RAD_15              (M_PI/12)
-#define RAD_10              (M_PI/18)
-#define RAD_5               (M_PI/36)
-#define RAD_1               (M_PI/180)
+#define RAD_105             (7*M_PI/12.0)
+#define RAD_90              (M_PI/2.0)
+#define RAD_60              (M_PI/3.0)
+#define RAD_45              (M_PI/4.0)
+#define RAD_30              (M_PI/6.0)
+#define RAD_15              (M_PI/12.0)
+#define RAD_10              (M_PI/18.0)
+#define RAD_5               (M_PI/36.0)
+#define RAD_1               (M_PI/180.0)
 
 #define VIEW_ANGLE_COS      0.5
 #define LOS_STEP            10

@@ -885,3 +885,9 @@ void pauseDraw()
 {
     drawText(132, 96, "PAUSED", COLOUR_WHITE);
 }
+
+void ingameMenuDraw()
+{
+    //memset(screen_buf, 0, SCREEN_SIZE);
+    drawMenuText();
+}

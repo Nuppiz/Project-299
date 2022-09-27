@@ -89,9 +89,10 @@ enum AiMode
 enum StateIndex
 {
     STATE_TITLE,
-    STATE_MENU,
+    STATE_MENU_MAIN,
     STATE_INGAME,
     STATE_PAUSE,
+    STATE_MENU_INGAME,
     NUM_STATES
 };
 
