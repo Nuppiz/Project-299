@@ -1,10 +1,12 @@
 #include "Common.h"
 #include "Structs.h"
+#include "Keyb.h"
 
-/* Text drawing functions */
+/* Text input, output and drawing functions */
 
 extern uint8_t far screen_buf [];
 extern Menu_t* current_menu;
+extern Keyboard_t Keyboard;
 uint8_t alphabet [4240]; // Array to hold the typeface graphics
 
 void loadFont()
@@ -136,4 +138,121 @@ void drawMenuText()
         y += current_menu->cursor_spacing;
     }
     drawText(current_menu->cursor_x, current_menu->cursor_y, "->", COLOUR_WHITE);
+}
+
+void resetInput(TextInput_t* input)
+{
+    input->buffer[0] = '\0';
+    input->length = 0;
+    input->cursor = 0;
+    input->start = 0;
+}
+
+void cursorLeft(TextInput_t* text)
+{
+    if (text->cursor > text->start)
+        text->cursor--;
+}
+
+void cursorRight(TextInput_t* text)
+{
+    if (text->cursor < text->length - 1)
+        text->cursor++;
+}
+
+void writeChar(TextInput_t* text, char c)
+{
+    if (text->length < text->capacity - 1)
+    {
+        if (text->cursor < text->length)
+        {
+            int i;
+            for (i = text->length; i > text->cursor; i--)
+                text->buffer[i] = text->buffer[i - 1];
+        }
+        text->buffer[text->cursor++] = c;
+        text->buffer[++text->length] = '\0';
+    }
+}
+
+void eraseChar(TextInput_t* text)
+{
+    if (text->cursor > text->start)
+    {
+        if (text->cursor < text->length)
+        {
+            int i;
+            for (i = text->cursor; i < text->length; i++)
+                text->buffer[i - 1] = text->buffer[i];
+        }
+        text->cursor--;
+        text->length--;
+        text->buffer[text->length] = '\0';
+    }
+}
+
+uint8_t keyToAscii(uint8_t keycode)
+{
+    uint8_t c;
+
+    if (keycode < 128)
+    {
+        if ((KEY_IS_PRESSED(KEY_LSHIFT) | KEY_IS_PRESSED(KEY_RSHIFT)))
+            c = ascii_shifted[keycode];
+        else
+            c = ascii[keycode];
+    }
+    else
+        c = ascii_special[keycode & 0x7F];
+    // return a character if the keycode corresponds to a valid ASCII code
+    if ((c >= 32 && c < 128) || c == '/')
+        return c;
+    
+    return 0;
+}
+
+void getCharacter(KeyEvent_t* event, char* destination_str)
+{
+    char c;
+
+    if (event->type == KEY_HIT_FLAG)
+    {
+        if ((c = keyToAscii(event->keycode)) != 0)
+        {
+            if (c >= 97 && c < 123) // current typeface doesn't have non-caps letters, so convert them to caps
+                c -= 32;
+            strncat(destination_str, &c, 1);
+        }
+    }
+}
+
+int handleTextInput(KeyEvent_t* event, TextInput_t* destination)
+{   
+    char c;
+
+    if (event->type == KEY_HIT_FLAG)
+    {
+        switch (event->keycode)
+        {
+        case KEY_LEFT:
+            cursorLeft(destination);
+            break;
+        case KEY_RIGHT:
+            cursorRight(destination);
+            break;
+        case KEY_BACKSPACE:
+            eraseChar(destination);
+            break;
+        default:
+            if ((c = keyToAscii(event->keycode)) != 0)
+            {
+                if (c >= 97 && c < 123) // current typeface doesn't have non-caps letters, so convert them to caps
+                    c -= 32;
+                writeChar(destination, c);
+                break;
+            }
+        }
+
+    }
+    return TRUE;
 }

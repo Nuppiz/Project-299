@@ -31,7 +31,6 @@ typedef struct
     time_t last_sfx; // timer for sound effects
 } Timer_t;
 
-
 typedef struct
 {
     uint8_t keycode;
@@ -72,7 +71,6 @@ typedef struct
     Texture_t* textures;
     int texture_count;
 } Texture_array;
-
 
 /*
 typedef struct
@@ -218,5 +216,14 @@ typedef struct {
     int life;
     Texture_t sprite;
 } Corpse_t;
+
+typedef struct
+{
+    char* buffer;
+    int capacity;
+    int length;
+    int cursor;
+    int start;
+} TextInput_t;
 
 #endif/* STRUCTS_H */

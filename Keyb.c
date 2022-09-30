@@ -33,15 +33,15 @@ static void handleScanCode(uint8_t scan)
         // Clear key down flag, set key released flag
         Keyboard.keystates[event.keycode] &= ~KEY_PRESSED_FLAG;
         Keyboard.keystates[event.keycode] |= KEY_RELEASED_FLAG;
-        //event.type = KEY_RELEASED_FLAG;
-        //pushKeyEvent(event);
+        event.type = KEY_RELEASED_FLAG;
+        pushKeyEvent(event);
     }
     else if (!(Keyboard.keystates[event.keycode] == KEY_PRESSED_FLAG))
     {
         // Key newly pressed (not a repeat); set key down and key struck flags
         Keyboard.keystates[event.keycode] |= KEY_PRESSED_FLAG|KEY_HIT_FLAG;
-        //event.type = KEY_HIT_FLAG;
-        //pushKeyEvent(event);
+        event.type = KEY_HIT_FLAG;
+        pushKeyEvent(event);
     }
     status = 0;
 }

@@ -76,6 +76,7 @@ enum DebugIndex
     DEBUG_CLOCK,
     DEBUG_SHOOT,
     DEBUG_ENTITIES,
+    DEBUG_TEXT,
     NUM_DEBUG
 };
 

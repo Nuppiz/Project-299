@@ -5,8 +5,8 @@
 #include "Keyb.h"
 #include "Action.h"
 #include "LvlLoad.h"
-#include "Filech.h" // test, delete later
 #include "Menu.h"
+#include "Text.h"
 
 flags_t player_control = 0;
 extern System_t System;
@@ -25,6 +25,8 @@ int control_fast = KEY_LSHIFT;
 int control_strafe_l = KEY_A;
 int control_strafe_r = KEY_D;
 int control_strafe_mod = KEY_LALT;
+
+void processKeyEvents(uint8_t text_input, TextInput_t* destination);
 
 void playerControl()
 {
@@ -135,11 +137,14 @@ void testButtons()
     }
 }
 
-void processKeyEvents() // unused right now
+void processKeyEvents(uint8_t text_input, TextInput_t* destination)
 {
     while (Keyboard.queue_head != Keyboard.queue_tail) 
     {
         KeyEvent_t event = Keyboard.queue[Keyboard.queue_head];
+        if (text_input == TRUE)
+            handleTextInput(&event, destination);
+
         Keyboard.queue_head++;
 
         // process event here

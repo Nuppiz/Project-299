@@ -5,6 +5,10 @@
 #include "Text.h"
 #include "State.h"
 #include "Filech.h"
+#include "Input.h"
+#include "Keyb.h"
+#include "Draw.h"
+#include "Video.h"
 
 // Menu functionalities
 
@@ -17,6 +21,7 @@ extern char* levelname_global;
 extern System_t System;
 extern Timer_t Timers;
 extern GameData_t Game;
+extern Keyboard_t Keyboard;
 
 uint8_t story_text[] =
     "I COULD WRITE A FANCY STORY BUT\n" 
@@ -34,16 +39,16 @@ Option_t mainmenu_options[] =
 
 Option_t loadmenu_options[] =
 {
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
-    {"EMPTY         ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
+    {"EMPTY    ", loadGameFromMenu},
 };
 
 Option_t settings_options[] =
@@ -81,16 +86,16 @@ Option_t ingamemenu_options[] =
 
 Option_t savemenu_options[] =
 {
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
-    {"EMPTY         ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
+    {"EMPTY    ", saveGameFromMenu},
 };
 
 Menu_t mainmenu =
@@ -333,7 +338,7 @@ void dummy()
 
 void loadGameFromMenu()
 {
-    char foldername[15];
+    char foldername[10];
     char savepath[45] = {'\0'};
     char curstatepath[45];
     char* levelname;
@@ -342,7 +347,7 @@ void loadGameFromMenu()
     strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
 
     // if entry is labelled as empty, stop the function
-    if (strcmp(foldername, "EMPTY         ") != 0)
+    if (strcmp(foldername, "EMPTY    ") != 0)
     {
         // allocate memory and construct the basic strings
         levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
@@ -400,33 +405,48 @@ void saveGameFromMenu()
 {
     // replace scanf with proper text input and printf with proper text output
 
-    char foldername[15];
+    char foldername[10];
+    TextInput_t folder_input;
     char savepath[25] = "SAVES/"; // needed for the copy function
+    char savefilename[15] = {'\0'};
     char response = 'Y';
+
+    folder_input.capacity = 9;
+    folder_input.buffer = calloc(folder_input.capacity, 1);
 
     strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
 
-    while (response != 'N' || response != 'n')
+    // if entry is not labelled as empty, ask if user wants to overwrite
+    if (strcmp(foldername, "EMPTY    ") != 0)
     {
-        // if entry is not labelled as empty, ask if user wants to overwrite
-        if (strcmp(foldername, "EMPTY         ") != 0)
-        {
-            printf("Save slot already in use, overwrite Y/N?)");
-            scanf("%c", response);
-        }
-        memset(foldername, 0, 15);
-
-        scanf("%9s", foldername);
-        strcat(foldername, "/"); // add slash to the save subfolder name
-        strcat(savepath, foldername);
-
-        if (!checkDirectoryExists(foldername)) // if folder doesn't exist, create it
-            createDirectory(foldername);
-
-        copyAllFolderToFolder("SAVES/AUTO/", savepath);
-        saveLevelState(foldername, Game.current_level_name);
-        saveGameState(foldername);
+        printf("Save slot already in use, overwrite Y/N?)");
+        scanf("%c", response);
     }
+    memset(foldername, 0, 10);
+
+    if (KEY_WAS_HIT(KEY_ENTER))
+    {
+        resetInput(&folder_input);
+        while (!KEY_WAS_HIT(KEY_SPACEBAR))
+        {
+            drawRectangle(current_menu->cursor_x + 18, current_menu->cursor_y - 1, 90, 10, 0);
+            drawText(current_menu->cursor_x + 20, current_menu->cursor_y, folder_input.buffer, COLOUR_WHITE);
+            processKeyEvents(TRUE, &folder_input);
+            render();
+        }
+    }
+    strcpy(foldername, folder_input.buffer);
+    strcat(foldername, "/"); // add slash to the save subfolder name
+    strcat(savepath, foldername);
+
+    if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
+        createDirectory(savepath);
+
+    copyAllFolderToFolder("SAVES/AUTO/", savepath);
+    strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
+    saveLevelState(foldername, savefilename);
+    saveGameState(foldername);
+    
     popState();
 }
 

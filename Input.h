@@ -1,7 +1,10 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-void processKeyEvents();
+#include "Common.h"
+#include "Structs.h"
+
+void processKeyEvents(uint8_t text_input, TextInput_t* destination);
 void clearKeys();
 void gameInput();
 void titleInput();
