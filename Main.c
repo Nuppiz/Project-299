@@ -48,7 +48,6 @@ void loop()
         {
             do
             {
-                Timers.last_tick = System.time;
                 Stack[stack_top]->input(); // only handle input from the state at the top of the stack
                 clearKeys();
                 for (i = 0; i < state_count; i++)
@@ -58,11 +57,9 @@ void loop()
                 }
 
                 Timers.accumulator -= System.tick_interval;
-                if (System.paused == FALSE)
-                {
-                    System.ticks++;
-                    System.ticks_per_frame++;
-                }
+                System.ticks++;
+                System.ticks_per_frame++;
+                Timers.last_tick = System.time;
             }
             while (Timers.accumulator >= System.tick_interval);
         }
@@ -88,7 +85,6 @@ void loop()
             #endif
         }
 
-           
         #if DEBUG == 1
         if (Timers.last_time + 1000 < System.time) // FPS calculation; optional for debugging
         {
