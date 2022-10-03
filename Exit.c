@@ -7,6 +7,7 @@
 /* State exit functions */
 
 extern State_t States[];
+extern System_t System;
 extern uint8_t music_on;
 
 void titleExit()
@@ -30,10 +31,12 @@ void gameExit()
 
 void pauseExit()
 {
+    System.paused = FALSE;
     States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
 }
 
 void ingameMenuExit()
 {
+    System.paused = FALSE;
     States[STATE_INGAME].flags |= STATE_ENABLE_UPDATE;
 }

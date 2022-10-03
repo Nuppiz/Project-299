@@ -9,5 +9,6 @@ void setVideoMode(uint8_t mode);
 void loadPalette(char* filename, Palette_t* pal);
 void setPalette_VGA(Palette_t* pal);
 void render();
+void renderWithoutClear();
 
 #endif /* VIDEO_H */

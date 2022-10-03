@@ -58,8 +58,11 @@ void loop()
                 }
 
                 Timers.accumulator -= System.tick_interval;
-                System.ticks++;
-                System.ticks_per_frame++;
+                if (System.paused == FALSE)
+                {
+                    System.ticks++;
+                    System.ticks_per_frame++;
+                }
             }
             while (Timers.accumulator >= System.tick_interval);
         }

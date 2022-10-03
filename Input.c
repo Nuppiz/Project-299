@@ -143,7 +143,9 @@ void processKeyEvents(uint8_t text_input, TextInput_t* destination)
     {
         KeyEvent_t event = Keyboard.queue[Keyboard.queue_head];
         if (text_input == TRUE)
+        {
             handleTextInput(&event, destination);
+        }
 
         Keyboard.queue_head++;
 

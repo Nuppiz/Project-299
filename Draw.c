@@ -492,6 +492,25 @@ void drawRectangle(int x, int y, int w, int h, uint8_t color)
     index_y = 0;
 }
 
+void drawRectangleVGA(int x, int y, int w, int h, uint8_t color)
+{
+    int index_x = 0;
+    int index_y = 0;
+
+    for (index_y = 0; index_y < h;index_y++)
+    {
+        for (index_x = 0; index_x < w;index_x++)
+        {
+            SET_PIXEL_VGA(x, y, color);
+            x++;
+        }
+        index_x = 0;
+        x -= w;
+        y++;
+    }
+    index_y = 0;
+}
+
 void drawMap()
 {
     int xi = (int)camera_offset.x / SQUARE_SIZE; // first column in the array to be drawn

@@ -230,15 +230,62 @@ void menuMain()
 void menuLoadGame()
 {
     int directory_count, i;
+    int d = 0;
     char** directory_list;
 
     current_menu = &loadmenu;
     directory_count = countSubdirectories("SAVES");
     directory_list = malloc(directory_count * sizeof(char*));
     listSubdirectories("SAVES", directory_list);
+    // AUTO and QUICK should go first on the list
     for (i = 0; i < directory_count; i++)
     {
-        strcpy(loadmenu_options[i].text, directory_list[i]);
+        if (strcmp(directory_list[i], "AUTO") == 0 || strcmp(directory_list[i], "QUICK") == 0)
+        {
+            strcpy(loadmenu_options[d].text, directory_list[i]);
+            d++;
+        }
+    }
+    // then the rest
+    for (i = 0; i < directory_count; i++)
+    {
+        if (strcmp(directory_list[i], "AUTO") != 0 && strcmp(directory_list[i], "QUICK") != 0)
+        {
+            strcpy(loadmenu_options[d].text, directory_list[i]);
+            d++;
+        }
+    }
+    free(directory_list);
+    changeMenu();
+}
+
+void menuSaveGame()
+{
+    int directory_count, i;
+    int d = 0;
+    char** directory_list;
+
+    current_menu = &savemenu;
+    directory_count = countSubdirectories("SAVES");
+    directory_list = malloc(directory_count * sizeof(char*));
+    listSubdirectories("SAVES", directory_list);
+    // AUTO and QUICK should go first on the list
+    for (i = 0; i < directory_count; i++)
+    {
+        if (strcmp(directory_list[i], "AUTO") == 0 || strcmp(directory_list[i], "QUICK") == 0)
+        {
+            strcpy(savemenu_options[d].text, directory_list[i]);
+            d++;
+        }
+    }
+    // then the rest
+    for (i = 0; i < directory_count; i++)
+    {
+        if (strcmp(directory_list[i], "AUTO") != 0 && strcmp(directory_list[i], "QUICK") != 0)
+        {
+            strcpy(savemenu_options[d].text, directory_list[i]);
+            d++;
+        }
     }
     free(directory_list);
     changeMenu();
@@ -384,23 +431,6 @@ void loadGameFromMenu()
     }
 }
 
-void menuSaveGame()
-{
-    int directory_count, i;
-    char** directory_list;
-
-    current_menu = &savemenu;
-    directory_count = countSubdirectories("SAVES");
-    directory_list = malloc(directory_count * sizeof(char*));
-    listSubdirectories("SAVES", directory_list);
-    for (i = 0; i < directory_count; i++)
-    {
-        strcpy(savemenu_options[i].text, directory_list[i]);
-    }
-    free(directory_list);
-    changeMenu();
-}
-
 void saveGameFromMenu()
 {
     // replace scanf with proper text input and printf with proper text output
@@ -409,44 +439,54 @@ void saveGameFromMenu()
     TextInput_t folder_input;
     char savepath[25] = "SAVES/"; // needed for the copy function
     char savefilename[15] = {'\0'};
-    char response = 'Y';
+    uint8_t saving = TRUE;
 
     folder_input.capacity = 9;
     folder_input.buffer = calloc(folder_input.capacity, 1);
 
     strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
 
-    // if entry is not labelled as empty, ask if user wants to overwrite
-    if (strcmp(foldername, "EMPTY    ") != 0)
+    if (!KEY_WAS_HIT(KEY_ESC))
     {
-        printf("Save slot already in use, overwrite Y/N?)");
-        scanf("%c", response);
-    }
-    memset(foldername, 0, 10);
+        memset(foldername, 0, 10);
 
-    if (KEY_WAS_HIT(KEY_ENTER))
-    {
-        resetInput(&folder_input);
-        while (!KEY_WAS_HIT(KEY_SPACEBAR))
+        if (KEY_WAS_HIT(KEY_ENTER))
         {
-            drawRectangle(current_menu->cursor_x + 18, current_menu->cursor_y - 1, 90, 10, 0);
-            drawText(current_menu->cursor_x + 20, current_menu->cursor_y, folder_input.buffer, COLOUR_WHITE);
-            processKeyEvents(TRUE, &folder_input);
-            render();
+            Keyboard.keystates[KEY_ENTER] = 0; // reset Enter button to avoid double press
+            resetInput(&folder_input);
+
+            while (!KEY_WAS_HIT(KEY_ENTER))
+            {
+                gameDraw();
+                drawMenuText();
+                drawRectangle(current_menu->cursor_x + 18, current_menu->cursor_y - 1, 90, 10, 0);
+                drawText(current_menu->cursor_x + 20, current_menu->cursor_y, folder_input.buffer, COLOUR_WHITE);
+                processKeyEvents(TRUE, &folder_input);
+                renderWithoutClear();
+                if (KEY_WAS_HIT(KEY_ESC))
+                {
+                    saving = FALSE;
+                    break;
+                }
+            }
+        }
+        if (saving == TRUE)
+        {
+            strcpy(foldername, folder_input.buffer);
+            strcat(foldername, "/"); // add slash to the save subfolder name
+            strcat(savepath, foldername);
+
+            if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
+                createDirectory(savepath);
+
+            copyAllFolderToFolder("SAVES/AUTO/", savepath);
+            strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
+            saveLevelState(foldername, savefilename);
+            saveGameState(foldername);
         }
     }
-    strcpy(foldername, folder_input.buffer);
-    strcat(foldername, "/"); // add slash to the save subfolder name
-    strcat(savepath, foldername);
-
-    if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
-        createDirectory(savepath);
-
-    copyAllFolderToFolder("SAVES/AUTO/", savepath);
-    strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
-    saveLevelState(foldername, savefilename);
-    saveGameState(foldername);
     
+    free(folder_input.buffer);
     popState();
 }
 

@@ -101,6 +101,7 @@ void initDebug()
 void initSystem()
 {
     System.running    = 1;
+    System.paused     = 0;
     System.time       = 0;
     System.seconds    = 0;
     System.ticks      = 0;
@@ -200,11 +201,13 @@ void gameInit()
 
 void pauseInit()
 {
+    System.paused = TRUE;
     States[STATE_INGAME].flags &= ~STATE_ENABLE_UPDATE;
 }
 
 void ingameMenuInit()
 {
+    System.paused = TRUE;
     States[STATE_INGAME].flags &= ~STATE_ENABLE_UPDATE;
     current_menu = &ingamemenu;
 }

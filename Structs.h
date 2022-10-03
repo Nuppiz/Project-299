@@ -6,6 +6,7 @@
 typedef struct
 {
     int    running;
+    int    paused;      // stop ticks if in menu/paused
     time_t time;        // global timer
     time_t seconds;     // second timer (time/1000)
     time_t ticks;       // total game ticks
