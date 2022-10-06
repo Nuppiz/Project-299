@@ -425,6 +425,7 @@ void saveLevelState(char* foldername, char* levelname)
     fwrite(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fwrite(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
+    System.paused = FALSE;
     fclose(save_file);
 }
 

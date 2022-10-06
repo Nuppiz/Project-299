@@ -48,6 +48,7 @@ void loop()
         {
             do
             {
+                Timers.last_tick = System.time;
                 Stack[stack_top]->input(); // only handle input from the state at the top of the stack
                 clearKeys();
                 for (i = 0; i < state_count; i++)
@@ -57,9 +58,11 @@ void loop()
                 }
 
                 Timers.accumulator -= System.tick_interval;
-                System.ticks++;
-                System.ticks_per_frame++;
-                Timers.last_tick = System.time;
+                if (System.paused == FALSE)
+                {
+                    System.ticks++;
+                    System.ticks_per_frame++;
+                }
             }
             while (Timers.accumulator >= System.tick_interval);
         }
