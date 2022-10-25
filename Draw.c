@@ -588,9 +588,9 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(PlayerObject.direction.y, PlayerObject.direction.x);
-    pos.x = PlayerObject.position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = PlayerObject.position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(PlayerActor.direction.y, PlayerActor.direction.x);
+    pos.x = PlayerActor.position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = PlayerActor.position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -606,7 +606,7 @@ void calcCameraOffset()
     camera_offset.y = pos.y - (SCREEN_HEIGHT / 2);// - SQUARE_SIZE / 2;
 }
 
-void drawDot(Object_t* obj)
+void drawDot(Actor_t* actor)
 {
     int offset_y;
     int offset_x;
@@ -616,13 +616,13 @@ void drawDot(Object_t* obj)
     int i;
     
     // calculate angle
-    dot_radians = atan2(obj->direction.y, obj->direction.x);
+    dot_radians = atan2(actor->direction.y, actor->direction.x);
     
-    // directional dot's offsets from the center of the circle
+    // directional dot's offsets from the center of the actor
     offset_y = sin(dot_radians) * DOT_DISTANCE - (int)camera_offset.y;
     offset_x = cos(dot_radians) * DOT_DISTANCE - (int)camera_offset.x;
-    pos_x = obj->position.x + offset_x;
-    pos_y = obj->position.y + offset_y;
+    pos_x = actor->position.x + offset_x;
+    pos_y = actor->position.y + offset_y;
 
     if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
     {
@@ -834,23 +834,23 @@ void emptyCorpseArray()
     corpse_write = 0;
 }
 
-void drawObjects()
+void drawActors()
 {
-    int i = 0; // object array "index"
+    int i = 0; // actor array "index"
     int start_x;
     int start_y;
     char str[8] = {0};
 
-    while (i < Game.object_count)
+    while (i < Game.actor_count)
     {
-        start_x = Game.Objects[i].position.x - camera_offset.x - ActorTextures.textures[Game.Objects[i].texture_id].width / 2;
-        start_y = Game.Objects[i].position.y - camera_offset.y - ActorTextures.textures[Game.Objects[i].texture_id].height / 2;
-        if (&ActorTextures.textures[Game.Objects[i].texture_id] != NULL)
-            drawTextureRotated(start_x, start_y, Game.Objects[i].angle, &ActorTextures.textures[Game.Objects[i].texture_id], TRANSPARENT_COLOR);
-        drawDot(&Game.Objects[i]);
+        start_x = Game.Actors[i].position.x - camera_offset.x - ActorTextures.textures[Game.Actors[i].texture_id].width / 2;
+        start_y = Game.Actors[i].position.y - camera_offset.y - ActorTextures.textures[Game.Actors[i].texture_id].height / 2;
+        if (&ActorTextures.textures[Game.Actors[i].texture_id] != NULL)
+            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ActorTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
+        drawDot(&Game.Actors[i]);
         #if DEBUG == 1
         str[0] = '\0';
-        sprintf(str, "%u", Game.Objects[i].id);
+        sprintf(str, "%u", Game.Actors[i].id);
         drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
         #endif
         i++;
@@ -863,16 +863,16 @@ void drawHealth()
 {
     char plr_health[10];
 
-    sprintf(plr_health, "HP: %d", PlayerObject.health);
+    sprintf(plr_health, "HP: %d", PlayerActor.health);
     drawText(250, 190, plr_health, COLOUR_WHITE);
 }
 
 void drawStats()
 {
-    char obj_count[10];
+    char actor_count[10];
 
-    sprintf(obj_count, "OBJ: %d", Game.object_count);
-    drawText(80, 190, obj_count, COLOUR_WHITE);
+    sprintf(actor_count, "ACT: %d", Game.actor_count);
+    drawText(80, 190, actor_count, COLOUR_WHITE);
 }
 
 void menuDraw()
@@ -891,7 +891,7 @@ void gameDraw()
     calcCameraOffset();
     drawMap();
     corpseArrayManager();
-    drawObjects();
+    drawActors();
     drawHealth();
     particleArrayManager();
 

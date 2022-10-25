@@ -21,9 +21,9 @@ void checkForInteractive() // temporary, will be replaced with better system lat
 {
     int tilemap_loc, i, a;
 
-    for (i = 0; i < Game.object_count; i++)
+    for (i = 0; i < Game.actor_count; i++)
     {
-        tilemap_loc = Game.Objects[i].grid_loc.y * Game.Map.width + Game.Objects[i].grid_loc.x;
+        tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;
         for (a = 0; a < Game.interactive_count; a++)
         {
             if (tilemap_loc == Interactives[a].index && Interactives[a].state == 1)
@@ -39,16 +39,16 @@ void checkForInteractive() // temporary, will be replaced with better system lat
                     if (Timers.last_env_damage + HURT_INTERVAL < System.ticks)
                     {
                         Timers.last_env_damage = System.ticks;
-                        Game.Objects[i].health -= 10;
-                        if(Game.Objects[i].health > 0)
+                        Game.Actors[i].health -= 10;
+                        if(Game.Actors[i].health > 0)
                         {
-                            if (Game.Objects[i].id == Game.player_id)
+                            if (Game.Actors[i].id == Game.player_id)
                                 playSFX(SOUND_HURT);
                             else
                                 playSFX(SOUND_HURT_E);
                         }
                         #if DEBUG == 1
-                        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
+                        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
                         #endif
                     }
                 }
@@ -81,13 +81,13 @@ void runSpawner(Entity_t* spawner)
         if (spawner->data.spawner.last_spawn_time + spawner->data.spawner.spawn_time_interval < System.ticks)
         {
             spawner->data.spawner.last_spawn_time = System.ticks;
-            if (spawner->data.spawner.num_objects < spawner->data.spawner.max_objects || spawner->data.spawner.max_objects == -1)
+            if (spawner->data.spawner.num_actors < spawner->data.spawner.max_actors || spawner->data.spawner.max_actors == -1)
             {
-                createObject(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
+                createActor(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
                 7, 0, 1, 0, Game.player_id, 100, spawner->data.spawner.trigger_on_death, 20, "SPRITES/DUDE2.7UP");
-                spawner->data.spawner.num_objects++;
+                spawner->data.spawner.num_actors++;
             }
-            if (spawner->data.spawner.num_objects >= spawner->data.spawner.max_objects && spawner->data.spawner.max_objects != -1)
+            if (spawner->data.spawner.num_actors >= spawner->data.spawner.max_actors && spawner->data.spawner.max_actors != -1)
             {
                 spawner->state = 0;
                 if (spawner->data.spawner.only_once == 1)
@@ -104,7 +104,7 @@ void runTrigger(Entity_t* trigger)
 {
     int i, tilemap_loc;
 
-    if (PlayerObject.grid_loc.x == trigger->x && PlayerObject.grid_loc.y == trigger->y && trigger->state == 0)
+    if (PlayerActor.grid_loc.x == trigger->x && PlayerActor.grid_loc.y == trigger->y && trigger->state == 0)
     {
         trigger->data.trigger.last_trigger_time = System.ticks;
         playSFX(SOUND_DOOR_O);
@@ -202,7 +202,7 @@ void usePortal(Entity_t* portal)
     uint16_t portal_x, portal_y;
     double portal_angle;
     char levelpath[30] = LEVEL_PATH;
-    if (PlayerObject.grid_loc.x == portal->x && PlayerObject.grid_loc.y == portal->y && portal->state == 1)
+    if (PlayerActor.grid_loc.x == portal->x && PlayerActor.grid_loc.y == portal->y && portal->state == 1)
     {
         playSFX(SOUND_PORTAL);
         if (portal->data.portal.level_name != NULL)
@@ -216,30 +216,30 @@ void usePortal(Entity_t* portal)
                 portal_y = portal->data.portal.y;
                 portal_angle = portal->data.portal.angle;
                 levelTransition(Game.current_level_name, portal->data.portal.level_name);
-                PlayerObject.velocity.x = 0.0;
-                PlayerObject.velocity.y = 0.0;
-                PlayerObject.position.x = portal_x;
-                PlayerObject.position.y = portal_y;
-                PlayerObject.angle = portal_angle;
-                updateGridLoc(&PlayerObject);
+                PlayerActor.velocity.x = 0.0;
+                PlayerActor.velocity.y = 0.0;
+                PlayerActor.position.x = portal_x;
+                PlayerActor.position.y = portal_y;
+                PlayerActor.angle = portal_angle;
+                updateGridLoc(&PlayerActor);
                 saveGameState("AUTO/");
             }
         }
         else
         {
-            PlayerObject.position.x = portal->data.portal.x;
-            PlayerObject.position.y = portal->data.portal.y;
-            PlayerObject.angle = portal->data.portal.angle;
+            PlayerActor.position.x = portal->data.portal.x;
+            PlayerActor.position.y = portal->data.portal.y;
+            PlayerActor.angle = portal->data.portal.angle;
         }
     }
 }
 
-void deathTrigger(int object_id)
+void deathTrigger(int actor_id)
 {
-    switch (Entities[Game.Objects[object_id].trigger_on_death].type)
+    switch (Entities[Game.Actors[actor_id].trigger_on_death].type)
     {
-    case ENT_DOOR: toggleDoor(&Entities[Game.Objects[object_id].trigger_on_death]); break;
-    case ENT_BUTTON: toggleButton(&Entities[Game.Objects[object_id].trigger_on_death]); break;
+    case ENT_DOOR: toggleDoor(&Entities[Game.Actors[actor_id].trigger_on_death]); break;
+    case ENT_BUTTON: toggleButton(&Entities[Game.Actors[actor_id].trigger_on_death]); break;
     }
 }
 
@@ -301,18 +301,18 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
         }
         else if (hit_something == FALSE)
         {
-            for (i = 0; i < Game.object_count; i++)
+            for (i = 0; i < Game.actor_count; i++)
             {
-                if (Game.Objects[i].id != source_id && checkForHit(pos, Game.Objects[i].position, Game.Objects[i].radius) == TRUE)
+                if (Game.Actors[i].id != source_id && checkForHit(pos, Game.Actors[i].position, Game.Actors[i].radius) == TRUE)
                 {
                     hit_something = TRUE;
                     particleFx(pos, dir, FX_BLOOD);
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Objects[i].health);
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
                     #endif
-                    Game.Objects[i].health -= 8;
-                    Game.Objects[i].target_id = source_id; // infighting mechanic
+                    Game.Actors[i].health -= 8;
+                    Game.Actors[i].target_id = source_id; // infighting mechanic
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
@@ -330,7 +330,7 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
     }
 }
 
-void shootWeapon(Object_t* source)
+void shootWeapon(Actor_t* source)
 {
     Vec2 bullet_loc, direction;
     double angle;
@@ -358,27 +358,27 @@ void entityLoop()
 {
     int i;
 
-    for (i = 0; i < Game.object_count; i++)
+    for (i = 0; i < Game.actor_count; i++)
     {
-        if (Game.Objects[i].health <= 0)
+        if (Game.Actors[i].health <= 0)
         {
-            if (Game.Objects[i].id == Game.player_id)
+            if (Game.Actors[i].id == Game.player_id)
             { 
                 playSFX(SOUND_DEATH);
                 loadAfterDeath(Game.current_level_name);
             }       
-            else if (Game.Objects[i].trigger_on_death != -1)
+            else if (Game.Actors[i].trigger_on_death != -1)
             {
                 playSFX(SOUND_DEATH_E);
                 deathTrigger(i);
-                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
-                deleteObject(Game.Objects[i].id);
+                //spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
+                deleteActor(Game.Actors[i].id);
             }
             else
             {
                 playSFX(SOUND_DEATH_E);
-                //spawnCorpse(Game.Objects[i].position, Game.Objects[i].angle, -1);
-                deleteObject(Game.Objects[i].id);
+                //spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
+                deleteActor(Game.Actors[i].id);
             }
         }
     }

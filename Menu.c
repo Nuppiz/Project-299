@@ -17,7 +17,7 @@ extern unsigned musicVolume;
 extern unsigned SFXVolume;
 extern uint8_t music_on;
 extern uint8_t SFX_on;
-extern char* levelname_global;
+extern char levelname_global[];
 extern System_t System;
 extern Timer_t Timers;
 extern GameData_t Game;
@@ -388,7 +388,6 @@ void loadGameFromMenu()
     char foldername[10];
     char savepath[45] = {'\0'};
     char curstatepath[45];
-    char* levelname;
     char savefilename[15] = {'\0'};
 
     strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
@@ -396,9 +395,7 @@ void loadGameFromMenu()
     // if entry is labelled as empty, stop the function
     if (strcmp(foldername, "EMPTY    ") != 0)
     {
-        // allocate memory and construct the basic strings
-        levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
-
+        // construct the basic strings
         strcpy(savepath, "SAVES/");
 
         strcat(foldername, "/"); // add slash to the save subfolder name
@@ -412,22 +409,20 @@ void loadGameFromMenu()
         {
             // check current level from the save folder
             checkLevelFromSave(foldername);
-            strcpy(levelname, levelname_global);
 
-            strncpy(savefilename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+            strncpy(savefilename, levelname_global, (strlen(levelname_global) - 4)); // drop the level filename ending
             strcat(savefilename, ".SAV"); // add save filename ending
             strcat(savepath, savefilename);
             if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
             {
                 popState();
                 pushState(STATE_INGAME);
-                levelLoader(levelname, LOAD_SAVED_LEVEL);
+                levelLoader(levelname_global, LOAD_SAVED_LEVEL);
                 loadLevelState(foldername, savefilename);
                 loadGameState(foldername);
             }
         }
-        free(levelname);
-        free(levelname_global);
+        levelname_global[0] = '\0'; // reset levelname
     }
 }
 

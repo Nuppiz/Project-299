@@ -9,7 +9,7 @@ typedef struct
     int    paused;      // stop ticks if in menu/paused
     time_t time;        // global timer
     time_t seconds;     // second timer (time/1000)
-    time_t ticks;       // total game ticks
+    ticks_t ticks;       // total game ticks
     time_t frames;      // total frames drawn
     time_t tick_interval;   // target time interval of logic cycles
     time_t frame_interval;  // target time interval between draws
@@ -24,12 +24,12 @@ typedef struct
 {
     time_t last_midas_time; // used for synchronising the MIDAS Sound System
     time_t last_time; // Used for accumulating seconds & FPS calculation
-    time_t last_tick; // Tracks time elapsed since last tick started
+    ticks_t last_tick; // Tracks time elapsed since last tick started
     time_t last_frame; // Tracks time elapsed since last draw started
     time_t accumulator; // Incremented by frame draw duration, decremented by ticks
     int frame_count; // Counts frames in a second so far; used by debug
-    time_t last_env_damage; // timer for environmental damage
-    time_t last_sfx; // timer for sound effects
+    ticks_t last_env_damage; // timer for environmental damage
+    ticks_t last_sfx; // timer for sound effects
 } Timer_t;
 
 typedef struct
@@ -85,6 +85,18 @@ typedef struct
 
 typedef struct
 {
+    uint16_t range; // absolute maximum range for projectiles/hitting the target (if melee)
+    uint16_t damage; // damage per projectile/hit/etc.
+    uint8_t num_projectiles; // number of projectiles per shot (e.g. a shotgun fires multiple pellets)
+    uint8_t projectile_spread; // how much each projectile diverts from the point of origin (i.e. accuracy)
+    ticks_t shot_delay; // delay between shots
+    int8_t ammo_type; // if -1, infinite ammo/melee
+    uint8_t name_id; // id number to a char array that contains weapon names
+    uint8_t sound_id; // id number to the enum table that contains sound effects
+} Weapon_t;
+
+typedef struct
+{
     id_t     id;
     flags_t  flags;
     Vec2     position;
@@ -97,17 +109,17 @@ typedef struct
     
     flags_t control;
     uint8_t ai_mode;
-    int     ai_timer;
-    id_t    target_id; // index number in the object array of the AI's target
+    ticks_t ai_timer;
+    id_t    target_id; // index number of the AI's target in the ActorsById array
     Vec2    move_target;
 
     uint8_t color;
     id_t texture_id;
     int health;
     int8_t trigger_on_death; // entity ID to trigger on death
-    time_t last_shot; // last shot taken
-    uint16_t shot_delay; // delay between shots
-} Object_t;
+    ticks_t last_shot; // last shot taken
+    ticks_t shot_delay; // delay between shots
+} Actor_t;
 
 typedef struct
 {
@@ -142,10 +154,10 @@ typedef struct {
     union u_data {
         struct t_door {uint8_t locked : 1; uint8_t key : 7;} door;
         struct t_button {uint8_t target;} button;
-        struct t_spawner {double angle; time_t last_spawn_time; int spawn_time_interval;
-        int8_t max_objects; uint8_t num_objects; uint16_t spawn_type: 5;
+        struct t_spawner {double angle; ticks_t last_spawn_time; ticks_t spawn_time_interval;
+        int8_t max_actors; uint8_t num_actors; uint16_t spawn_type: 5;
         uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
-        struct t_trigger {time_t last_trigger_time; int trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
+        struct t_trigger {ticks_t last_trigger_time; ticks_t trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
         struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
         struct t_portal {char level_name[30]; int x; int y; double angle;} portal;
     } data;
@@ -161,10 +173,10 @@ typedef struct
 {
     Map_t Map;
     char current_level_name[15];
-    Object_t* Objects;
-    id_t* ObjectsById;
-    id_t object_count;
-    id_t object_capacity;
+    Actor_t* Actors;
+    id_t* ActorsById;
+    id_t actor_count;
+    id_t actor_capacity;
     id_t id_capacity;
     uint8_t interactive_count;
     uint8_t interactive_capacity;

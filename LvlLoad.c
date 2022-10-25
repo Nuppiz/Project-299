@@ -16,6 +16,7 @@ extern GameData_t Game;
 extern Texture_array TileTextures;
 Tile_t TileSet[TILESET_MAX];
 Interactive_t* Interactives;
+char levelname_global[15];
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
@@ -104,8 +105,8 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
     int ent_x, ent_y, state, tilemap_location, only_once; double angle; // common variables
     int locked, key; // door variables
     int target; // switch/button variables
-    time_t last_spawn_time; int spawn_interval, toggleable, max_objects, num_objects, spawn_type, trigger_on_death; // spawner variables
-    time_t last_trigger_time; int trigger_interval; int target_ids[4]; // trigger variables
+    ticks_t last_spawn_time; ticks_t spawn_interval, toggleable, max_actors, num_actors, spawn_type, trigger_on_death; // spawner variables
+    ticks_t last_trigger_time; ticks_t trigger_interval; int target_ids[4]; // trigger variables
     int max_value, target_id; // counter variables
     char level_name[20]; int portal_x, portal_y; // portal variables
 
@@ -140,13 +141,13 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
                 ent->data.button.target = target;
                 break;
     case ENT_SPAWNER: fscanf(level_file, "%d %lf %d %d %d %d %d", 
-                &spawn_type, &angle, &trigger_on_death, &max_objects, &spawn_interval, &toggleable, &only_once),
+                &spawn_type, &angle, &trigger_on_death, &max_actors, &spawn_interval, &toggleable, &only_once),
                 ent->data.spawner.last_spawn_time = 0,
-                ent->data.spawner.num_objects = 0,
+                ent->data.spawner.num_actors = 0,
                 ent->data.spawner.spawn_type = spawn_type,
                 ent->data.spawner.angle = angle,
                 ent->data.spawner.trigger_on_death = trigger_on_death,
-                ent->data.spawner.max_objects = max_objects,
+                ent->data.spawner.max_actors = max_actors,
                 ent->data.spawner.spawn_time_interval = spawn_interval / System.tick_interval,
                 ent->data.spawner.toggleable = toggleable,
                 ent->data.spawner.only_once = only_once;
@@ -233,7 +234,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         System.running = 0;
     }
 
-    if (Entities != NULL || TileTextures.textures != NULL || Game.Objects != NULL)
+    if (Entities != NULL || TileTextures.textures != NULL || Game.Actors != NULL)
     {
         freeAllEntities();
         freeAllTextures();
@@ -289,13 +290,13 @@ void levelLoader(char* level_name, uint8_t load_type)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createObject((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, 20, texture_filename);
+                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, 20, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %s",
                     &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, texture_filename);
-                createObject((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, 20, texture_filename);
+                createActor((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, 20, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
@@ -391,9 +392,9 @@ void saveGameState(char* foldername)
         delay(60000);
     }
     fwrite(&Game.current_level_name, LEVEL_NAME_MAX, 1, save_file);
-    fwrite(&PlayerObject.health, 2, 1, save_file);
-    fwrite(&PlayerObject.position.x, 8, 1, save_file);
-    fwrite(&PlayerObject.position.y, 8, 1, save_file);
+    fwrite(&PlayerActor.health, 2, 1, save_file);
+    fwrite(&PlayerActor.position.x, 8, 1, save_file);
+    fwrite(&PlayerActor.position.y, 8, 1, save_file);
     fwrite(&System, sizeof(System_t), 1, save_file);
     fwrite(&Timers, sizeof(Timer_t), 1, save_file);
     fclose(save_file);
@@ -421,8 +422,8 @@ void saveLevelState(char* foldername, char* levelname)
         delay(60000);
     }
     fwrite(&Game, sizeof(GameData_t), 1, save_file);
-    fwrite(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
-    fwrite(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
+    fwrite(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
+    fwrite(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fwrite(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
     System.paused = FALSE;
@@ -445,17 +446,17 @@ void loadGameState(char* foldername)
         fseek(state_file, 0x0F, SEEK_SET);
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
-            PlayerObject.health = player_hp;
+            PlayerActor.health = player_hp;
         fread(&player_loc.x, 8, 1, state_file);
         fread(&player_loc.y, 8, 1, state_file);
-        PlayerObject.position.x = player_loc.x;
-        PlayerObject.position.y = player_loc.y;
-        updateGridLoc(&PlayerObject);
+        PlayerActor.position.x = player_loc.x;
+        PlayerActor.position.y = player_loc.y;
+        updateGridLoc(&PlayerActor);
         // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
-        if (checkForPortal(PlayerObject.grid_loc) == TRUE)
+        if (checkForPortal(PlayerActor.grid_loc) == TRUE)
         {
-            PlayerObject.position = moveFromPortal(PlayerObject.position);
-            updateGridLoc(&PlayerObject);
+            PlayerActor.position = moveFromPortal(PlayerActor.position);
+            updateGridLoc(&PlayerActor);
         }
         fread(&System, sizeof(System_t), 1, state_file);
         fread(&Timers, sizeof(Timer_t), 1, state_file);
@@ -479,16 +480,16 @@ void loadLevelState(char* foldername, char* savename)
         delay(60000);
     }
     fseek(save_file, 0x21, SEEK_SET);
-    fread(&Game.object_count, 2, 1, save_file);
-    fread(&Game.object_capacity, 2, 1, save_file);
+    fread(&Game.actor_count, 2, 1, save_file);
+    fread(&Game.actor_capacity, 2, 1, save_file);
     fread(&Game.id_capacity, 2, 1, save_file);
-    initGameData(Game.object_capacity, Game.id_capacity);
+    initGameData(Game.actor_capacity, Game.id_capacity);
     fread(&Game.interactive_count, 1, 1, save_file);
     fread(&Game.interactive_capacity, 1, 1, save_file);
     Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
     fread(&Game.player_id, 2, 1, save_file);
-    fread(Game.Objects, sizeof(Object_t), Game.object_capacity, save_file);
-    fread(Game.ObjectsById, sizeof(id_t), Game.id_capacity, save_file);
+    fread(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
+    fread(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fread(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
     fclose(save_file);
@@ -556,14 +557,11 @@ void quickSave(char* levelname)
     saveGameState("QUICK/");
 }
 
-char* levelname_global;
-
 // check level name from save file
 void checkLevelFromSave(char* foldername)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/";
-    char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
     int i;
 
     strcat(savefilepath, foldername);
@@ -574,30 +572,26 @@ void checkLevelFromSave(char* foldername)
         save_file = fopen(savefilepath, "rb");
         for (i = 0; i < LEVEL_NAME_MAX; i++)
         {
-            fread(&levelname[i], 1, 1, save_file);
+            fread(&levelname_global[i], 1, 1, save_file);
         }
     }
     fclose(save_file);
-    strcpy(levelname_global, levelname);
 }
 
 void quickLoad()
 {
     char loadname[30] = {'\0'};
     char savepath[45] = "SAVES/QUICK/";
-    char* levelname = calloc(LEVEL_NAME_MAX, sizeof(char));
     checkLevelFromSave("QUICK/");
-    strcpy(levelname, levelname_global);
-    strncpy(loadname, levelname, (strlen(levelname) - 4)); // drop the level filename ending
+    strncpy(loadname, levelname_global, (strlen(levelname_global) - 4)); // drop the level filename ending
     strcat(loadname, ".SAV"); // add save filename ending
     strcat(savepath, loadname); // construct folder path
 
     if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
     {
-        levelLoader(levelname, LOAD_SAVED_LEVEL);
+        levelLoader(levelname_global, LOAD_SAVED_LEVEL);
         loadLevelState("QUICK/", loadname);
         loadGameState("QUICK/");
     }
-    free(levelname);
-    free(levelname_global);
+    levelname_global[0] = '\0'; // reset levelname
 }

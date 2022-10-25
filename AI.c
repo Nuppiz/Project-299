@@ -47,34 +47,34 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
     return OUT_OF_SIGHT;
 }
 
-int whichSide(Vec2 object_direction, Vec2 object_to_target)
+int whichSide(Vec2 actor_direction, Vec2 actor_to_target)
 {
-    if (crossVec2(object_to_target, object_direction) >= 0)
+    if (crossVec2(actor_to_target, actor_direction) >= 0)
         return LEFT_SIDE;
     
     return RIGHT_SIDE;
 }
 
-void turnTowards(Object_t* object, Vec2 target)
+void turnTowards(Actor_t* actor, Vec2 target)
 {
-    Vec2 object_to_target = getVec2(object->position, target);
-    int side            = whichSide(object->direction, object_to_target);
+    Vec2 actor_to_target = getVec2(actor->position, target);
+    int side            = whichSide(actor->direction, actor_to_target);
 
     if (side == LEFT_SIDE)
     {
-        (object->control) |= CONTROL_LEFT;
-        (object->control) &= ~CONTROL_RIGHT;
+        (actor->control) |= CONTROL_LEFT;
+        (actor->control) &= ~CONTROL_RIGHT;
     }
     else if (side == RIGHT_SIDE)
     {
-        (object->control) |= CONTROL_RIGHT;
-        (object->control) &= ~CONTROL_LEFT;
+        (actor->control) |= CONTROL_RIGHT;
+        (actor->control) &= ~CONTROL_LEFT;
     }
 }
 
-void chaseTarget(Object_t* chaser)
+void chaseTarget(Actor_t* chaser)
 {
-    Vec2 object_to_target;
+    Vec2 actor_to_target;
     float distance_sq;
     float cross_product;
 
@@ -83,9 +83,9 @@ void chaseTarget(Object_t* chaser)
     #endif
 
     
-    object_to_target = getVec2(chaser->position, chaser->move_target);
-    distance_sq      = getVec2LengthSquared(object_to_target);
-    cross_product    = crossVec2(object_to_target, chaser->direction);
+    actor_to_target = getVec2(chaser->position, chaser->move_target);
+    distance_sq      = getVec2LengthSquared(actor_to_target);
+    cross_product    = crossVec2(actor_to_target, chaser->direction);
     
     if (distance_sq <= MIN_CHASE_DISTANCE_SQ)
         (chaser->control) &= ~CONTROL_UP;
@@ -120,71 +120,71 @@ void chaseTarget(Object_t* chaser)
     #endif
 }
 
-void think(Object_t* obj)
+void think(Actor_t* actor)
 {
-    if (Game.ObjectsById[obj->target_id] != UINT16_MAX)
+    if (Game.ActorsById[actor->target_id] != UINT16_MAX)
     {
-        obj->move_target = Game.Objects[Game.ObjectsById[obj->target_id]].position;
+        actor->move_target = Game.Actors[Game.ActorsById[actor->target_id]].position;
         // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
-        if (testFieldOfView(obj->position, obj->direction, obj->move_target) == IN_SIGHT)
+        if (testFieldOfView(actor->position, actor->direction, actor->move_target) == IN_SIGHT)
         {
-            obj->ai_mode = AI_CHASE;
-            obj->ai_timer = CHASE_TIMEOUT;
+            actor->ai_mode = AI_CHASE;
+            actor->ai_timer = CHASE_TIMEOUT;
         }
     }
     else
     {
-        Game.ObjectsById[obj->target_id] = UINT16_MAX;
-        obj->ai_mode = AI_IDLE;
-        obj->control = 0; // same as clearing all bits
+        Game.ActorsById[actor->target_id] = UINT16_MAX;
+        actor->ai_mode = AI_IDLE;
+        actor->control = 0; // same as clearing all bits
     }
 }
 
-void act(Object_t* obj)
+void act(Actor_t* actor)
 {
-    if (obj->ai_mode == AI_IDLE)
+    if (actor->ai_mode == AI_IDLE)
     {
-        if (obj->ai_timer == 0)
+        if (actor->ai_timer == 0)
         {
-            if (!(obj->control & (CONTROL_LEFT|CONTROL_RIGHT)))
+            if (!(actor->control & (CONTROL_LEFT|CONTROL_RIGHT)))
             {
-                obj->ai_timer = 5 + rand() % 30;
+                actor->ai_timer = 5 + rand() % 30;
                 if (rand() % 2)
-                    (obj->control) |= CONTROL_LEFT;
+                    (actor->control) |= CONTROL_LEFT;
                 else
-                    (obj->control) |= CONTROL_RIGHT;
+                    (actor->control) |= CONTROL_RIGHT;
             }
             else
             {
-                obj->ai_timer = 10 + rand() % 200;
-                obj->control = 0;
+                actor->ai_timer = 10 + rand() % 200;
+                actor->control = 0;
             }
         }
         else
-            obj->ai_timer--;
+            actor->ai_timer--;
     }
-    else if (obj->ai_mode == AI_CHASE)
+    else if (actor->ai_mode == AI_CHASE)
     {
-        if (obj->ai_timer > 0)
+        if (actor->ai_timer > 0)
         {
-            chaseTarget(obj);
-            if (obj->last_shot + obj->shot_delay < System.ticks);
+            chaseTarget(actor);
+            if (actor->last_shot + actor->shot_delay < System.ticks);
             {
-                shootWeapon(obj);
+                shootWeapon(actor);
             }
-            obj->ai_timer--;
+            actor->ai_timer--;
 
-            if (Game.ObjectsById[obj->target_id] == UINT16_MAX) // if target is deleted
+            if (Game.ActorsById[actor->target_id] == UINT16_MAX) // if target is deleted
             {
-                obj->target_id = UINT16_MAX; // remove chase target
-                obj->ai_mode = AI_IDLE;
-                obj->control = 0; // same as clearing all bits
+                actor->target_id = UINT16_MAX; // remove chase target
+                actor->ai_mode = AI_IDLE;
+                actor->control = 0; // same as clearing all bits
             }
         }
         else
         {
-            obj->ai_mode = AI_IDLE;
-            obj->control = 0; // same as clearing all bits
+            actor->ai_mode = AI_IDLE;
+            actor->control = 0; // same as clearing all bits
         }
     }
 }
@@ -194,19 +194,19 @@ void AILoop()
     int i;
     if (!(System.ticks % 10)) // only think every 10 tics
     {
-        for (i = 1; i < Game.object_count; i++)
+        for (i = 1; i < Game.actor_count; i++)
         {
-            if (Game.Objects[i].ai_mode != AI_NONE)
+            if (Game.Actors[i].ai_mode != AI_NONE)
             {
-                think(&Game.Objects[i]);
-                act(&Game.Objects[i]);
+                think(&Game.Actors[i]);
+                act(&Game.Actors[i]);
             }
         }
     }
     else
     {
-        for (i = 1; i < Game.object_count; i++)
-            if (Game.Objects[i].ai_mode != AI_NONE)
-                act(&Game.Objects[i]);
+        for (i = 1; i < Game.actor_count; i++)
+            if (Game.Actors[i].ai_mode != AI_NONE)
+                act(&Game.Actors[i]);
     }
 }

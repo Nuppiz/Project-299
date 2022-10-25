@@ -81,10 +81,10 @@ void playerControl()
         pushState(STATE_PAUSE);
     }
     if (KEY_WAS_HIT(KEY_SPACEBAR))
-        shootWeapon(&PlayerObject);
+        shootWeapon(&PlayerActor);
 
     if (KEY_WAS_HIT(KEY_E))
-        useTile(PlayerObject.position, PlayerObject.direction);
+        useTile(PlayerActor.position, PlayerActor.direction);
 
     #if DEBUG == 1
     d[0] = '\0';
@@ -103,7 +103,7 @@ void playerControl()
 void testButtons()
 {
     if (KEY_WAS_HIT(KEY_DELETE))
-        deleteLastObject();
+        deleteLastActor();
 
     if (KEY_WAS_HIT(KEY_M))
     {
@@ -114,10 +114,10 @@ void testButtons()
     }
 
     if (KEY_WAS_HIT(KEY_K))
-        PlayerObject.health = 10;
+        PlayerActor.health = 10;
 
     if (KEY_WAS_HIT(KEY_2))
-        deleteObject(2);
+        deleteActor(2);
 
     if (KEY_WAS_HIT(KEY_PAGEUP))
         changeMusicVolume(VOLUME_UP);

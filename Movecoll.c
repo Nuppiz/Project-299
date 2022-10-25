@@ -4,16 +4,16 @@
 #include "Keyb.h"
 #include "Sound.h"
 
-/* Object_t movement and collision detection */
+/* Actor_t movement and collision detection */
 
 extern GameData_t Game;
 extern Entity_t Entities[];
 
-void updateGridLoc(Object_t* obj) // object's location on the grid
+void updateGridLoc(Actor_t* actor) // actor's location on the grid
 {   
-    // calculated by dividing the object's x/y location by square size
-    obj->grid_loc.x = obj->position.x / SQUARE_SIZE;
-    obj->grid_loc.y = obj->position.y / SQUARE_SIZE;
+    // calculated by dividing the actor's x/y location by square size
+    actor->grid_loc.x = actor->position.x / SQUARE_SIZE;
+    actor->grid_loc.y = actor->position.y / SQUARE_SIZE;
 }
 
 int getTileCollision(Vec2 pos)
@@ -52,12 +52,12 @@ int getTileBulletBlock(Vec2 pos)
 
 int checkForPortal(Vec2_int grid_location)
 {
-    int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
+    int actor_tile; // tile which the actor is on (or attempting to be), i.e. array index number from grid_array
     
     // check which grid_array index it corresponds to
-    object_tile = grid_location.y * Game.Map.width + grid_location.x;
+    actor_tile = grid_location.y * Game.Map.width + grid_location.x;
     
-    if (Game.Map.tilemap[object_tile].is_entity == 1 && Entities[Game.Map.tilemap[object_tile].entity_value].type == ENT_PORTAL) // check if there's a portal at that tile
+    if (Game.Map.tilemap[actor_tile].is_entity == 1 && Entities[Game.Map.tilemap[actor_tile].entity_value].type == ENT_PORTAL) // check if there's a portal at that tile
         return TRUE;
     
     return FALSE;
@@ -100,268 +100,268 @@ Vec2 moveFromPortal(Vec2 pos)
     return pos;
 }
 
-void edgeDetectObject(Object_t* obj)
+void edgeDetectActor(Actor_t* actor)
 {
-    if (obj->position.x - obj->radius <= 0) // left edge
+    if (actor->position.x - actor->radius <= 0) // left edge
     {
-        obj->position.x = 0 + obj->radius;
-        obj->velocity.x = 0.0;
+        actor->position.x = 0 + actor->radius;
+        actor->velocity.x = 0.0;
     }
-    else if (obj->position.x + obj->radius >= (SCREEN_WIDTH - 1)) // right edge
+    else if (actor->position.x + actor->radius >= (SCREEN_WIDTH - 1)) // right edge
     {
-        obj->position.x = (SCREEN_WIDTH - 1) - obj->radius;
-        obj->velocity.x = 0.0;
+        actor->position.x = (SCREEN_WIDTH - 1) - actor->radius;
+        actor->velocity.x = 0.0;
     }
     
-    if (obj->position.y - obj->radius <= 0) // top edge
+    if (actor->position.y - actor->radius <= 0) // top edge
     {
-        obj->position.y = 0 + obj->radius;
-        obj->velocity.y = 0.0;
+        actor->position.y = 0 + actor->radius;
+        actor->velocity.y = 0.0;
     }
-    else if (obj->position.y + obj->radius >= (SCREEN_HEIGHT - 1)) // bottom edge
+    else if (actor->position.y + actor->radius >= (SCREEN_HEIGHT - 1)) // bottom edge
     {
-        obj->position.y = (SCREEN_HEIGHT - 1) - obj->radius;
-        obj->velocity.y = 0.0;
+        actor->position.y = (SCREEN_HEIGHT - 1) - actor->radius;
+        actor->velocity.y = 0.0;
     }
 }
 
-void edgeDetectAllObjects()
+void edgeDetectAllActors()
 {
     int i = 0;
-    while (i < Game.object_count)
+    while (i < Game.actor_count)
     {
-        edgeDetectObject(&Game.Objects[i]);
+        edgeDetectActor(&Game.Actors[i]);
         i++;
     }
 }
 
-void controlObject(Object_t* obj)
+void controlActor(Actor_t* actor)
 {
     float max_speed, strafe_speed;
     double turn_rate;
 
-    max_speed = ((obj->control & CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
-    turn_rate = ((obj->control & CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
-    strafe_speed = ((obj->control & CONTROL_FAST)) ? FAST_STRAFE_SPEED : STRAFE_SPEED;
+    max_speed = ((actor->control & CONTROL_FAST)) ? RUN_SPEED : WALK_SPEED;
+    turn_rate = ((actor->control & CONTROL_FAST)) ? FAST_TURN_RATE : TURN_RATE;
+    strafe_speed = ((actor->control & CONTROL_FAST)) ? FAST_STRAFE_SPEED : STRAFE_SPEED;
 
-    obj->direction = getDirVec2(obj->angle); // calculate directional vector
+    actor->direction = getDirVec2(actor->angle); // calculate directional vector
     
-    if ((obj->control & CONTROL_UP) && obj->magnitude <= max_speed)
+    if ((actor->control & CONTROL_UP) && actor->magnitude <= max_speed)
     {
-        obj->velocity.x += obj->direction.x * ACCELERATION_RATE;
-        obj->velocity.y += obj->direction.y * ACCELERATION_RATE;
+        actor->velocity.x += actor->direction.x * ACCELERATION_RATE;
+        actor->velocity.y += actor->direction.y * ACCELERATION_RATE;
     }
-    else if ((obj->control & CONTROL_DOWN) && obj->magnitude <= max_speed)
+    else if ((actor->control & CONTROL_DOWN) && actor->magnitude <= max_speed)
     {
-        obj->velocity.x -= obj->direction.x * ACCELERATION_RATE;
-        obj->velocity.y -= obj->direction.y * ACCELERATION_RATE;
+        actor->velocity.x -= actor->direction.x * ACCELERATION_RATE;
+        actor->velocity.y -= actor->direction.y * ACCELERATION_RATE;
     }
-    else if (obj->magnitude > 0)
+    else if (actor->magnitude > 0)
     {
-        if (obj->magnitude < STOP_SPEED)
+        if (actor->magnitude < STOP_SPEED)
         {
-            obj->velocity.x = 0;
-            obj->velocity.y = 0;
+            actor->velocity.x = 0;
+            actor->velocity.y = 0;
         }
         else
         {
-            obj->velocity.x /= DECELERATION_RATE;
-            obj->velocity.y /= DECELERATION_RATE;
+            actor->velocity.x /= DECELERATION_RATE;
+            actor->velocity.y /= DECELERATION_RATE;
         }
     }
 
-    if ((obj->control & CONTROL_LEFT))
+    if ((actor->control & CONTROL_LEFT))
     {
-        obj->angle -= turn_rate;
-        if (obj->angle < 0)
-            obj->angle = RAD_360;
+        actor->angle -= turn_rate;
+        if (actor->angle < 0)
+            actor->angle = RAD_360;
     }
-    if ((obj->control & CONTROL_RIGHT))
+    if ((actor->control & CONTROL_RIGHT))
     {
-        obj->angle += turn_rate;
-        if (obj->angle > RAD_360)
-            obj->angle = 0;
+        actor->angle += turn_rate;
+        if (actor->angle > RAD_360)
+            actor->angle = 0;
     }
 
-    if ((obj->control & CONTROL_STRAFE_L) && obj->magnitude <= max_speed)
+    if ((actor->control & CONTROL_STRAFE_L) && actor->magnitude <= max_speed)
     {
-        obj->velocity.x += obj->direction.y * strafe_speed;
-        obj->velocity.y += -obj->direction.x * strafe_speed;
+        actor->velocity.x += actor->direction.y * strafe_speed;
+        actor->velocity.y += -actor->direction.x * strafe_speed;
     }
-    if ((obj->control & CONTROL_STRAFE_R) && obj->magnitude <= max_speed)
+    if ((actor->control & CONTROL_STRAFE_R) && actor->magnitude <= max_speed)
     {
-        obj->velocity.x += -obj->direction.y * strafe_speed;
-        obj->velocity.y += obj->direction.x * strafe_speed;
+        actor->velocity.x += -actor->direction.y * strafe_speed;
+        actor->velocity.y += actor->direction.x * strafe_speed;
     }
 }
 
-void controlAllObjects()
+void controlAllActors()
 {
     int i = 0;
     
-    // copy control variable from Input.c to the player object's control variable
+    // copy control variable from Input.c to the player actor's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
     extern flags_t player_control;
-    PlayerObject.control = player_control;
+    PlayerActor.control = player_control;
 
-    while (i < Game.object_count)
+    while (i < Game.actor_count)
     {
-        controlObject(&Game.Objects[i]);
+        controlActor(&Game.Actors[i]);
         i++;
     }
 }
 
-void moveObject(Object_t* obj, Vec2 movement)
+void moveActor(Actor_t* actor, Vec2 movement)
 {
-    // collision box around the object
+    // collision box around the actor
     Vec2 test_point_a;
     Vec2 test_point_b;
     
-    updateGridLoc(obj);
+    updateGridLoc(actor);
     
     if (movement.x > 0) // if moving to the right
     {
-        obj->position.x += movement.x; // temporarily move the object
+        actor->position.x += movement.x; // temporarily move the actor
         // test_point_a = top right corner
-        test_point_a.x = obj->position.x + obj->radius;
-        test_point_a.y = obj->position.y - obj->radius;
+        test_point_a.x = actor->position.x + actor->radius;
+        test_point_a.y = actor->position.y - actor->radius;
         // test_point_b = bottom right corner
-        test_point_b.x = obj->position.x + obj->radius;
-        test_point_b.y = obj->position.y + obj->radius;
+        test_point_b.x = actor->position.x + actor->radius;
+        test_point_b.y = actor->position.y + actor->radius;
         
-        // if the movement would result in the object moving inside of a wall...
+        // if the movement would result in the actor moving inside of a wall...
         if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
             // ...cancel movement and set velocity to 0
-            obj->position.x = (obj->grid_loc.x + 1) * SQUARE_SIZE - obj->radius - 1;
-            obj->velocity.x = 0.0;
+            actor->position.x = (actor->grid_loc.x + 1) * SQUARE_SIZE - actor->radius - 1;
+            actor->velocity.x = 0.0;
         }
     }
     else if (movement.x < 0) // if moving to the left
     {
-        obj->position.x += movement.x;
+        actor->position.x += movement.x;
         // test_point_a = top left corner
-        test_point_a.x = obj->position.x - obj->radius;
-        test_point_a.y = obj->position.y - obj->radius;
+        test_point_a.x = actor->position.x - actor->radius;
+        test_point_a.y = actor->position.y - actor->radius;
         // test_point_b = bottom left corner
-        test_point_b.x = obj->position.x - obj->radius;
-        test_point_b.y = obj->position.y + obj->radius;
+        test_point_b.x = actor->position.x - actor->radius;
+        test_point_b.y = actor->position.y + actor->radius;
         
         if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
-            obj->position.x = obj->grid_loc.x * SQUARE_SIZE + obj->radius;
-            obj->velocity.x = 0.0;
+            actor->position.x = actor->grid_loc.x * SQUARE_SIZE + actor->radius;
+            actor->velocity.x = 0.0;
         }
     }
 
     if (movement.y < 0) // if moving towards the top
     {
-        obj->position.y += movement.y;
+        actor->position.y += movement.y;
         // test_point_a = top right corner
-        test_point_a.x = obj->position.x + obj->radius;
-        test_point_a.y = obj->position.y - obj->radius;
+        test_point_a.x = actor->position.x + actor->radius;
+        test_point_a.y = actor->position.y - actor->radius;
         // test_point_b = top left corner
-        test_point_b.x = obj->position.x - obj->radius;
-        test_point_b.y = obj->position.y - obj->radius;
+        test_point_b.x = actor->position.x - actor->radius;
+        test_point_b.y = actor->position.y - actor->radius;
         
         if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
-            obj->position.y = obj->grid_loc.y * SQUARE_SIZE + obj->radius;
-            obj->velocity.y = 0.0;
+            actor->position.y = actor->grid_loc.y * SQUARE_SIZE + actor->radius;
+            actor->velocity.y = 0.0;
         }
     }
     else if (movement.y > 0) // if moving towards the bottom
     {
-        obj->position.y += movement.y;
+        actor->position.y += movement.y;
         // test_point_a = bottom right corner
-        test_point_a.x = obj->position.x + obj->radius;
-        test_point_a.y = obj->position.y + obj->radius;
+        test_point_a.x = actor->position.x + actor->radius;
+        test_point_a.y = actor->position.y + actor->radius;
         // test_point_b = bottom left corner
-        test_point_b.x = obj->position.x - obj->radius;
-        test_point_b.y = obj->position.y + obj->radius;
+        test_point_b.x = actor->position.x - actor->radius;
+        test_point_b.y = actor->position.y + actor->radius;
         
         if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
         {
-            obj->position.y = (obj->grid_loc.y + 1) * SQUARE_SIZE - obj->radius - 1;
-            obj->velocity.y = 0.0;
+            actor->position.y = (actor->grid_loc.y + 1) * SQUARE_SIZE - actor->radius - 1;
+            actor->velocity.y = 0.0;
         }
     }
-    updateGridLoc(obj);
+    updateGridLoc(actor);
 }
 
-void moveAllObjects()
+void moveAllActors()
 {
     int i = 0;
     
-    // iterate through the object array
-    while (i < Game.object_count)
+    // iterate through the actor array
+    while (i < Game.actor_count)
     {
-        moveObject(&Game.Objects[i], Game.Objects[i].velocity);
-        Game.Objects[i].magnitude = getVec2Length(Game.Objects[i].velocity);
+        moveActor(&Game.Actors[i], Game.Actors[i].velocity);
+        Game.Actors[i].magnitude = getVec2Length(Game.Actors[i].velocity);
         i++;
     }
 }
 
-void collideTwoObjects(Object_t* object_a, Object_t* object_b)
+void collideTwoActors(Actor_t* actor_a, Actor_t* actor_b)
 {
     float distance_x;
     float distance_y;
     float distance_squared;
     float collision_depth;
-    int radii_squared = (object_a->radius + object_b->radius) * (object_a->radius + object_b->radius);
-    Vec2 u; // how much each object moves in case of a collision
+    int radii_squared = (actor_a->radius + actor_b->radius) * (actor_a->radius + actor_b->radius);
+    Vec2 u; // how much each actor moves in case of a collision
     
-    distance_x = object_a->position.x - object_b->position.x;  // x-distance between the two objects
-    distance_y = object_a->position.y - object_b->position.y;  // y-distance between the two objects
+    distance_x = actor_a->position.x - actor_b->position.x;  // x-distance between the two actors
+    distance_y = actor_a->position.y - actor_b->position.y;  // y-distance between the two actors
     
-    // squared distance between the two objects (spares an expensive sqrt operation)
+    // squared distance between the two actors (spares an expensive sqrt operation)
     distance_squared = (distance_x * distance_x) + (distance_y * distance_y);
     
     // if distance is less than combined radiuses squared
     if (distance_squared < radii_squared)
     {
-        // calculate how much the objects are "inside" each other
+        // calculate how much the actors are "inside" each other
         collision_depth = radii_squared - distance_squared;
         
-        // each object is moved for half of that
+        // each actor is moved for half of that
         u.x = (distance_x / distance_squared) * (collision_depth / 2);
         u.y = (distance_y / distance_squared) * (collision_depth / 2);
         
-        // first object gets the values as is...
-        moveObject(object_a, u);
+        // first actor gets the values as is...
+        moveActor(actor_a, u);
         
-        // ...and for the second object they are flipped
+        // ...and for the second actor they are flipped
         u.x = -u.x;
         u.y = -u.y;
-        moveObject(object_b, u);
+        moveActor(actor_b, u);
     }
 }
 
-void collideAllObjects()
+void collideAllActors()
 {
     int x;
     int i;
     
-    // iterate through each object pair to see if they collide
-    for (i = 0; i < Game.object_count; i++)
+    // iterate through each actor pair to see if they collide
+    for (i = 0; i < Game.actor_count; i++)
     {
-        for (x = i; x < Game.object_count-1; x++)
+        for (x = i; x < Game.actor_count-1; x++)
         {
-            collideTwoObjects(&Game.Objects[i], &Game.Objects[x+1]);
+            collideTwoActors(&Game.Actors[i], &Game.Actors[x+1]);
         }
     }
     
-    // also check that none of the objects are going beyond the screen boundaries
+    // also check that none of the actors are going beyond the screen boundaries
     // edgeDetect();
 }
 
 void physics()
 {
-    controlAllObjects();
-    moveAllObjects();
-    collideAllObjects();
+    controlAllActors();
+    moveAllActors();
+    collideAllActors();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerObject.velocity.x, PlayerObject.velocity.y);
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerActor.velocity.x, PlayerActor.velocity.y);
     #endif
 }

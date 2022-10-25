@@ -18,6 +18,7 @@
 #include "Enums.h"
 
 typedef long time_t;
+typedef long ticks_t;
 typedef uint16_t id_t;
 typedef uint16_t flags_t;
 
