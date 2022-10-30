@@ -371,13 +371,13 @@ void entityLoop()
             {
                 playSFX(SOUND_DEATH_E);
                 deathTrigger(i);
-                //spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
+                spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
                 deleteActor(Game.Actors[i].id);
             }
             else
             {
                 playSFX(SOUND_DEATH_E);
-                //spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
+                spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
                 deleteActor(Game.Actors[i].id);
             }
         }

@@ -4,6 +4,8 @@
 #include "Loadgfx.h"
 #include "Vectors.h"
 
+#define ACTOR_CHUNK_SIZE 16
+
 /* Game data and actor array functions */
 
 GameData_t Game = {0};
@@ -20,9 +22,9 @@ id_t getNewId()
         if (Game.ActorsById[id] == UINT16_MAX)
             return id;
     // no free IDs found; allocate more
-    Game.id_capacity += 16; // define as CHUNK or BLOCK or something
+    Game.id_capacity += ACTOR_CHUNK_SIZE;
     Game.ActorsById = realloc(Game.ActorsById, Game.id_capacity * sizeof(id_t));
-    memset(&Game.ActorsById[Game.id_capacity - 16], UINT8_MAX, 16 * sizeof(id_t)); // set new ids to -1
+    memset(&Game.ActorsById[Game.id_capacity - ACTOR_CHUNK_SIZE], UINT8_MAX, ACTOR_CHUNK_SIZE * sizeof(id_t)); // set new ids to -1
     // to do later: ensure successful allocation
     return id;
 }
@@ -35,7 +37,7 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
 
     if (Game.actor_count >= Game.actor_capacity)
     {
-        Game.actor_capacity += 16; // define as CHUNK or BLOCK or something
+        Game.actor_capacity += ACTOR_CHUNK_SIZE;
         Game.Actors = realloc(Game.Actors, Game.actor_capacity * sizeof(Actor_t));
         // to do later: ensure successful allocation
     }
@@ -70,17 +72,26 @@ void deleteActor(id_t id)
 {
     if (Game.ActorsById[id] != Game.actor_count - 1)
     {
-        Game.Actors[Game.ActorsById[id]] = Game.Actors[Game.actor_count - 1];
-        Game.ActorsById[Game.actor_count] = Game.actor_count;
+        id_t deleted_object_index;
+        id_t replacing_object_index;
+        id_t replacing_object_id;
+
+        deleted_object_index    = Game.ActorsById[id];
+        replacing_object_index  = Game.actor_count - 1;
+        replacing_object_id     = Game.Actors[Game.actor_count-1].id;
+
+        Game.Actors[deleted_object_index]    = Game.Actors[replacing_object_index];
+        Game.ActorsById[replacing_object_id] = deleted_object_index;
     }
     
     Game.actor_count--;
-    // set id value to UINT16_MAX so it can be reused
+
+    // set value in ID-to-actor map to UINT16_MAX so it can be reused
     Game.ActorsById[id] = UINT16_MAX;
 
-    if (Game.actor_count < Game.actor_capacity - 16)
+    if (Game.actor_count < Game.actor_capacity - ACTOR_CHUNK_SIZE)
     {
-        Game.actor_capacity -= 16;
+        Game.actor_capacity -= ACTOR_CHUNK_SIZE;
         Game.Actors = realloc(Game.Actors, Game.actor_capacity * sizeof(Actor_t));
     }
 }
