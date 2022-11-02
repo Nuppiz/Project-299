@@ -21,6 +21,7 @@ void gameUpdate()
     AILoop();
     physics();
     checkForInteractive();
+    actorLoop();
     entityLoop();
 }
 

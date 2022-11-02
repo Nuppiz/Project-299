@@ -85,13 +85,15 @@ typedef struct
 
 typedef struct
 {
+    char* name;
     uint16_t range; // absolute maximum range for projectiles/hitting the target (if melee)
-    uint16_t damage; // damage per projectile/hit/etc.
+    uint16_t damage; // base damage per projectile/hit/etc.
+    uint8_t extra_damage; // splash damage area (decreases with distance) OR bleeding/acid/poison damage per roll
     uint8_t num_projectiles; // number of projectiles per shot (e.g. a shotgun fires multiple pellets)
-    uint8_t projectile_spread; // how much each projectile diverts from the point of origin (i.e. accuracy)
-    ticks_t shot_delay; // delay between shots
+    int8_t projectile_speed; // if -1, instant (hitscan)
+    uint8_t projectile_spread; // how much each projectile diverts from the targeted point (i.e. accuracy)
+    ticks_t shot_delay; // delay between each shot/swing/whatever
     int8_t ammo_type; // if -1, infinite ammo/melee
-    uint8_t name_id; // id number to a char array that contains weapon names
     uint8_t sound_id; // id number to the enum table that contains sound effects
 } Weapon_t;
 
@@ -118,7 +120,9 @@ typedef struct
     int health;
     int8_t trigger_on_death; // entity ID to trigger on death
     ticks_t last_shot; // last shot taken
-    ticks_t shot_delay; // delay between shots
+    ticks_t shot_delay; // delay between shots, remove when weapon system ready
+    Weapon_t* primary_weapon;
+    Weapon_t* secondary_weapon;
 } Actor_t;
 
 typedef struct

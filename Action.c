@@ -358,6 +358,27 @@ void entityLoop()
 {
     int i;
 
+    for (i = 0; i < MAX_ENTITIES; i++)
+    {
+        if (Entities[i].type != ENT_DELETED)
+        {
+            if (Entities[i].type == ENT_SPAWNER)
+                runSpawner(&Entities[i]);
+            else if (Entities[i].type == ENT_TRIGGER)
+                runTrigger(&Entities[i]);
+            else if (Entities[i].type == ENT_COUNTER)
+                runCounter(&Entities[i]);
+            else if (Entities[i].type == ENT_PORTAL)
+                usePortal(&Entities[i]);
+        }
+    }
+    //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
+}
+
+void actorLoop()
+{
+    int i;
+
     for (i = 0; i < Game.actor_count; i++)
     {
         if (Game.Actors[i].health <= 0)
@@ -382,20 +403,4 @@ void entityLoop()
             }
         }
     }
-
-    for (i = 0; i < MAX_ENTITIES; i++)
-    {
-        if (Entities[i].type != ENT_DELETED)
-        {
-            if (Entities[i].type == ENT_SPAWNER)
-                runSpawner(&Entities[i]);
-            else if (Entities[i].type == ENT_TRIGGER)
-                runTrigger(&Entities[i]);
-            else if (Entities[i].type == ENT_COUNTER)
-                runCounter(&Entities[i]);
-            else if (Entities[i].type == ENT_PORTAL)
-                usePortal(&Entities[i]);
-        }
-    }
-    //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
 }
