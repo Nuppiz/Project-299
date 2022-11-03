@@ -20,4 +20,4 @@ $dude 390 150 1.0 7 0 1 1 1 100 1 SPRITES/DUDE3.7UP
 
 $entity 0 Portal 2 1 1 LEVEL3.LEV 130 110 0.0
 
-$interactive Key_Red 63 1
+$item Key_Red 63 1

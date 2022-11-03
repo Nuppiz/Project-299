@@ -47,5 +47,6 @@ $entity 5 Trigger 10 16 0 1000 6 -1 -1 -1 0
 $entity 6 Counter 5 3 0
 $entity 7 Portal 10 10 1 LEVEL2.LEV 30 30 0.0
 
-$interactive Key_Red 86 1
-$interactive Spikes 536 1
+$item Key_Red 86 1
+
+$interactive Spikes 536

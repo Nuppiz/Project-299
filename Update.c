@@ -20,8 +20,9 @@ void gameUpdate()
 {
     AILoop();
     physics();
+    checkForItem();
     checkForInteractive();
-    actorLoop();
+    actorDeathLoop();
     entityLoop();
 }
 

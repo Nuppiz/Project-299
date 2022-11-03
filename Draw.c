@@ -15,7 +15,7 @@ extern Texture_array BaseTextures;
 extern Texture_array ActorTextures;
 extern Texture_array TileTextures;
 extern Tile_t TileSet[];
-extern Interactive_t* Interactives;
+extern Item_t* Items;
 
 Vec2 camera_offset;
 
@@ -533,11 +533,11 @@ void drawMap()
             for (x_pixel = 0 - (camera_offset.x - xi * SQUARE_SIZE), num_cols = 0; x_pixel < SCREEN_WIDTH && num_cols <= max_cols; x_pixel += SQUARE_SIZE, num_cols++)
             {
                 drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
-                for (a = 0; a < Game.interactive_count; a++)
+                for (a = 0; a < Game.item_count; a++)
                 {
-                    if (Interactives[a].state == 1)
+                    if (Items[a].state == 1)
                     {                    
-                        if (i == Interactives[a].index && Interactives[a].type == TILE_KEY_RED)
+                        if (i == Items[a].index && Items[a].type == ITEM_KEY_RED)
                             drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
                     }
                 }
@@ -552,11 +552,11 @@ void drawMap()
                 if (x_pixel >= abs(xi) * SQUARE_SIZE)
                 {
                     drawTextureClipped(x_pixel, y_pixel, &TileTextures.textures[Game.Map.tilemap[i].texture_id]);
-                    for (a = 0; a < Game.interactive_count; a++)
+                    for (a = 0; a < Game.item_count; a++)
                     {
-                        if (Interactives[a].state == 1)
+                        if (Items[a].state == 1)
                         {                    
-                            if (i == Interactives[a].index && Interactives[a].type == TILE_KEY_RED)
+                            if (i == Items[a].index && Items[a].type == ITEM_KEY_RED)
                                 drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
                         }
                     }

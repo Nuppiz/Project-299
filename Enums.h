@@ -33,12 +33,17 @@ enum EntityUseModes
     USE_VIA_BUTTON
 };
 
+enum Items
+{
+    ITEM_KEY_RED,
+    ITEM_KEY_BLUE,
+    ITEM_KEY_YELLOW,
+    NUM_ITEMTYPES
+};
+
 enum InteractiveTile
 {
     NONE,
-    TILE_KEY_RED,
-    TILE_KEY_BLUE,
-    TILE_KEY_YELLOW,
     TILE_SPIKES,
     NUM_INTERACTIVE_TILES
 };

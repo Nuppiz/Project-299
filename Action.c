@@ -14,43 +14,54 @@ extern System_t System;
 extern Timer_t Timers;
 extern GameData_t Game;
 extern Entity_t Entities[];
-extern Interactive_t* Interactives;
+extern Item_t* Items;
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
-void checkForInteractive() // temporary, will be replaced with better system later
+void checkForItem() // might be replaced with better system later
 {
     int tilemap_loc, i, a;
 
     for (i = 0; i < Game.actor_count; i++)
     {
         tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;
-        for (a = 0; a < Game.interactive_count; a++)
+        for (a = 0; a < Game.item_count; a++)
         {
-            if (tilemap_loc == Interactives[a].index && Interactives[a].state == 1)
+            if (tilemap_loc == Items[a].index && Items[a].state == 1)
             {
-                if (Interactives[a].type == TILE_KEY_RED && i == 0)
+                if (Items[a].type == ITEM_KEY_RED && i == 0)
                 {
                     key_acquired = TRUE;
-                    Interactives[a].state = 0;
+                    Items[a].state = 0;
                     playSFX(SOUND_ITEM);
                 }
-                else if (Interactives[a].type == TILE_SPIKES)
+            }
+        }
+    }
+}
+
+void checkForInteractive() // temporary, will be replaced with better system later
+{
+    int tilemap_loc, i;
+    static time_t last_env_damage = 0;
+
+    for (i = 0; i < Game.actor_count; i++)
+    {
+        tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;;
+        if (Game.Map.tilemap[tilemap_loc].is_entity == 0)
+        {
+            if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_SPIKES)
+            {
+                if (last_env_damage + HURT_INTERVAL < System.ticks)
                 {
-                    if (Timers.last_env_damage + HURT_INTERVAL < System.ticks)
-                    {
-                        Timers.last_env_damage = System.ticks;
-                        Game.Actors[i].health -= 10;
-                        if(Game.Actors[i].health > 0)
-                        {
-                            if (Game.Actors[i].id == Game.player_id)
-                                playSFX(SOUND_HURT);
-                            else
-                                playSFX(SOUND_HURT_E);
-                        }
-                        #if DEBUG == 1
-                        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
-                        #endif
-                    }
+                    last_env_damage = System.ticks;
+                    if (Game.Actors[i].id == Game.player_id)
+                        playSFX(SOUND_HURT);
+                    else
+                        playSFX(SOUND_HURT_E);
+                    Game.Actors[i].health -= 10;
+                    #if DEBUG == 1
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
+                    #endif
                 }
             }
         }
@@ -375,7 +386,7 @@ void entityLoop()
     //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
 }
 
-void actorLoop()
+void actorDeathLoop()
 {
     int i;
 

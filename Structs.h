@@ -170,8 +170,8 @@ typedef struct {
 typedef struct {
     int index; // tilemap index
     uint8_t state : 1; // enabled/disabled
-    uint8_t type : 7; // type of interactive tile
-} Interactive_t;
+    uint8_t type : 7; // type of item from Items enum
+} Item_t;
 
 typedef struct
 {
@@ -182,8 +182,8 @@ typedef struct
     id_t actor_count;
     id_t actor_capacity;
     id_t id_capacity;
-    uint8_t interactive_count;
-    uint8_t interactive_capacity;
+    uint8_t item_count;
+    uint8_t item_capacity;
     id_t player_id;
 } GameData_t;
 

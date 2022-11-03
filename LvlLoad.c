@@ -15,7 +15,7 @@ extern Timer_t Timers;
 extern GameData_t Game;
 extern Texture_array TileTextures;
 Tile_t TileSet[TILESET_MAX];
-Interactive_t* Interactives;
+Item_t* Items;
 char levelname_global[15];
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
@@ -28,12 +28,16 @@ const char* entity_type_strings[NUM_ENTITYTYPES] =
     "Portal",
 };
 
-const char* interactive_type_strings[NUM_INTERACTIVE_TILES] =
+const char* item_type_strings[NUM_ITEMTYPES] =
 {
-    "None",
     "Key_Red",
     "Key_Blue",
     "Key_Yellow",
+};
+
+const char* interactive_type_strings[NUM_INTERACTIVE_TILES] =
+{
+    "None",
     "Spikes",
 };
 
@@ -94,6 +98,18 @@ int interactiveTypeCheck(char* interactive_name)
     {
         if (strcmp(interactive_name, interactive_type_strings[interactive_type_index]) == 0)
             return interactive_type_index;
+    }
+    return RETURN_ERROR;
+}
+
+int itemTypeCheck(char* item_name)
+{
+    int item_type_index;
+
+    for (item_type_index = 0; item_type_index < NUM_ITEMTYPES; item_type_index++)
+    {
+        if (strcmp(item_name, item_type_strings[item_type_index]) == 0)
+            return item_type_index;
     }
     return RETURN_ERROR;
 }
@@ -215,9 +231,13 @@ void levelLoader(char* level_name, uint8_t load_type)
     char entity_name[20];
     int entity_id, entity_type;
 
+    // item tile variables
+    char item_name[20];
+    int item_type, tilemap_location, state;
+
     // interactive tile variables
     char interactive_name[20];
-    int interactive_type, tilemap_location, state;
+    int interactive_type;
 
     strcat(level_path, level_name);
 
@@ -240,10 +260,10 @@ void levelLoader(char* level_name, uint8_t load_type)
         freeAllTextures();
         freeGameData();
         emptyCorpseArray();
-        if (Interactives != NULL)
+        if (Items != NULL)
         {
-            free(Interactives);
-            Game.interactive_capacity = 0;
+            free(Items);
+            Game.item_capacity = 0;
         }
     }
 
@@ -252,9 +272,9 @@ void levelLoader(char* level_name, uint8_t load_type)
     if (load_type == LOAD_NEW_LEVEL)
     {
         initGameData(OBJ_DEFAULT_CAPACITY, OBJ_DEFAULT_CAPACITY);
-        Game.interactive_capacity = 16;
-        Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
-        memset(Interactives, 0, Game.interactive_capacity * sizeof(Interactive_t));
+        Game.item_capacity = 16;
+        Items = malloc(Game.item_capacity * sizeof(Item_t));
+        memset(Items, 0, Game.item_capacity * sizeof(Item_t));
     }
 
     while ((c = fgetc(level_file)) != EOF)
@@ -313,9 +333,32 @@ void levelLoader(char* level_name, uint8_t load_type)
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
-            else if (strcmp(buffer, "interactive") == 0 && load_type != LOAD_SAVED_LEVEL)
+            else if (strcmp(buffer, "item") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%s %d %d", interactive_name, &tilemap_location, &state);
+                fscanf(level_file, "%s %d %d", item_name, &tilemap_location, &state);
+                item_type = itemTypeCheck(item_name);
+                if (item_type == RETURN_ERROR)
+                {
+                    // replace later with just exit to main menu
+                    fclose(level_file);
+                    setVideoMode(TEXT_MODE);
+                    printf("Level load error: invalid item tile type.\n");
+                    printf("Please check the level file!\n");
+                    System.running = 0;
+                }
+                Items[Game.item_count].index = tilemap_location;
+                Items[Game.item_count].state = state;
+                Items[Game.item_count].type = item_type;
+                Game.item_count++;
+                if (Game.item_count >= Game.item_capacity)
+                {
+                    Game.item_capacity += 8;
+                    Items = realloc(Items, Game.item_capacity * sizeof(Item_t));
+                }
+            }
+            else if (strcmp(buffer, "interactive") == 0)
+            {
+                fscanf(level_file, "%s %d", interactive_name, &tilemap_location);
                 interactive_type = interactiveTypeCheck(interactive_name);
                 if (interactive_type == RETURN_ERROR)
                 {
@@ -324,17 +367,10 @@ void levelLoader(char* level_name, uint8_t load_type)
                     setVideoMode(TEXT_MODE);
                     printf("Level load error: invalid interactive tile type.\n");
                     printf("Please check the level file!\n");
-                    System.running = 0;
+                    quit();
                 }
-                Interactives[Game.interactive_count].index = tilemap_location;
-                Interactives[Game.interactive_count].state = state;
-                Interactives[Game.interactive_count].type = interactive_type;
-                Game.interactive_count++;
-                if (Game.interactive_count >= Game.interactive_capacity)
-                {
-                    Game.interactive_capacity += 8;
-                    Interactives = realloc(Interactives, Game.interactive_capacity* sizeof(Interactive_t));
-                }
+                Game.Map.tilemap[tilemap_location].is_entity = 0;
+                Game.Map.tilemap[tilemap_location].entity_value = interactive_type;
             }
         }
     }
@@ -425,7 +461,7 @@ void saveLevelState(char* foldername, char* levelname)
     fwrite(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
     fwrite(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
-    fwrite(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
+    fwrite(Items, sizeof(Item_t), Game.item_capacity, save_file);
     System.paused = FALSE;
     fclose(save_file);
 }
@@ -484,14 +520,14 @@ void loadLevelState(char* foldername, char* savename)
     fread(&Game.actor_capacity, 2, 1, save_file);
     fread(&Game.id_capacity, 2, 1, save_file);
     initGameData(Game.actor_capacity, Game.id_capacity);
-    fread(&Game.interactive_count, 1, 1, save_file);
-    fread(&Game.interactive_capacity, 1, 1, save_file);
-    Interactives = malloc(Game.interactive_capacity * sizeof(Interactive_t));
+    fread(&Game.item_count, 1, 1, save_file);
+    fread(&Game.item_capacity, 1, 1, save_file);
+    Items = malloc(Game.item_capacity * sizeof(Item_t));
     fread(&Game.player_id, 2, 1, save_file);
     fread(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
     fread(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
-    fread(Interactives, sizeof(Interactive_t), Game.interactive_capacity, save_file);
+    fread(Items, sizeof(Item_t), Game.item_capacity, save_file);
     fclose(save_file);
     setEntityTilemap();
 }
