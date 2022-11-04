@@ -49,7 +49,7 @@ void checkForInteractive() // temporary, will be replaced with better system lat
         tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;;
         if (Game.Map.tilemap[tilemap_loc].is_entity == 0)
         {
-            if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_SPIKES)
+            if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_DMG_10)
             {
                 if (last_env_damage + HURT_INTERVAL < System.ticks)
                 {

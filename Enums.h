@@ -44,7 +44,7 @@ enum Items
 enum InteractiveTile
 {
     NONE,
-    TILE_SPIKES,
+    TILE_DMG_10,
     NUM_INTERACTIVE_TILES
 };
 

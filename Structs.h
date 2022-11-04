@@ -91,7 +91,7 @@ typedef struct
     uint8_t extra_damage; // splash damage area (decreases with distance) OR bleeding/acid/poison damage per roll
     uint8_t num_projectiles; // number of projectiles per shot (e.g. a shotgun fires multiple pellets)
     int8_t projectile_speed; // if -1, instant (hitscan)
-    uint8_t projectile_spread; // how much each projectile diverts from the targeted point (i.e. accuracy)
+    uint8_t projectile_spread; // maximum of how much each projectile divert from the targeted point (i.e. accuracy)
     ticks_t shot_delay; // delay between each shot/swing/whatever
     int8_t ammo_type; // if -1, infinite ammo/melee
     uint8_t sound_id; // id number to the enum table that contains sound effects

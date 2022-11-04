@@ -69,6 +69,8 @@ void loadTileset(char* filename)
                 case 'G': TileTextures.textures[tex_id].material_type = MAT_GRASS; continue;
                 case 'O': TileSet[symbol].obstacle = 1; continue;
                 case 'B': TileSet[symbol].block_bullets = 1; continue;
+                case 'I': TileSet[symbol].is_entity = 0; continue;
+                case '1': TileSet[symbol].entity_value = TILE_DMG_10; continue;
                 
                 default:  continue;
                 }
@@ -86,18 +88,6 @@ int entityTypeCheck(char* entity_name)
     {
         if (strcmp(entity_name, entity_type_strings[entity_type_index]) == 0)
             return entity_type_index;
-    }
-    return RETURN_ERROR;
-}
-
-int interactiveTypeCheck(char* interactive_name)
-{
-    int interactive_type_index;
-
-    for (interactive_type_index = 0; interactive_type_index < NUM_INTERACTIVE_TILES; interactive_type_index++)
-    {
-        if (strcmp(interactive_name, interactive_type_strings[interactive_type_index]) == 0)
-            return interactive_type_index;
     }
     return RETURN_ERROR;
 }
@@ -355,22 +345,6 @@ void levelLoader(char* level_name, uint8_t load_type)
                     Game.item_capacity += 8;
                     Items = realloc(Items, Game.item_capacity * sizeof(Item_t));
                 }
-            }
-            else if (strcmp(buffer, "interactive") == 0)
-            {
-                fscanf(level_file, "%s %d", interactive_name, &tilemap_location);
-                interactive_type = interactiveTypeCheck(interactive_name);
-                if (interactive_type == RETURN_ERROR)
-                {
-                    // replace later with just exit to main menu
-                    fclose(level_file);
-                    setVideoMode(TEXT_MODE);
-                    printf("Level load error: invalid interactive tile type.\n");
-                    printf("Please check the level file!\n");
-                    quit();
-                }
-                Game.Map.tilemap[tilemap_location].is_entity = 0;
-                Game.Map.tilemap[tilemap_location].entity_value = interactive_type;
             }
         }
     }

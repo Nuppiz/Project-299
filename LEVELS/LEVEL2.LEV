@@ -30,5 +30,3 @@ $player 100 100 0.0 7 0 SPRITES/DUDE1.7UP
 $entity 0 Portal 10 10 1 LEVEL1.LEV 250 250 0.0
 $entity 1 Trigger 10 13 0 1000 2 -1 -1 -1 0
 $entity 2 Counter 5 3 0
-
-$interactive Spikes 170

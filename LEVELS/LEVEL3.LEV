@@ -46,5 +46,3 @@ $dude 110 410 1.0 7 0 1 1 1 100 1 SPRITES/DUDE3.7UP
 $entity 0 Portal 6 4 1 LEVEL4.LEV 60 60 0.0
 $entity 1 Portal 23 4 1 LEVEL5.LEV 190 70 0.0
 $entity 2 Door 23 7 0 1 0
-
-$interactive Spikes 806
