@@ -41,6 +41,15 @@ enum Items
     NUM_ITEMTYPES
 };
 
+enum Weapons
+{
+    WEAPON_FIST,
+    WEAPON_PISTOL,
+    WEAPON_SHOTGUN,
+    WEAPON_CHAINGUN,
+    NUM_WEAPONS
+};
+
 enum InteractiveTile
 {
     NONE,
@@ -50,7 +59,6 @@ enum InteractiveTile
 
 enum SoundEffects
 {
-    SOUND_SHOOT,
     SOUND_SWITCH,
     SOUND_LOCKED,
     SOUND_ITEM,
@@ -61,6 +69,9 @@ enum SoundEffects
     SOUND_DEATH,
     SOUND_DEATH_E,
     SOUND_PORTAL,
+    SOUND_PUNCH,
+    SOUND_PISTOL,
+    SOUND_SHOTGUN,
     NUM_SFX
 };
 

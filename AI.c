@@ -168,9 +168,9 @@ void act(Actor_t* actor)
         if (actor->ai_timer > 0)
         {
             chaseTarget(actor);
-            if (actor->last_shot + actor->shot_delay < System.ticks);
+            if (actor->last_shot + actor->primary_weapon->shot_delay < System.ticks);
             {
-                shootWeapon(actor);
+                shootWeapon(actor->primary_weapon, actor);
             }
             actor->ai_timer--;
 

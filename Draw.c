@@ -869,10 +869,10 @@ void drawHealth()
 
 void drawStats()
 {
-    char actor_count[10];
+    char cur_weapon[30];
 
-    sprintf(actor_count, "ACT: %d", Game.actor_count);
-    drawText(80, 190, actor_count, COLOUR_WHITE);
+    sprintf(cur_weapon, "%s", PlayerActor.primary_weapon->name);
+    drawText(2, 190, cur_weapon, COLOUR_WHITE);
 }
 
 void menuDraw()
@@ -893,6 +893,7 @@ void gameDraw()
     corpseArrayManager();
     drawActors();
     drawHealth();
+    drawStats();
     particleArrayManager();
 
     #if DEBUG == 1

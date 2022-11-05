@@ -14,6 +14,7 @@ extern System_t System;
 extern Timer_t Timers;
 extern GameData_t Game;
 extern Texture_array TileTextures;
+extern Weapon_t Weapons[];
 Tile_t TileSet[TILESET_MAX];
 Item_t* Items;
 char levelname_global[15];
@@ -214,7 +215,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     // actor variables
     int x, y;
     double angle;
-    int radius, control, ai_mode, ai_timer, health, trigger_on_death;
+    int radius, control, ai_mode, ai_timer, health, trigger_on_death, weapon_id;
     id_t ai_target, texture_id;
 
     // entity variables
@@ -300,13 +301,13 @@ void levelLoader(char* level_name, uint8_t load_type)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, 20, texture_filename);
+                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, WEAPON_PISTOL, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %s",
-                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, texture_filename);
-                createActor((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, 20, texture_filename);
+                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %d %s",
+                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, &weapon_id, texture_filename);
+                createActor((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, weapon_id, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
@@ -405,6 +406,7 @@ void saveGameState(char* foldername)
     fwrite(&PlayerActor.health, 2, 1, save_file);
     fwrite(&PlayerActor.position.x, 8, 1, save_file);
     fwrite(&PlayerActor.position.y, 8, 1, save_file);
+    fwrite(&PlayerActor.primary_weapon->id, 2, 1, save_file);
     fwrite(&System, sizeof(System_t), 1, save_file);
     fwrite(&Timers, sizeof(Timer_t), 1, save_file);
     fclose(save_file);
@@ -443,7 +445,7 @@ void saveLevelState(char* foldername, char* levelname)
 void loadGameState(char* foldername)
 {
     FILE* state_file;
-    int player_hp;
+    int player_hp, current_weapon;
     Vec2 player_loc;
     char savefilepath[50] = "SAVES/";
 
@@ -459,8 +461,10 @@ void loadGameState(char* foldername)
             PlayerActor.health = player_hp;
         fread(&player_loc.x, 8, 1, state_file);
         fread(&player_loc.y, 8, 1, state_file);
+        fread(&current_weapon, 2, 1, state_file);
         PlayerActor.position.x = player_loc.x;
         PlayerActor.position.y = player_loc.y;
+        PlayerActor.primary_weapon = &Weapons[current_weapon];
         updateGridLoc(&PlayerActor);
         // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
         if (checkForPortal(PlayerActor.grid_loc) == TRUE)

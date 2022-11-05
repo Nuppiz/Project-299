@@ -294,7 +294,7 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
         return FALSE;
 }
 
-void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
+void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, int damage)
 {
     int bulletpath, i;
     uint8_t hit_something = FALSE;
@@ -306,7 +306,8 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
 
         if (getTileBulletBlock(pos) == TRUE)
         {
-            particleFx(pos, dir, FX_SPARKS);
+            if (weapon_id != WEAPON_FIST)
+                particleFx(pos, dir, FX_SPARKS);
             hit_something = TRUE;
             break;
         }
@@ -322,7 +323,7 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
                     #endif
-                    Game.Actors[i].health -= 8;
+                    Game.Actors[i].health -= damage;
                     Game.Actors[i].target_id = source_id; // infighting mechanic
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
@@ -334,33 +335,34 @@ void bulletTrace(int source_id, Vec2 pos, Vec2 dir, int max_range)
                     }
                     break;
                 }
-                else if (hit_something == FALSE)
+                else if (hit_something == FALSE && weapon_id != WEAPON_FIST)
                     particleFx(pos, dir, FX_DIRT);
             }
         }
     }
 }
 
-void shootWeapon(Actor_t* source)
+void shootWeapon(Weapon_t* weapon, Actor_t* source)
 {
     Vec2 bullet_loc, direction;
     double angle;
     int i;
 
-    if (source->last_shot + source->shot_delay < System.ticks)
+    if (source->last_shot + weapon->shot_delay < System.ticks)
     {
         source->last_shot = System.ticks;
-        playSFX(SOUND_SHOOT);
+        playSFX(weapon->sound_id);
         //particleFx(source->position, source->direction, FX_WATERGUN);
 
         bullet_loc.x = source->position.x + source->direction.x * (source->radius * 1.5);
         bullet_loc.y = source->position.y + source->direction.y * (source->radius * 1.5);
 
-        for (i = 1; i < 4; i++)
+        for (i = 0; i < weapon->num_projectiles; i++)
         {
-            angle = source->angle + ((rand() % 20 - 10) * RAD_1);
+            angle = source->angle + ((rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)) * RAD_1);
             direction = getDirVec2(angle);
-            bulletTrace(source->id, bullet_loc, direction, BULLET_MAX_DISTANCE + (rand() % 20 - 10));
+            if (weapon->projectile_speed == HITSCAN)
+                hitScan(weapon->id, source->id, bullet_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)), weapon->damage);
         }
     }
 }

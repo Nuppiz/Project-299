@@ -13,6 +13,7 @@ extern GameData_t Game;
 extern Menu_t* current_menu;
 extern Menu_t mainmenu;
 extern Menu_t ingamemenu;
+Weapon_t Weapons[NUM_WEAPONS];
 
 #if DEBUG == 1
 char debug[NUM_DEBUG][DEBUG_STR_LEN];
@@ -153,6 +154,51 @@ void gfxInit()
 	printf("Basic textures loaded into memory\n");
 }
 
+void initWeapons()
+{
+    FILE* weapon_file;
+    char c;
+    int i = 0;
+
+    char name[20] = {'\0'};
+    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id;
+
+    weapon_file = fopen("WEAPONS.DAT", "r");
+
+    if (weapon_file == NULL)
+    {
+        fclose(weapon_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open file: WEAPONS.DAT");
+        printf("Please check the file actually exists!\n");
+        System.running = 0;
+    }
+
+    do
+    {
+        if (c != '\n')
+        {
+            fscanf(weapon_file, "%s %d %d %d %d %d %d %d %d %d",
+            &name, &range, &damage, &extra_damage, &num_projectiles, &projectile_speed, &projectile_spread, &shot_delay, &ammo_type, &sound_id);
+
+            Weapons[i].id = i;
+            strcpy(Weapons[i].name, name);
+            Weapons[i].range = range;
+            Weapons[i].damage = damage;
+            Weapons[i].extra_damage = extra_damage;
+            Weapons[i].num_projectiles = num_projectiles;
+            Weapons[i].projectile_speed = projectile_speed;
+            Weapons[i].projectile_spread = projectile_spread;
+            Weapons[i].shot_delay = shot_delay;
+            Weapons[i].ammo_type = ammo_type;
+            Weapons[i].sound_id = sound_id;
+            i++;
+        }
+    } while ((c = fgetc(weapon_file)) != EOF);
+
+    fclose(weapon_file);
+}
+
 void otherInit()
 {
     initKeyboard();
@@ -162,6 +208,7 @@ void otherInit()
     {
         createDirectory("SAVES");
     }
+    initWeapons();
 	printf("System variables OK\n");
     #if DEBUG == 1
     initDebug();

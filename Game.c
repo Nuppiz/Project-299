@@ -11,6 +11,7 @@
 GameData_t Game = {0};
 extern Texture_array ActorTextures;
 extern System_t System;
+extern Weapon_t Weapons[];
 
 id_t getNewId()
 {
@@ -29,7 +30,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createActor(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, int8_t trigger_on_death, uint16_t shot_delay, char* texture_name)
+id_t createActor(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, int8_t trigger_on_death, id_t primary_weapon, char* texture_name)
 {
 	Vec2 direction; // temporary container for direction value
     id_t id = getNewId();
@@ -57,7 +58,7 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
     Game.Actors[Game.actor_count].target_id = ai_target;
     Game.Actors[Game.actor_count].health = health;
     Game.Actors[Game.actor_count].trigger_on_death = trigger_on_death;
-    Game.Actors[Game.actor_count].shot_delay = shot_delay;
+    Game.Actors[Game.actor_count].primary_weapon = &Weapons[primary_weapon];
     Game.Actors[Game.actor_count].texture_id = loadTexture(texture_name, &ActorTextures);
 	Game.Actors[Game.actor_count].direction.x = direction.x;
 	Game.Actors[Game.actor_count].direction.y = direction.y;

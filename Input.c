@@ -16,6 +16,7 @@ extern GameData_t Game;
 extern uint8_t music_on;
 extern Menu_t* current_menu;
 extern Menu_t ingamemenu;
+extern Weapon_t Weapons[];
 
 int control_up = KEY_UP;
 int control_down = KEY_DOWN;
@@ -80,11 +81,20 @@ void playerControl()
     {
         pushState(STATE_PAUSE);
     }
-    if (KEY_WAS_HIT(KEY_SPACEBAR))
-        shootWeapon(&PlayerActor);
+    if (KEY_IS_PRESSED(KEY_SPACEBAR))
+        shootWeapon(PlayerActor.primary_weapon, &PlayerActor);
 
     if (KEY_WAS_HIT(KEY_E))
         useTile(PlayerActor.position, PlayerActor.direction);
+
+    if (KEY_WAS_HIT(KEY_1))
+        PlayerActor.primary_weapon = &Weapons[WEAPON_FIST];
+    if (KEY_WAS_HIT(KEY_2))
+        PlayerActor.primary_weapon = &Weapons[WEAPON_PISTOL];
+    if (KEY_WAS_HIT(KEY_3))
+        PlayerActor.primary_weapon = &Weapons[WEAPON_SHOTGUN];
+    if (KEY_WAS_HIT(KEY_4))
+        PlayerActor.primary_weapon = &Weapons[WEAPON_CHAINGUN];
 
     #if DEBUG == 1
     d[0] = '\0';
@@ -115,9 +125,6 @@ void testButtons()
 
     if (KEY_WAS_HIT(KEY_K))
         PlayerActor.health = 10;
-
-    if (KEY_WAS_HIT(KEY_2))
-        deleteActor(2);
 
     if (KEY_WAS_HIT(KEY_PAGEUP))
         changeMusicVolume(VOLUME_UP);

@@ -193,6 +193,7 @@
 #define BULLET_STEP            4
 #define BULLET_MAX_DISTANCE    150
 #define BULLET_HIT_ANGLE       0.5
+#define HITSCAN                0
 
 #define LOAD_NEW_LEVEL         0
 #define LOAD_SAVED_LEVEL       1
