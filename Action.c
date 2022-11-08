@@ -385,17 +385,16 @@ void moveProjectiles()
                 if (Game.Actors[a].id != Projectiles[i].source_id && checkForHit(Projectiles[i].position, Game.Actors[a].position, Game.Actors[a].radius) == TRUE)
                 {
                     Projectiles[i].state = FALSE;
-                    particleFx(Projectiles[i].position, Projectiles[i].velocity, FX_BLOOD);
                     Game.Actors[a].health -= Projectiles[i].damage;
                     #if DEBUG == 1
-                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", a);
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[a].health);
                     #endif
                     Game.Actors[a].target_id = Projectiles[i].source_id; // infighting mechanic
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
-                        if (i == Game.player_id)
+                        if (Game.Actors[a].id == Game.player_id)
                         {
                             playSFX(Effects[Projectiles[i].effect_id].sound_id);
                             playSFX(SOUND_HURT);
