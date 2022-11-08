@@ -161,7 +161,7 @@ void initWeapons()
     int i = 0;
 
     char name[20] = {'\0'};
-    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id;
+    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id, anim_id, effect_id;
 
     weapon_file = fopen("WEAPONS.DAT", "r");
 
@@ -178,20 +178,21 @@ void initWeapons()
     {
         if (c != '\n')
         {
-            fscanf(weapon_file, "%s %d %d %d %d %d %d %d %d %d",
-            &name, &range, &damage, &extra_damage, &num_projectiles, &projectile_speed, &projectile_spread, &shot_delay, &ammo_type, &sound_id);
+            fscanf(weapon_file, "%s %d %d %d %d %d %d %d %d %d %d",
+            &name, &range, &damage, &num_projectiles, &projectile_speed, &projectile_spread, &shot_delay, &ammo_type, &sound_id, &anim_id, &effect_id);
 
             Weapons[i].id = i;
             strcpy(Weapons[i].name, name);
             Weapons[i].range = range;
             Weapons[i].damage = damage;
-            Weapons[i].extra_damage = extra_damage;
             Weapons[i].num_projectiles = num_projectiles;
             Weapons[i].projectile_speed = projectile_speed;
             Weapons[i].projectile_spread = projectile_spread;
             Weapons[i].shot_delay = shot_delay;
             Weapons[i].ammo_type = ammo_type;
             Weapons[i].sound_id = sound_id;
+            Weapons[i].anim_id = anim_id;
+            Weapons[i].effect_id = effect_id;
             i++;
         }
     } while ((c = fgetc(weapon_file)) != EOF);

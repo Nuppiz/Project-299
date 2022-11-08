@@ -95,6 +95,8 @@ void playerControl()
         PlayerActor.primary_weapon = &Weapons[WEAPON_SHOTGUN];
     if (KEY_WAS_HIT(KEY_4))
         PlayerActor.primary_weapon = &Weapons[WEAPON_CHAINGUN];
+    if (KEY_WAS_HIT(KEY_5))
+        PlayerActor.primary_weapon = &Weapons[WEAPON_ROCKET];
 
     #if DEBUG == 1
     d[0] = '\0';

@@ -73,15 +73,13 @@ typedef struct
     int texture_count;
 } Texture_array;
 
-/*
 typedef struct
 {
     Texture_t texture;
     uint16_t height;
     uint16_t num_frames;
     uint16_t frame;
-} Sprite_t;
-*/
+} Animation_t;
 
 typedef struct
 {
@@ -89,14 +87,33 @@ typedef struct
     char name[20];
     uint16_t range; // absolute maximum range for projectiles/hitting the target (if melee)
     uint16_t damage; // base damage per projectile/hit/etc.
-    uint8_t extra_damage; // splash damage area (decreases with distance) OR bleeding/acid/poison damage per roll
     uint8_t num_projectiles; // number of projectiles per shot (e.g. a shotgun fires multiple pellets)
-    uint8_t projectile_speed; // if 0, instant (hitscan)
+    int8_t projectile_speed; // if -1, instant (hitscan)
     uint8_t projectile_spread; // maximum of how much each projectile diverts from the targeted point (i.e. accuracy)
     ticks_t shot_delay; // delay between each shot/swing/whatever
-    uint8_t ammo_type; // if 0, infinite ammo/melee
+    int8_t ammo_type; // if -1, infinite ammo/melee
     uint8_t sound_id; // id number to the enum table that contains sound effects
+    int16_t anim_id; // id number for projectile animation (if not hitscan), -1 for no animation
+    int8_t effect_id; // effect to spawn on hit (explosion, poison etc.), -1 for no effect
 } Weapon_t;
+
+typedef struct
+{
+    uint8_t sound_id; // id number to the enum table that contains sound effects
+} Effect_t;
+
+typedef struct
+{
+    id_t source_id; // id number of the shooter (for infighting etc.)
+    Vec2 origin;
+    Vec2 position;
+    Vec2 velocity;
+    Vec2_int grid_loc;
+    uint16_t max_range;
+    uint16_t damage;
+    int8_t effect_id;
+    uint8_t state;
+} Projectile_t;
 
 typedef struct
 {

@@ -47,6 +47,7 @@ enum Weapons
     WEAPON_PISTOL,
     WEAPON_SHOTGUN,
     WEAPON_CHAINGUN,
+    WEAPON_ROCKET,
     NUM_WEAPONS
 };
 
@@ -72,7 +73,15 @@ enum SoundEffects
     SOUND_PUNCH,
     SOUND_PISTOL,
     SOUND_SHOTGUN,
+    SOUND_ROCKET,
+    SOUND_EXPLOSION,
     NUM_SFX
+};
+
+enum SpecialEffects
+{
+    EFFECT_EXPLOSION,
+    NUM_EFFECTS
 };
 
 enum BaseTextures

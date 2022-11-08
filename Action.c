@@ -15,6 +15,10 @@ extern Timer_t Timers;
 extern GameData_t Game;
 extern Entity_t Entities[];
 extern Item_t* Items;
+extern Weapon_t Weapons[];
+Effect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
+Projectile_t Projectiles[64] = {0};
+
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForItem() // might be replaced with better system later
@@ -278,7 +282,7 @@ void useTile(Vec2 pos, Vec2 dir)
     }
 }
 
-int checkForHit(Vec2 projectile, Vec2 target, int radius)
+int checkForHit(Vec2 projectile_location, Vec2 target, int radius)
 {
     int collision_left, collision_right, collision_top, collision_bottom;
 
@@ -287,8 +291,8 @@ int checkForHit(Vec2 projectile, Vec2 target, int radius)
     collision_top = target.y - radius;
     collision_bottom = target.y + radius;
 
-    if (projectile.x >= collision_left && projectile.x <= collision_right
-    && projectile.y >= collision_top && projectile.y <= collision_bottom)
+    if (projectile_location.x >= collision_left && projectile_location.x <= collision_right
+    && projectile_location.y >= collision_top && projectile_location.y <= collision_bottom)
         return TRUE;
     else
         return FALSE;
@@ -319,24 +323,101 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
                 {
                     hit_something = TRUE;
                     particleFx(pos, dir, FX_BLOOD);
+                    Game.Actors[i].health -= damage;
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
                     #endif
-                    Game.Actors[i].health -= damage;
                     Game.Actors[i].target_id = source_id; // infighting mechanic
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
-                        if (i == 0)
+                        if (i == Game.player_id)
                             playSFX(SOUND_HURT);
                         else
                             playSFX(SOUND_HURT_E);
                     }
                     break;
                 }
-                else if (hit_something == FALSE && weapon_id != WEAPON_FIST)
-                    particleFx(pos, dir, FX_DIRT);
+            }
+        }
+    }
+    if (hit_something == FALSE && weapon_id != WEAPON_FIST)
+        particleFx(pos, dir, FX_DIRT);
+}
+
+void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range)
+{
+    static int i = 0;
+
+    Projectiles[i].source_id = source_id;
+    Projectiles[i].origin.x = pos.x;
+    Projectiles[i].origin.y = pos.y;
+    Projectiles[i].position.x = pos.x;
+    Projectiles[i].position.y = pos.y;
+    Projectiles[i].velocity.x = dir.x * Weapons[weapon_id].projectile_speed;
+    Projectiles[i].velocity.y = dir.y * Weapons[weapon_id].projectile_speed;
+    Projectiles[i].max_range = max_range * max_range; // max range is squared to save an expensive sqrt operation later
+    Projectiles[i].damage = Weapons[weapon_id].damage;
+    Projectiles[i].effect_id = Weapons[weapon_id].effect_id;
+    Projectiles[i].state = TRUE;
+    i++;
+
+    if (i == 64)
+        i = 0;
+}
+
+void moveProjectiles()
+{
+    int i, a;
+    Vec2 distance;
+
+    for (i = 0; i < 64; i++)
+    {
+        if (Projectiles[i].state == TRUE)
+        {
+            Projectiles[i].position.x += Projectiles[i].velocity.x;
+            Projectiles[i].position.y += Projectiles[i].velocity.y;
+            distance.x = Projectiles[i].position.x - Projectiles[i].origin.x;
+            distance.y = Projectiles[i].position.y - Projectiles[i].origin.y;
+            for (a = 0; a < Game.actor_count; a++)
+            {
+                if (Game.Actors[a].id != Projectiles[i].source_id && checkForHit(Projectiles[i].position, Game.Actors[a].position, Game.Actors[a].radius) == TRUE)
+                {
+                    Projectiles[i].state = FALSE;
+                    particleFx(Projectiles[i].position, Projectiles[i].velocity, FX_BLOOD);
+                    Game.Actors[a].health -= Projectiles[i].damage;
+                    #if DEBUG == 1
+                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[a].health);
+                    #endif
+                    Game.Actors[a].target_id = Projectiles[i].source_id; // infighting mechanic
+                    if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
+                    {
+                        Timers.last_sfx = System.ticks;
+                        if (i == Game.player_id)
+                        {
+                            playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                            playSFX(SOUND_HURT);
+                        }
+                        else
+                        {
+                            playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                            playSFX(SOUND_HURT_E);
+                        }
+                    }
+                }
+            }
+
+            if (Projectiles[i].state == TRUE && getVec2LengthSquared(distance) >= Projectiles[i].max_range)
+            {
+                playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                Projectiles[i].state = FALSE;
+            }
+            else if (Projectiles[i].state == TRUE && getTileBulletBlock(Projectiles[i].position) == TRUE)
+            {
+                playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                Projectiles[i].state = FALSE;
             }
         }
     }
@@ -344,7 +425,7 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
 
 void shootWeapon(Weapon_t* weapon, Actor_t* source)
 {
-    Vec2 bullet_loc, direction;
+    Vec2 projectile_loc, direction;
     double angle;
     int i;
 
@@ -354,15 +435,17 @@ void shootWeapon(Weapon_t* weapon, Actor_t* source)
         playSFX(weapon->sound_id);
         //particleFx(source->position, source->direction, FX_WATERGUN);
 
-        bullet_loc.x = source->position.x + source->direction.x * (source->radius * 1.5);
-        bullet_loc.y = source->position.y + source->direction.y * (source->radius * 1.5);
+        projectile_loc.x = source->position.x + source->direction.x * (source->radius * 1.5);
+        projectile_loc.y = source->position.y + source->direction.y * (source->radius * 1.5);
 
         for (i = 0; i < weapon->num_projectiles; i++)
         {
             angle = source->angle + ((rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)) * RAD_1);
             direction = getDirVec2(angle);
             if (weapon->projectile_speed == HITSCAN)
-                hitScan(weapon->id, source->id, bullet_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)), weapon->damage);
+                hitScan(weapon->id, source->id, projectile_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)), weapon->damage);
+            else
+                createProjectile(weapon->id, source->id, projectile_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)));
         }
     }
 }
@@ -385,6 +468,7 @@ void entityLoop()
                 usePortal(&Entities[i]);
         }
     }
+    moveProjectiles();
     //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
 }
 
