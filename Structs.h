@@ -76,7 +76,7 @@ typedef struct
 typedef struct
 {
     char* filename;
-    Texture_t** frames;
+    int* frame_ids;
     int num_frames;
 } Anim_t;
 

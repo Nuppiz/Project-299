@@ -157,7 +157,7 @@ void loadAnimation(char* filename)
     //static int anim_index = 0;
     int num_frames = 0;
     int animation_frame = 0;
-    int anim_frame_index;
+    int anim_frame_id;
     char c;
     char texture_filename[20];
 
@@ -186,23 +186,18 @@ void loadAnimation(char* filename)
 
     Rocket.num_frames = num_frames;
     ASSERT(Rocket.num_frames == 3);
-    Rocket.frames = calloc(num_frames, sizeof(Texture_t*));
+    Rocket.frame_ids = malloc(num_frames * sizeof(int));
 
     fseek(anim_file, 0, SEEK_SET);
 
     for (animation_frame = 0; animation_frame < num_frames; animation_frame++)
     {
-        fscanf(anim_file, "%s", texture_filename);
-        anim_frame_index = loadTexture(texture_filename, &ObjectTextures);
-        Rocket.frames[animation_frame] = &ObjectTextures.textures[loadTexture(texture_filename, &ObjectTextures)];
-        printf("%s %d\n", texture_filename, anim_frame_index);
-        delay(60000);
+        fscanf(anim_file, "%20s", texture_filename);
+        anim_frame_id = loadTexture(texture_filename, &ObjectTextures);
+        Rocket.frame_ids[animation_frame] = anim_frame_id;
     }
 
     //anim_index++;
-    //Rocket.frames[0] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET1.7UP", &ObjectTextures)];
-    //Rocket.frames[1] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET2.7UP", &ObjectTextures)];
-    //Rocket.frames[2] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET3.7UP", &ObjectTextures)];
     fclose(anim_file);
 }
 

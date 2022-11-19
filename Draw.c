@@ -858,13 +858,13 @@ void drawActors()
     }
 }
 
-// test function, delete later
+// test function, delete/flesh out later
 void drawAnim()
 {
     static int frame_counter = 0;
     static ticks_t last_frame_drawn;
 
-    drawTexture(160, 100, Rocket.frames[frame_counter]);
+    drawTexture(160, 100, &ObjectTextures.textures[Rocket.frame_ids[frame_counter]]);
 
     if (last_frame_drawn + 5 < System.ticks)
     {
@@ -914,9 +914,9 @@ void gameDraw()
     drawHealth();
     drawStats();
     drawAnim();
-    drawTexture(60, 80, Rocket.frames[0]);
-    drawTexture(60, 100, Rocket.frames[1]);
-    drawTexture(60, 120, Rocket.frames[2]);
+    drawTexture(60, 80, &ObjectTextures.textures[Rocket.frame_ids[0]]);
+    drawTexture(60, 100, &ObjectTextures.textures[Rocket.frame_ids[1]]);
+    drawTexture(60, 120, &ObjectTextures.textures[Rocket.frame_ids[2]]);
     particleArrayManager();
 
     #if DEBUG == 1
