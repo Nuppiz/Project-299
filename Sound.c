@@ -397,6 +397,7 @@ void generateSFXFileTable()
         printf("Unable to open SFX list file!\n");
         printf("Please check the file actually exists!\n");
         System.running = 0;
+        return;
     }
 
     do

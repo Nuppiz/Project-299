@@ -151,6 +151,8 @@ void gfxInit()
     loadFontNew();
     createErrorTextures();
     loadBaseTextures();
+    loadAnimation("ANIMS/ROCKET.ANI");
+    //splororo();
 	printf("Basic textures loaded into memory\n");
 }
 
@@ -161,7 +163,7 @@ void initWeapons()
     int i = 0;
 
     char name[20] = {'\0'};
-    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id, anim_id, effect_id;
+    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id, effect_id;
 
     weapon_file = fopen("WEAPONS.DAT", "r");
 
@@ -172,14 +174,15 @@ void initWeapons()
         printf("Unable to open file: WEAPONS.DAT");
         printf("Please check the file actually exists!\n");
         System.running = 0;
+        return;
     }
 
     do
     {
         if (c != '\n')
         {
-            fscanf(weapon_file, "%s %d %d %d %d %d %d %d %d %d %d",
-            &name, &range, &damage, &num_projectiles, &projectile_speed, &projectile_spread, &shot_delay, &ammo_type, &sound_id, &anim_id, &effect_id);
+            fscanf(weapon_file, " %s %d %d %d %d %d %d %d %d %d",
+            &name, &range, &damage, &num_projectiles, &projectile_speed, &projectile_spread, &shot_delay, &ammo_type, &sound_id, &effect_id);
 
             Weapons[i].id = i;
             strcpy(Weapons[i].name, name);
@@ -191,7 +194,6 @@ void initWeapons()
             Weapons[i].shot_delay = shot_delay;
             Weapons[i].ammo_type = ammo_type;
             Weapons[i].sound_id = sound_id;
-            Weapons[i].anim_id = anim_id;
             Weapons[i].effect_id = effect_id;
             i++;
         }

@@ -243,6 +243,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         printf("Unable to open file: %s", level_name);
         printf("Please check the file actually exists!\n");
         System.running = 0;
+        return;
     }
 
     if (Entities != NULL || TileTextures.textures != NULL || Game.Actors != NULL)
@@ -321,6 +322,7 @@ void levelLoader(char* level_name, uint8_t load_type)
                     printf("Level load error: invalid entity type.\n");
                     printf("Please check the level file!\n");
                     System.running = 0;
+                    return;
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
@@ -336,6 +338,7 @@ void levelLoader(char* level_name, uint8_t load_type)
                     printf("Level load error: invalid item tile type.\n");
                     printf("Please check the level file!\n");
                     System.running = 0;
+                    return;
                 }
                 Items[Game.item_count].index = tilemap_location;
                 Items[Game.item_count].state = state;

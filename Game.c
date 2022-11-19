@@ -9,7 +9,7 @@
 /* Game data and actor array functions */
 
 GameData_t Game = {0};
-extern Texture_array ActorTextures;
+extern Texture_array ObjectTextures;
 extern System_t System;
 extern Weapon_t Weapons[];
 
@@ -59,7 +59,7 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
     Game.Actors[Game.actor_count].health = health;
     Game.Actors[Game.actor_count].trigger_on_death = trigger_on_death;
     Game.Actors[Game.actor_count].primary_weapon = &Weapons[primary_weapon];
-    Game.Actors[Game.actor_count].texture_id = loadTexture(texture_name, &ActorTextures);
+    Game.Actors[Game.actor_count].texture_id = loadTexture(texture_name, &ObjectTextures);
 	Game.Actors[Game.actor_count].direction.x = direction.x;
 	Game.Actors[Game.actor_count].direction.y = direction.y;
     Game.Actors[Game.actor_count].last_shot = System.ticks;

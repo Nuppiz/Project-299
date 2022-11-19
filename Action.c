@@ -332,7 +332,7 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
-                        if (i == Game.player_id)
+                        if (Game.Actors[i].id == Game.player_id)
                             playSFX(SOUND_HURT);
                         else
                             playSFX(SOUND_HURT_E);

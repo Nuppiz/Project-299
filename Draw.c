@@ -4,6 +4,7 @@
 #include "Action.h"
 #include "Video.h"
 #include "Vectors.h"
+#include "Loadgfx.h"
 
 /* Graphics drawing functions */
 
@@ -11,9 +12,9 @@ extern System_t System;
 extern GameData_t Game;
 
 extern uint8_t far screen_buf[];
-extern Texture_array BaseTextures;
-extern Texture_array ActorTextures;
+extern Texture_array ObjectTextures;
 extern Texture_array TileTextures;
+extern Anim_t Rocket;
 extern Tile_t TileSet[];
 extern Item_t* Items;
 
@@ -538,7 +539,7 @@ void drawMap()
                     if (Items[a].state == 1)
                     {                    
                         if (i == Items[a].index && Items[a].type == ITEM_KEY_RED)
-                            drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
+                            drawTexturePartial(x_pixel, y_pixel, &ObjectTextures.textures[TEX_KEY]);
                     }
                 }
                 i++;
@@ -557,7 +558,7 @@ void drawMap()
                         if (Items[a].state == 1)
                         {                    
                             if (i == Items[a].index && Items[a].type == ITEM_KEY_RED)
-                                drawTexturePartial(x_pixel, y_pixel, &BaseTextures.textures[TEX_KEY]);
+                                drawTexturePartial(x_pixel, y_pixel, &ObjectTextures.textures[TEX_KEY]);
                         }
                     }
                 }
@@ -786,7 +787,7 @@ void spawnCorpse(Vec2 pos, double angle, int8_t life)
     Corpses[corpse_write].pos.x = pos.x;
     Corpses[corpse_write].pos.y = pos.y;
     Corpses[corpse_write].life = life;
-    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &BaseTextures.textures[TEX_CORPSE], TRANSPARENT_COLOR);
+    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &ObjectTextures.textures[TEX_CORPSE], TRANSPARENT_COLOR);
 
     increaseCorpseWrite();
 }
@@ -843,10 +844,10 @@ void drawActors()
 
     while (i < Game.actor_count)
     {
-        start_x = Game.Actors[i].position.x - camera_offset.x - ActorTextures.textures[Game.Actors[i].texture_id].width / 2;
-        start_y = Game.Actors[i].position.y - camera_offset.y - ActorTextures.textures[Game.Actors[i].texture_id].height / 2;
-        if (&ActorTextures.textures[Game.Actors[i].texture_id] != NULL)
-            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ActorTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
+        start_x = Game.Actors[i].position.x - camera_offset.x - ObjectTextures.textures[Game.Actors[i].texture_id].width / 2;
+        start_y = Game.Actors[i].position.y - camera_offset.y - ObjectTextures.textures[Game.Actors[i].texture_id].height / 2;
+        if (&ObjectTextures.textures[Game.Actors[i].texture_id] != NULL)
+            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ObjectTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
         drawDot(&Game.Actors[i]);
         #if DEBUG == 1
         str[0] = '\0';
@@ -854,6 +855,23 @@ void drawActors()
         drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
         #endif
         i++;
+    }
+}
+
+// test function, delete later
+void drawAnim()
+{
+    static int frame_counter = 0;
+    static ticks_t last_frame_drawn;
+
+    drawTexture(160, 100, Rocket.frames[frame_counter]);
+
+    if (last_frame_drawn + 5 < System.ticks)
+    {
+        last_frame_drawn = System.ticks;
+        frame_counter++;
+        if (frame_counter >= Rocket.num_frames)
+            frame_counter = 0;
     }
 }
 
@@ -873,6 +891,7 @@ void drawStats()
 
     sprintf(cur_weapon, "%s", PlayerActor.primary_weapon->name);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
+    drawText(2, 170, Rocket.filename, COLOUR_WHITE);
 }
 
 void menuDraw()
@@ -894,6 +913,10 @@ void gameDraw()
     drawActors();
     drawHealth();
     drawStats();
+    drawAnim();
+    drawTexture(60, 80, Rocket.frames[0]);
+    drawTexture(60, 100, Rocket.frames[1]);
+    drawTexture(60, 120, Rocket.frames[2]);
     particleArrayManager();
 
     #if DEBUG == 1

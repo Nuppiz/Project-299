@@ -30,9 +30,9 @@ static uint8_t error_pixels[400] =
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-Texture_array BaseTextures = {0};
-Texture_array ActorTextures = {0};
+Texture_array ObjectTextures = {0};
 Texture_array TileTextures = {0};
+Anim_t Rocket;
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -82,20 +82,14 @@ int findTexture(char* filename, Texture_array* array)
 
 void createErrorTextures()
 {
-    BaseTextures.textures = malloc(sizeof(Texture_t));
-    ActorTextures.textures = malloc(sizeof(Texture_t));
+    ObjectTextures.textures = malloc(sizeof(Texture_t));
     TileTextures.textures = malloc(sizeof(Texture_t));
-    BaseTextures.textures[0].filename = "ERROR.7UP";
-    BaseTextures.textures[0].width = 20;
-    BaseTextures.textures[0].height = 20;
-    BaseTextures.textures[0].pixels = error_pixels;
-    BaseTextures.texture_count++;
-    ActorTextures.textures[0].filename = "ERROR.7UP";
-    ActorTextures.textures[0].width = 20;
-    ActorTextures.textures[0].height = 20;
-    ActorTextures.textures[0].pixels = error_pixels;
-    ActorTextures.textures[0].filename = "ERROR.7UP";
-    ActorTextures.texture_count++;
+    ObjectTextures.textures[0].filename = "ERROR.7UP";
+    ObjectTextures.textures[0].width = 20;
+    ObjectTextures.textures[0].height = 20;
+    ObjectTextures.textures[0].pixels = error_pixels;
+    ObjectTextures.texture_count++;
+    TileTextures.textures[0].filename = "ERROR.7UP";
     TileTextures.textures[0].width = 20;
     TileTextures.textures[0].height = 20;
     TileTextures.textures[0].pixels = error_pixels;
@@ -117,7 +111,12 @@ int loadTexture(char* filename, Texture_array* array)
 
     file_ptr = fopen(filename, "rb");
     if (file_ptr == NULL)
+    {
+        printf("Unable to open file %s!\n", filename);
+        delay(60000);
+        System.running = 0;
         return 0;
+    }
 
     array->textures = realloc(array->textures, (array->texture_count + 1) * sizeof(Texture_t));
 
@@ -148,9 +147,63 @@ int loadTexture(char* filename, Texture_array* array)
 
 void loadBaseTextures()
 {
-    loadTexturesFromList("SPRITES/BASETEX.txt", &BaseTextures);
-    ASSERT(BaseTextures.texture_count == 3);
-    loadTexturesFromList("SPRITES/ACTORTEX.txt", &ActorTextures);
+    loadTexturesFromList("SPRITES/BASETEX.txt", &ObjectTextures);
+    loadTexturesFromList("SPRITES/ACTORTEX.txt", &ObjectTextures);
+}
+
+void loadAnimation(char* filename)
+{
+    FILE* anim_file;
+    //static int anim_index = 0;
+    int num_frames = 0;
+    int animation_frame = 0;
+    int anim_frame_index;
+    char c;
+    char texture_filename[20];
+
+    //Animations = realloc(Animations, (anim_index + 1) * sizeof(Anim_t));
+
+    anim_file = fopen(filename, "r");
+
+    if (anim_file == NULL)
+    {
+        fclose(anim_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open animation file!\n");
+        printf("Please check the file actually exists!\n");
+        System.running = 0;
+        return;
+    }
+
+    Rocket.filename = malloc(strlen(filename) + 1);
+    strcpy(Rocket.filename, filename);
+
+    while ((c = fgetc(anim_file)) != EOF)
+    {
+        if (c == '\n')
+            num_frames++;
+    }
+
+    Rocket.num_frames = num_frames;
+    ASSERT(Rocket.num_frames == 3);
+    Rocket.frames = calloc(num_frames, sizeof(Texture_t*));
+
+    fseek(anim_file, 0, SEEK_SET);
+
+    for (animation_frame = 0; animation_frame < num_frames; animation_frame++)
+    {
+        fscanf(anim_file, "%s", texture_filename);
+        anim_frame_index = loadTexture(texture_filename, &ObjectTextures);
+        Rocket.frames[animation_frame] = &ObjectTextures.textures[loadTexture(texture_filename, &ObjectTextures)];
+        printf("%s %d\n", texture_filename, anim_frame_index);
+        delay(60000);
+    }
+
+    //anim_index++;
+    //Rocket.frames[0] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET1.7UP", &ObjectTextures)];
+    //Rocket.frames[1] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET2.7UP", &ObjectTextures)];
+    //Rocket.frames[2] = &ObjectTextures.textures[loadTexture("ANIMS/ROCKET3.7UP", &ObjectTextures)];
+    fclose(anim_file);
 }
 
 void freeAllTextures()
