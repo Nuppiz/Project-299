@@ -319,7 +319,7 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
         {
             for (i = 0; i < Game.actor_count; i++)
             {
-                if (Game.Actors[i].id != source_id && checkForHit(pos, Game.Actors[i].position, Game.Actors[i].radius) == TRUE)
+                if (checkForHit(pos, Game.Actors[i].position, Game.Actors[i].radius) == TRUE)
                 {
                     hit_something = TRUE;
                     particleFx(pos, dir, FX_BLOOD);
@@ -328,7 +328,11 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
                     #endif
-                    Game.Actors[i].target_id = source_id; // infighting mechanic
+                    if (Game.Actors[i].target_id_secondary == UINT16_MAX)
+                        Game.Actors[i].target_id_secondary = Game.Actors[i].target_id_primary; // save previous primary target but only if secondary slot is blank
+                    Game.Actors[i].target_id_primary = source_id; // infighting mechanic
+                    if (Game.Actors[i].ai_mode != AI_CHASE) // if not yet fighting, fight!
+                        Game.Actors[i].ai_mode = AI_CHASE;
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
@@ -390,7 +394,11 @@ void moveProjectiles()
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", a);
                     sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[a].health);
                     #endif
-                    Game.Actors[a].target_id = Projectiles[i].source_id; // infighting mechanic
+                    if (Game.Actors[a].target_id_secondary == UINT16_MAX)
+                        Game.Actors[a].target_id_secondary = Game.Actors[a].target_id_primary; // save previous primary target but only if secondary slot is blank
+                    Game.Actors[a].target_id_primary = Projectiles[i].source_id; // infighting mechanic
+                    if (Game.Actors[a].ai_mode != AI_CHASE) // if not yet fighting, fight!
+                        Game.Actors[a].ai_mode = AI_CHASE;
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;

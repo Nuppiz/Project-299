@@ -151,8 +151,7 @@ void gfxInit()
     loadFontNew();
     createErrorTextures();
     loadBaseTextures();
-    loadAnimation("ANIMS/ROCKET.ANI");
-    //splororo();
+    loadAnimsFromList("ANIMS/ANIMS.TXT");
 	printf("Basic textures loaded into memory\n");
 }
 

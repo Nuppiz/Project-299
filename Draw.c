@@ -14,7 +14,7 @@ extern GameData_t Game;
 extern uint8_t far screen_buf[];
 extern Texture_array ObjectTextures;
 extern Texture_array TileTextures;
-extern Anim_t Rocket;
+extern Anim_array Animations;
 extern Tile_t TileSet[];
 extern Item_t* Items;
 
@@ -862,16 +862,22 @@ void drawActors()
 void drawAnim()
 {
     static int frame_counter = 0;
+    static int animation_counter = 0;
     static ticks_t last_frame_drawn;
 
-    drawTexture(160, 100, &ObjectTextures.textures[Rocket.frame_ids[frame_counter]]);
+    drawTexture(160, 100, &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]]);
 
     if (last_frame_drawn + 5 < System.ticks)
     {
         last_frame_drawn = System.ticks;
         frame_counter++;
-        if (frame_counter >= Rocket.num_frames)
+        if (frame_counter >= Animations.anims[animation_counter].num_frames)
+        {
             frame_counter = 0;
+            animation_counter++;
+            if (animation_counter >= Animations.anim_count)
+                animation_counter = 0;
+        }
     }
 }
 
@@ -891,7 +897,7 @@ void drawStats()
 
     sprintf(cur_weapon, "%s", PlayerActor.primary_weapon->name);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
-    drawText(2, 170, Rocket.filename, COLOUR_WHITE);
+    //drawText(2, 170, Rocket.filename, COLOUR_WHITE);
 }
 
 void menuDraw()
@@ -914,9 +920,6 @@ void gameDraw()
     drawHealth();
     drawStats();
     drawAnim();
-    drawTexture(60, 80, &ObjectTextures.textures[Rocket.frame_ids[0]]);
-    drawTexture(60, 100, &ObjectTextures.textures[Rocket.frame_ids[1]]);
-    drawTexture(60, 120, &ObjectTextures.textures[Rocket.frame_ids[2]]);
     particleArrayManager();
 
     #if DEBUG == 1

@@ -75,10 +75,16 @@ typedef struct
 
 typedef struct
 {
-    char* filename;
+    char* name;
     int* frame_ids;
     int num_frames;
 } Anim_t;
+
+typedef struct
+{
+    Anim_t* anims;
+    int anim_count;
+} Anim_array;
 
 typedef struct
 {
@@ -137,7 +143,8 @@ typedef struct
     flags_t control;
     uint8_t ai_mode;
     ticks_t ai_timer;
-    id_t    target_id; // index number of the AI's target in the ActorsById array
+    id_t    target_id_primary; // index number of the AI's primary target in the ActorsById array
+    id_t    target_id_secondary; // index number of the AI's secondary target in the ActorsById array
     Vec2    move_target;
 
     uint8_t color;

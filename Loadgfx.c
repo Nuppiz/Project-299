@@ -32,7 +32,7 @@ static uint8_t error_pixels[400] =
 
 Texture_array ObjectTextures = {0};
 Texture_array TileTextures = {0};
-Anim_t Rocket;
+Anim_array Animations = {0};
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -41,31 +41,6 @@ void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
     file_ptr = fopen(filename, "rb");
     fread(destination, 1, data_size, file_ptr);
     fclose(file_ptr);
-}
-
-void loadTexturesFromList(char* list_filename, Texture_array* array)
-{
-    FILE* tex_list_file;
-    char filename[20];
-
-    tex_list_file = fopen(list_filename, "r");
-
-    if (tex_list_file == NULL)
-    {
-        fclose(tex_list_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open texture list file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
-    }
-
-    do
-    {
-        fscanf(tex_list_file, "%s", filename);
-        loadTexture(filename, array);
-    } while (fgetc(tex_list_file) != EOF);
-    
-    fclose(tex_list_file);
 }
 
 int findTexture(char* filename, Texture_array* array)
@@ -145,6 +120,31 @@ int loadTexture(char* filename, Texture_array* array)
     return texture_id;
 }
 
+void loadTexturesFromList(char* list_filename, Texture_array* array)
+{
+    FILE* tex_list_file;
+    char filename[20];
+
+    tex_list_file = fopen(list_filename, "r");
+
+    if (tex_list_file == NULL)
+    {
+        fclose(tex_list_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open texture list file!\n");
+        printf("Please check the file actually exists!\n");
+        System.running = 0;
+    }
+
+    do
+    {
+        fscanf(tex_list_file, "%s", filename);
+        loadTexture(filename, array);
+    } while (fgetc(tex_list_file) != EOF);
+    
+    fclose(tex_list_file);
+}
+
 void loadBaseTextures()
 {
     loadTexturesFromList("SPRITES/BASETEX.txt", &ObjectTextures);
@@ -154,14 +154,13 @@ void loadBaseTextures()
 void loadAnimation(char* filename)
 {
     FILE* anim_file;
-    //static int anim_index = 0;
     int num_frames = 0;
     int animation_frame = 0;
     int anim_frame_id;
     char c;
     char texture_filename[20];
 
-    //Animations = realloc(Animations, (anim_index + 1) * sizeof(Anim_t));
+    Animations.anims = realloc(Animations.anims, (Animations.anim_count + 1) * sizeof(Anim_t));
 
     anim_file = fopen(filename, "r");
 
@@ -175,8 +174,8 @@ void loadAnimation(char* filename)
         return;
     }
 
-    Rocket.filename = malloc(strlen(filename) + 1);
-    strcpy(Rocket.filename, filename);
+    Animations.anims[Animations.anim_count].name = malloc(strlen(filename) - 3);
+    strncpy(Animations.anims[Animations.anim_count].name, filename, (strlen(filename) - 4)); // drop the filename ending
 
     while ((c = fgetc(anim_file)) != EOF)
     {
@@ -184,9 +183,8 @@ void loadAnimation(char* filename)
             num_frames++;
     }
 
-    Rocket.num_frames = num_frames;
-    ASSERT(Rocket.num_frames == 3);
-    Rocket.frame_ids = malloc(num_frames * sizeof(int));
+    Animations.anims[Animations.anim_count].num_frames = num_frames;
+    Animations.anims[Animations.anim_count].frame_ids = malloc(num_frames * sizeof(int));
 
     fseek(anim_file, 0, SEEK_SET);
 
@@ -194,11 +192,36 @@ void loadAnimation(char* filename)
     {
         fscanf(anim_file, "%20s", texture_filename);
         anim_frame_id = loadTexture(texture_filename, &ObjectTextures);
-        Rocket.frame_ids[animation_frame] = anim_frame_id;
+        Animations.anims[Animations.anim_count].frame_ids[animation_frame] = anim_frame_id;
     }
 
-    //anim_index++;
     fclose(anim_file);
+    Animations.anim_count++;
+}
+
+void loadAnimsFromList(char* list_filename)
+{
+    FILE* anim_list_file;
+    char filename[20];
+
+    anim_list_file = fopen(list_filename, "r");
+
+    if (anim_list_file == NULL)
+    {
+        fclose(anim_list_file);
+        setVideoMode(TEXT_MODE);
+        printf("Unable to open texture list file!\n");
+        printf("Please check the file actually exists!\n");
+        System.running = 0;
+    }
+
+    do
+    {
+        fscanf(anim_list_file, "%20s", filename);
+        loadAnimation(filename);
+    } while (fgetc(anim_list_file) != EOF);
+    
+    fclose(anim_list_file);
 }
 
 void freeAllTextures()

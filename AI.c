@@ -122,9 +122,9 @@ void chaseTarget(Actor_t* chaser)
 
 void think(Actor_t* actor)
 {
-    if (Game.ActorsById[actor->target_id] != UINT16_MAX)
+    if (Game.ActorsById[actor->target_id_primary] != UINT16_MAX)
     {
-        actor->move_target = Game.Actors[Game.ActorsById[actor->target_id]].position;
+        actor->move_target = Game.Actors[Game.ActorsById[actor->target_id_primary]].position;
         // check to see if target in sight; set mode to chase if yes, and timer to 100 ticks
         if (testFieldOfView(actor->position, actor->direction, actor->move_target) == IN_SIGHT)
         {
@@ -134,7 +134,7 @@ void think(Actor_t* actor)
     }
     else
     {
-        Game.ActorsById[actor->target_id] = UINT16_MAX;
+        Game.ActorsById[actor->target_id_primary] = UINT16_MAX;
         actor->ai_mode = AI_IDLE;
         actor->control = 0; // same as clearing all bits
     }
@@ -165,6 +165,11 @@ void act(Actor_t* actor)
     }
     else if (actor->ai_mode == AI_CHASE)
     {
+        if (testFieldOfView(actor->position, actor->direction, actor->move_target) != IN_SIGHT) // if facing the other way, face target first
+        {
+            turnTowards(actor, Game.Actors[Game.ActorsById[actor->target_id_primary]].position);
+        }
+
         if (actor->ai_timer > 0)
         {
             chaseTarget(actor);
@@ -172,14 +177,20 @@ void act(Actor_t* actor)
             {
                 shootWeapon(actor->primary_weapon, actor);
             }
-            actor->ai_timer--;
 
-            if (Game.ActorsById[actor->target_id] == UINT16_MAX) // if target is deleted
+            if (Game.ActorsById[actor->target_id_primary] == UINT16_MAX && actor->target_id_secondary != UINT16_MAX) // if primary target is dead and a secondary target is available
             {
-                actor->target_id = UINT16_MAX; // remove chase target
+                actor->target_id_primary = actor->target_id_secondary;
+                actor->target_id_secondary = UINT16_MAX;
+                actor->ai_timer += 50;
+            }
+            else if (Game.ActorsById[actor->target_id_primary] == UINT16_MAX && actor->target_id_secondary == UINT16_MAX) // if primary target is dead and no secondary target available
+            {
+                actor->target_id_primary = UINT16_MAX; // remove chase target
                 actor->ai_mode = AI_IDLE;
                 actor->control = 0; // same as clearing all bits
             }
+            actor->ai_timer--;
         }
         else
         {

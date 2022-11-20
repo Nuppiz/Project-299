@@ -55,7 +55,8 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
     Game.Actors[Game.actor_count].control = control;
     Game.Actors[Game.actor_count].ai_mode = ai_mode;
     Game.Actors[Game.actor_count].ai_timer = ai_timer;
-    Game.Actors[Game.actor_count].target_id = ai_target;
+    Game.Actors[Game.actor_count].target_id_primary = ai_target;
+    Game.Actors[Game.actor_count].target_id_secondary = UINT16_MAX;
     Game.Actors[Game.actor_count].health = health;
     Game.Actors[Game.actor_count].trigger_on_death = trigger_on_death;
     Game.Actors[Game.actor_count].primary_weapon = &Weapons[primary_weapon];

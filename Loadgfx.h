@@ -6,7 +6,7 @@ void createErrorTextures();
 int loadTexture(char* filename, Texture_array* array);
 void loadBaseTextures();
 void loadAnimation(char* filename);
-void splororo();
+void loadAnimsFromList(char* list_filename);
 void freeAllTextures();
 
 #endif/* LOADGFX_H */
