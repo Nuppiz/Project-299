@@ -88,6 +88,7 @@ typedef struct
 
 typedef struct
 {
+    uint8_t flags;
     Anim_t* anim;
     int frame;
     time_t next_frame;
@@ -106,14 +107,14 @@ typedef struct
     ticks_t shot_delay; // delay between each shot/swing/whatever
     int8_t ammo_type; // if -1, infinite ammo/melee
     uint8_t sound_id; // id number to the enum table that contains sound effects
-    int16_t sprite_id; // id number for projectile sprite (if not hitscan), -1 for no animation
+    int16_t sprite_id; // id number for projectile sprite (if not hitscan), -1 for none
     int8_t effect_id; // effect to spawn on hit (explosion, poison etc.), -1 for no effect
 } Weapon_t;
 
 typedef struct
 {
     uint8_t sound_id; // id number to the enum table that contains sound effects
-} Effect_t;
+} WeaponEffect_t;
 
 typedef struct
 {

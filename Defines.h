@@ -115,6 +115,9 @@
 #define TILE_HEIGHT         8
 #define CHARACTER_SIZE      72
 
+#define SPRITE_IS_STATIC    0
+#define SPRITE_IS_ANIM      1
+
 #define TRUE                1
 #define FALSE               0
 #define RETURN_ERROR        -1

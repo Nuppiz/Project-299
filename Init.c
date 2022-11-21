@@ -152,6 +152,7 @@ void gfxInit()
     createErrorTextures();
     loadBaseTextures();
     loadAnimsFromList("ANIMS/ANIMS.TXT");
+    makeSprites();
 	printf("Basic textures loaded into memory\n");
 }
 

@@ -6,7 +6,7 @@
 
 extern System_t System;
 
-static uint8_t error_pixels[400] =
+uint8_t error_pixels[400] =
 {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,5,5,5,0,5,5,0,0,5,5,0,0,0,0,0,0,0,0,0,
@@ -34,6 +34,9 @@ Texture_array ObjectTextures = {0};
 Texture_array TileTextures = {0};
 Anim_array Animations = {0};
 
+Sprite_t Rocket = {SPRITE_IS_ANIM, NULL, 0, 0, 3};
+Sprite_t Explosion = {SPRITE_IS_ANIM, NULL, 0, 0, 2};
+
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
     // load raw graphics data (no dimensions and flags)
@@ -55,20 +58,32 @@ int findTexture(char* filename, Texture_array* array)
     return 0;
 }
 
+int findAnim(char* name)
+{
+    int i;
+
+    for (i = 0; i < Animations.anim_count; i++)
+    {
+        if (strcmp(name, Animations.anims[i].name) == 0)
+            return i;
+    }
+    return 0;
+}
+
 void createErrorTextures()
 {
-    ObjectTextures.textures = malloc(sizeof(Texture_t));
     TileTextures.textures = malloc(sizeof(Texture_t));
-    ObjectTextures.textures[0].filename = "ERROR.7UP";
-    ObjectTextures.textures[0].width = 20;
-    ObjectTextures.textures[0].height = 20;
-    ObjectTextures.textures[0].pixels = error_pixels;
-    ObjectTextures.texture_count++;
     TileTextures.textures[0].filename = "ERROR.7UP";
     TileTextures.textures[0].width = 20;
     TileTextures.textures[0].height = 20;
     TileTextures.textures[0].pixels = error_pixels;
     TileTextures.texture_count++;
+    ObjectTextures.textures = malloc(sizeof(Texture_t));
+    ObjectTextures.textures[0].filename = "ERROR.7UP";
+    ObjectTextures.textures[0].width = 20;
+    ObjectTextures.textures[0].height = 20;
+    ObjectTextures.textures[0].pixels = error_pixels;
+    ObjectTextures.texture_count++;;
 }
 
 int loadTexture(char* filename, Texture_array* array)
@@ -89,7 +104,6 @@ int loadTexture(char* filename, Texture_array* array)
     {
         printf("Unable to open file %s!\n", filename);
         delay(60000);
-        System.running = 0;
         return 0;
     }
 
@@ -174,8 +188,8 @@ void loadAnimation(char* filename)
         return;
     }
 
-    Animations.anims[Animations.anim_count].name = malloc(strlen(filename) - 3);
-    strncpy(Animations.anims[Animations.anim_count].name, filename, (strlen(filename) - 4)); // drop the filename ending
+    Animations.anims[Animations.anim_count].name = malloc(strlen(filename) + 1);
+    strcpy(Animations.anims[Animations.anim_count].name, filename);
 
     while ((c = fgetc(anim_file)) != EOF)
     {
@@ -222,6 +236,13 @@ void loadAnimsFromList(char* list_filename)
     } while (fgetc(anim_list_file) != EOF);
     
     fclose(anim_list_file);
+}
+
+// temp
+void makeSprites()
+{
+    Rocket.anim = &Animations.anims[1];
+    Explosion.anim = &Animations.anims[3];
 }
 
 void freeAllTextures()

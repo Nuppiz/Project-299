@@ -18,6 +18,10 @@ extern Anim_array Animations;
 extern Tile_t TileSet[];
 extern Item_t* Items;
 
+// test subjects, del later
+extern Sprite_t Rocket;
+extern Sprite_t Explosion;
+
 Vec2 camera_offset;
 
 Particle_t Particles[MAX_PARTICLES] = {0};
@@ -262,6 +266,8 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
 {
     Texture_t rotated;
     Vec2 sheared;
+    float width_scale = 1.0;
+    float height_scale = 1.0;
     int w;
     int h;
     int w_half;
@@ -289,11 +295,24 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
         mirror_flip = TRUE;
     }
 
+    if (source->width != source->height)
+    {
+        if (source->width < source->height)
+            width_scale = source->height / source->width;
+
+        else if (source->height < source->width)
+            height_scale = source->width / source->height;
+
+        rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + (7 * height_scale);
+        rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + (7 * width_scale);
+    }
+
+    else
+        rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 5;
+        rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 5;
+
     if (source->transparent == TRUE)
         rotated.transparent = TRUE;
-
-    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 4;
-    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 4;
 
     rotated.offset_x = (rotated.width - source->width) / 2;
     rotated.offset_y = (rotated.height - source->height) / 2;
@@ -301,8 +320,8 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
     w_half = source->width / 2;
     h_half = source->height / 2;
 
-    rotated.pixels = malloc(rotated.width * rotated.height);
     rotated_size = rotated.width * rotated.height;
+    rotated.pixels = malloc(rotated_size);
     memset(rotated.pixels, bgcolor, rotated_size);
 
     if (mirror_flip == TRUE)
@@ -378,8 +397,8 @@ Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
     if (source->transparent == TRUE)
         rotated.transparent = TRUE;
 
-    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 4;
-    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 4;
+    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 5;
+    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 5;
 
     rotated.offset_x = (rotated.width - source->width) / 2;
     rotated.offset_y = (rotated.height - source->height) / 2;
@@ -387,8 +406,8 @@ Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
     w_half = source->width / 2;
     h_half = source->height / 2;
 
-    rotated.pixels = malloc(rotated.width * rotated.height);
     rotated_size = rotated.width * rotated.height;
+    rotated.pixels = malloc(rotated_size);
     memset(rotated.pixels, bgcolor, rotated_size);
 
     if (mirror_flip == TRUE)
@@ -862,12 +881,12 @@ void drawActors()
 void drawAnim()
 {
     static int frame_counter = 0;
-    static int animation_counter = 0;
+    static int animation_counter = 1;
     static ticks_t last_frame_drawn;
 
-    drawTexture(160, 100, &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]]);
+    drawTexture(110, 100, &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]]);
 
-    if (last_frame_drawn + 5 < System.ticks)
+    if (last_frame_drawn + 2 < System.ticks)
     {
         last_frame_drawn = System.ticks;
         frame_counter++;
@@ -876,9 +895,64 @@ void drawAnim()
             frame_counter = 0;
             animation_counter++;
             if (animation_counter >= Animations.anim_count)
-                animation_counter = 0;
+                animation_counter = 1;
         }
     }
+}
+
+void drawAnimFromName(int x, int y, char* name)
+{
+    static int frame_counter = 0;
+    static ticks_t last_frame_drawn;
+    int i;
+
+    if ((i = findAnim(name)) != 0)
+    {
+        drawTexture(x, y, &ObjectTextures.textures[Animations.anims[i].frame_ids[frame_counter]]);
+
+        if (last_frame_drawn + 5 < System.ticks)
+        {
+            last_frame_drawn = System.ticks;
+            frame_counter++;
+            if (frame_counter >= Animations.anims[i].num_frames)
+            {
+                frame_counter = 0;
+            }
+        }
+    }
+    else
+        drawTextureClipped(x, y, &ObjectTextures.textures[Animations.anims[TEX_ERROR].frame_ids[TEX_ERROR]]);
+}
+
+void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
+{
+    if (sprite->next_frame + sprite->frame_interval < System.ticks)
+    {
+        sprite->next_frame = System.ticks;
+        sprite->frame++;
+        if (sprite->frame >= sprite->anim->num_frames)
+        {
+            sprite->frame = 0;
+        }
+    }
+
+    if (angle != 0.0)
+        drawTextureRotated(x, y, angle, &ObjectTextures.textures[sprite->anim->frame_ids[sprite->frame]], TRANSPARENT_COLOR);
+    else
+        drawTexture(x, y, &ObjectTextures.textures[sprite->anim->frame_ids[sprite->frame]]);
+}
+
+void drawSprite(int x, int y, double angle, Sprite_t* sprite)
+{
+    if (sprite->flags == SPRITE_IS_STATIC)
+    {
+        if (angle != 0.0)
+            drawTextureRotated(x, y, angle, &ObjectTextures.textures[sprite->anim->frame_ids[0]], TRANSPARENT_COLOR);
+        else
+            drawTexture(x, y, &ObjectTextures.textures[sprite->anim->frame_ids[0]]);
+    }
+    else
+        drawAnimFromSprite(x, y, angle, sprite);
 }
 
 void drawDebug();
@@ -897,7 +971,6 @@ void drawStats()
 
     sprintf(cur_weapon, "%s", PlayerActor.primary_weapon->name);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
-    //drawText(2, 170, Rocket.filename, COLOUR_WHITE);
 }
 
 void menuDraw()
@@ -913,6 +986,7 @@ void titleDraw()
 
 void gameDraw()
 {
+    static double angle = 0.0;
     calcCameraOffset();
     drawMap();
     corpseArrayManager();
@@ -920,8 +994,15 @@ void gameDraw()
     drawHealth();
     drawStats();
     drawAnim();
+    drawAnimFromName(60, 80, "ANIMS/ROCKET.ANI");
+    drawAnimFromName(60, 100, "ANIMS/EXPLO.ANI");
+    drawAnimFromName(60, 140, "ANIMS/LOL.ANI");
+    drawSprite(10, 80, angle, &Rocket);
+    drawSprite(10, 120, 0.0, &Explosion);
     particleArrayManager();
-
+    angle += 0.1;
+    if (angle >= RAD_360)
+        angle = 0;
     #if DEBUG == 1
     drawDebug();
     #endif

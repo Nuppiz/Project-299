@@ -16,7 +16,7 @@ extern GameData_t Game;
 extern Entity_t Entities[];
 extern Item_t* Items;
 extern Weapon_t Weapons[];
-Effect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
+WeaponEffect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
 Projectile_t Projectiles[64] = {0};
 
 uint8_t key_acquired = 0; // replace later with proper inventory system
