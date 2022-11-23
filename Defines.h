@@ -216,6 +216,6 @@
 #define clearBit(bitfield, bit) (bitfield) &= ~(bit)
 #define isBitSet(bitfield, bit) ((bitfield) & (bit))
 
-#define PlayerActor Game.Actors[Game.ActorsById[Game.player_id]]
+#define PLAYER_ACTOR Game.Actors[Game.ActorsById[Game.player_id]]
 
 #endif/* DEFINES_H */

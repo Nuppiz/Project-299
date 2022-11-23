@@ -12,6 +12,8 @@ GameData_t Game = {0};
 extern Texture_array ObjectTextures;
 extern System_t System;
 extern Weapon_t Weapons[];
+extern Sprite_t DudeSprite;
+extern AnimSet_t DudeAnimSet;
 
 id_t getNewId()
 {
@@ -64,6 +66,7 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
 	Game.Actors[Game.actor_count].direction.x = direction.x;
 	Game.Actors[Game.actor_count].direction.y = direction.y;
     Game.Actors[Game.actor_count].last_shot = System.ticks;
+    Game.Actors[Game.actor_count].animset = NULL;
 
     Game.actor_count++;
     
@@ -108,7 +111,7 @@ void initGameData(id_t actor_capacity, id_t id_capacity)
 {
     Game.Actors = calloc(actor_capacity, sizeof(Actor_t));
     Game.ActorsById = calloc(id_capacity, sizeof(id_t));
-    memset(Game.ActorsById, UINT8_MAX, id_capacity * sizeof(id_t));
+    memset(Game.ActorsById, UINT16_MAX, id_capacity * sizeof(id_t));
 }
 
 void freeGameData()
@@ -122,4 +125,10 @@ void freeGameData()
     free(Game.ActorsById);
     Game.id_capacity = 0;
     memset(Game.current_level_name, 0, strlen(Game.current_level_name) * sizeof(char));
+}
+
+void testInitPlayerAnim()
+{
+    PLAYER_ACTOR.sprite = DudeSprite;
+    PLAYER_ACTOR.animset = &DudeAnimSet;
 }

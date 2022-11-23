@@ -122,4 +122,17 @@ enum StateIndex
     NUM_STATES
 };
 
+enum AnimSets
+{
+    ANIMSET_CHARACTER,
+    NUM_ANIMSETS
+};
+
+enum AnimCharacter
+{
+    ANIM_IDLE,
+    ANIM_WALK,
+    NUM_ANIMS
+};
+
 #endif/* ENUMS_H */

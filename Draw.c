@@ -608,9 +608,9 @@ void calcCameraOffset()
     int cam_min_y = SCREEN_HEIGHT/2;
     int cam_max_y = Game.Map.height*SQUARE_SIZE - SCREEN_HEIGHT/2;
 
-    angle = atan2(PlayerActor.direction.y, PlayerActor.direction.x);
-    pos.x = PlayerActor.position.x + cos(angle) * LOOK_DISTANCE;
-    pos.y = PlayerActor.position.y + sin(angle) * LOOK_DISTANCE;
+    angle = atan2(PLAYER_ACTOR.direction.y, PLAYER_ACTOR.direction.x);
+    pos.x = PLAYER_ACTOR.position.x + cos(angle) * LOOK_DISTANCE;
+    pos.y = PLAYER_ACTOR.position.y + sin(angle) * LOOK_DISTANCE;
 
     if (pos.x < cam_min_x)
         pos.x = cam_min_x;
@@ -854,39 +854,16 @@ void emptyCorpseArray()
     corpse_write = 0;
 }
 
-void drawActors()
-{
-    int i = 0; // actor array "index"
-    int start_x;
-    int start_y;
-    char str[8] = {0};
-
-    while (i < Game.actor_count)
-    {
-        start_x = Game.Actors[i].position.x - camera_offset.x - ObjectTextures.textures[Game.Actors[i].texture_id].width / 2;
-        start_y = Game.Actors[i].position.y - camera_offset.y - ObjectTextures.textures[Game.Actors[i].texture_id].height / 2;
-        if (&ObjectTextures.textures[Game.Actors[i].texture_id] != NULL)
-            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ObjectTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
-        drawDot(&Game.Actors[i]);
-        #if DEBUG == 1
-        str[0] = '\0';
-        sprintf(str, "%u", Game.Actors[i].id);
-        drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
-        #endif
-        i++;
-    }
-}
-
 // test function, delete/flesh out later
 void drawAnim()
 {
     static int frame_counter = 0;
-    static int animation_counter = 1;
+    static int animation_counter = 0;
     static ticks_t last_frame_drawn;
 
     drawTexture(110, 100, &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]]);
 
-    if (last_frame_drawn + 2 < System.ticks)
+    if (last_frame_drawn + 10 < System.ticks)
     {
         last_frame_drawn = System.ticks;
         frame_counter++;
@@ -900,7 +877,7 @@ void drawAnim()
     }
 }
 
-void drawAnimFromName(int x, int y, char* name)
+void testDrawAnimFromName(int x, int y, char* name)
 {
     static int frame_counter = 0;
     static ticks_t last_frame_drawn;
@@ -926,20 +903,20 @@ void drawAnimFromName(int x, int y, char* name)
 
 void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
 {
-    if (sprite->next_frame + sprite->frame_interval < System.ticks)
+    if (sprite->next_frame <= System.ticks)
     {
-        sprite->next_frame = System.ticks;
+        sprite->next_frame += sprite->frame_interval;
         sprite->frame++;
-        if (sprite->frame >= sprite->anim->num_frames)
+        if (sprite->frame >= Animations.anims[sprite->anim_id].num_frames)
         {
             sprite->frame = 0;
         }
     }
 
     if (angle != 0.0)
-        drawTextureRotated(x, y, angle, &ObjectTextures.textures[sprite->anim->frame_ids[sprite->frame]], TRANSPARENT_COLOR);
+        drawTextureRotated(x, y, angle, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]], TRANSPARENT_COLOR);
     else
-        drawTexture(x, y, &ObjectTextures.textures[sprite->anim->frame_ids[sprite->frame]]);
+        drawTexture(x, y, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]]);
 }
 
 void drawSprite(int x, int y, double angle, Sprite_t* sprite)
@@ -947,12 +924,42 @@ void drawSprite(int x, int y, double angle, Sprite_t* sprite)
     if (sprite->flags == SPRITE_IS_STATIC)
     {
         if (angle != 0.0)
-            drawTextureRotated(x, y, angle, &ObjectTextures.textures[sprite->anim->frame_ids[0]], TRANSPARENT_COLOR);
+            drawTextureRotated(x, y, angle, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]], TRANSPARENT_COLOR);
         else
-            drawTexture(x, y, &ObjectTextures.textures[sprite->anim->frame_ids[0]]);
+            drawTexture(x, y, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]]);
     }
     else
         drawAnimFromSprite(x, y, angle, sprite);
+}
+
+void setActorAnim(Actor_t* actor, int new_anim_id)
+{
+    actor->sprite.anim_id = actor->animset->anim_ids[new_anim_id];
+}
+
+void drawActors()
+{
+    int i = 0; // actor array "index"
+    int start_x;
+    int start_y;
+    char str[8] = {0};
+
+    while (i < Game.actor_count)
+    {
+        start_x = Game.Actors[i].position.x - camera_offset.x - ObjectTextures.textures[Game.Actors[i].texture_id].width / 2;
+        start_y = Game.Actors[i].position.y - camera_offset.y - ObjectTextures.textures[Game.Actors[i].texture_id].height / 2;
+        if ((i != 0) && &ObjectTextures.textures[Game.Actors[i].texture_id] != NULL)
+            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ObjectTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
+        else
+            drawSprite(start_x, start_y, PLAYER_ACTOR.angle, &PLAYER_ACTOR.sprite);
+        drawDot(&Game.Actors[i]);
+        #if DEBUG == 1
+        str[0] = '\0';
+        sprintf(str, "%u", Game.Actors[i].id);
+        drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
+        #endif
+        i++;
+    }
 }
 
 void drawDebug();
@@ -961,15 +968,18 @@ void drawHealth()
 {
     char plr_health[10];
 
-    sprintf(plr_health, "HP: %d", PlayerActor.health);
+    sprintf(plr_health, "HP: %d", PLAYER_ACTOR.health);
     drawText(250, 190, plr_health, COLOUR_WHITE);
 }
 
 void drawStats()
 {
     char cur_weapon[30];
+    char cur_anim[15];
 
-    sprintf(cur_weapon, "%s", PlayerActor.primary_weapon->name);
+    sprintf(cur_weapon, "%s", PLAYER_ACTOR.primary_weapon->name);
+    sprintf(cur_anim, "ANIM: %d", PLAYER_ACTOR.sprite.anim_id);
+    drawText(2, 170, cur_anim, COLOUR_WHITE);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
 }
 
@@ -984,25 +994,45 @@ void titleDraw()
     drawText(93, 96, "PRESS SPACE", COLOUR_BLUE);
 }
 
-void gameDraw()
+void testRocketAngle()
 {
     static double angle = 0.0;
+    drawSprite(10, 80, angle, &Rocket);
+    angle += 0.1;
+    if (angle >= RAD_360)
+        angle = 0;
+}
+
+void testSetPlayerAnim()
+{
+    if (PLAYER_ACTOR.magnitude != 0.0)
+    {
+        setActorAnim(&PLAYER_ACTOR, ANIM_WALK);
+        //PLAYER_ACTOR.sprite.flags = SPRITE_IS_ANIM;
+    }
+    else
+    {
+        setActorAnim(&PLAYER_ACTOR, ANIM_IDLE);
+        //PLAYER_ACTOR.sprite.flags = SPRITE_IS_STATIC;
+    }
+}
+
+void gameDraw()
+{
     calcCameraOffset();
     drawMap();
     corpseArrayManager();
+    testSetPlayerAnim();
     drawActors();
     drawHealth();
     drawStats();
     drawAnim();
-    drawAnimFromName(60, 80, "ANIMS/ROCKET.ANI");
-    drawAnimFromName(60, 100, "ANIMS/EXPLO.ANI");
-    drawAnimFromName(60, 140, "ANIMS/LOL.ANI");
-    drawSprite(10, 80, angle, &Rocket);
+    testDrawAnimFromName(60, 80, "ANIMS/ROCKET.ANI");
+    testDrawAnimFromName(60, 100, "ANIMS/EXPLO.ANI");
+    testDrawAnimFromName(60, 140, "ANIMS/LOL.ANI");
+    testRocketAngle();
     drawSprite(10, 120, 0.0, &Explosion);
     particleArrayManager();
-    angle += 0.1;
-    if (angle >= RAD_360)
-        angle = 0;
     #if DEBUG == 1
     drawDebug();
     #endif

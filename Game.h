@@ -9,5 +9,6 @@ void deleteActor(id_t id);
 void deleteLastActor();
 void initGameData(id_t actor_capacity, id_t id_capacity);
 void freeGameData();
+void testInitPlayerAnim();
 
 #endif/* GAME_H */

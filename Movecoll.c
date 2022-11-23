@@ -202,7 +202,7 @@ void controlAllActors()
     // copy control variable from Input.c to the player actor's control variable
     // in this way, completely separating input handling and physics with a single-variable "abstraction layer"
     extern flags_t player_control;
-    PlayerActor.control = player_control;
+    PLAYER_ACTOR.control = player_control;
 
     while (i < Game.actor_count)
     {
@@ -350,9 +350,6 @@ void collideAllActors()
             collideTwoActors(&Game.Actors[i], &Game.Actors[x+1]);
         }
     }
-    
-    // also check that none of the actors are going beyond the screen boundaries
-    // edgeDetect();
 }
 
 void physics()
@@ -362,6 +359,6 @@ void physics()
     collideAllActors();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PlayerActor.velocity.x, PlayerActor.velocity.y);
+    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PLAYER_ACTOR.velocity.x, PLAYER_ACTOR.velocity.y);
     #endif
 }

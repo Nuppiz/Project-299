@@ -34,8 +34,11 @@ Texture_array ObjectTextures = {0};
 Texture_array TileTextures = {0};
 Anim_array Animations = {0};
 
-Sprite_t Rocket = {SPRITE_IS_ANIM, NULL, 0, 0, 3};
-Sprite_t Explosion = {SPRITE_IS_ANIM, NULL, 0, 0, 2};
+Sprite_t Rocket = {SPRITE_IS_ANIM, 0, 0, 0, 3};
+Sprite_t Explosion = {SPRITE_IS_ANIM, 0, 0, 0, 2};
+Sprite_t DudeSprite = {SPRITE_IS_ANIM, 0, 0, 0, 10};
+
+AnimSet_t DudeAnimSet = {0};
 
 void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
 {
@@ -165,18 +168,22 @@ void loadBaseTextures()
     loadTexturesFromList("SPRITES/ACTORTEX.txt", &ObjectTextures);
 }
 
-void loadAnimation(char* filename)
+int loadAnimation(char* filename)
 {
     FILE* anim_file;
     int num_frames = 0;
     int animation_frame = 0;
     int anim_frame_id;
+    int anim_id = 0;
     char c;
     char texture_filename[20];
 
     Animations.anims = realloc(Animations.anims, (Animations.anim_count + 1) * sizeof(Anim_t));
 
     anim_file = fopen(filename, "r");
+
+    if ((anim_id = findAnim(filename)) != 0)
+        return anim_id;
 
     if (anim_file == NULL)
     {
@@ -185,11 +192,14 @@ void loadAnimation(char* filename)
         printf("Unable to open animation file!\n");
         printf("Please check the file actually exists!\n");
         System.running = 0;
-        return;
+        return 0;
     }
 
-    Animations.anims[Animations.anim_count].name = malloc(strlen(filename) + 1);
-    strcpy(Animations.anims[Animations.anim_count].name, filename);
+    anim_id = Animations.anim_count;
+    Animations.anim_count++;
+
+    Animations.anims[anim_id].name = malloc(strlen(filename) + 1);
+    strcpy(Animations.anims[anim_id].name, filename);
 
     while ((c = fgetc(anim_file)) != EOF)
     {
@@ -197,8 +207,8 @@ void loadAnimation(char* filename)
             num_frames++;
     }
 
-    Animations.anims[Animations.anim_count].num_frames = num_frames;
-    Animations.anims[Animations.anim_count].frame_ids = malloc(num_frames * sizeof(int));
+    Animations.anims[anim_id].num_frames = num_frames;
+    Animations.anims[anim_id].frame_ids = malloc(num_frames * sizeof(int));
 
     fseek(anim_file, 0, SEEK_SET);
 
@@ -206,11 +216,12 @@ void loadAnimation(char* filename)
     {
         fscanf(anim_file, "%20s", texture_filename);
         anim_frame_id = loadTexture(texture_filename, &ObjectTextures);
-        Animations.anims[Animations.anim_count].frame_ids[animation_frame] = anim_frame_id;
+        Animations.anims[anim_id].frame_ids[animation_frame] = anim_frame_id;
     }
 
     fclose(anim_file);
-    Animations.anim_count++;
+
+    return anim_id;
 }
 
 void loadAnimsFromList(char* list_filename)
@@ -241,8 +252,15 @@ void loadAnimsFromList(char* list_filename)
 // temp
 void makeSprites()
 {
-    Rocket.anim = &Animations.anims[1];
-    Explosion.anim = &Animations.anims[3];
+    Rocket.anim_id = 1;
+    Explosion.anim_id  = 3;
+}
+
+void makeAnimset()
+{
+    DudeAnimSet.anim_ids[ANIM_IDLE] = loadAnimation("ANIMS/DUDEIDLE.ANI");
+    DudeAnimSet.anim_ids[ANIM_WALK] = loadAnimation("ANIMS/DUDEWALK.ANI");
+    DudeSprite.anim_id = 4;
 }
 
 void freeAllTextures()

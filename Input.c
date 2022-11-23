@@ -82,21 +82,21 @@ void playerControl()
         pushState(STATE_PAUSE);
     }
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
-        shootWeapon(PlayerActor.primary_weapon, &PlayerActor);
+        shootWeapon(PLAYER_ACTOR.primary_weapon, &PLAYER_ACTOR);
 
     if (KEY_WAS_HIT(KEY_E))
-        useTile(PlayerActor.position, PlayerActor.direction);
+        useTile(PLAYER_ACTOR.position, PLAYER_ACTOR.direction);
 
     if (KEY_WAS_HIT(KEY_1))
-        PlayerActor.primary_weapon = &Weapons[WEAPON_FIST];
+        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_FIST];
     if (KEY_WAS_HIT(KEY_2))
-        PlayerActor.primary_weapon = &Weapons[WEAPON_PISTOL];
+        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_PISTOL];
     if (KEY_WAS_HIT(KEY_3))
-        PlayerActor.primary_weapon = &Weapons[WEAPON_SHOTGUN];
+        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_SHOTGUN];
     if (KEY_WAS_HIT(KEY_4))
-        PlayerActor.primary_weapon = &Weapons[WEAPON_CHAINGUN];
+        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_CHAINGUN];
     if (KEY_WAS_HIT(KEY_5))
-        PlayerActor.primary_weapon = &Weapons[WEAPON_ROCKET];
+        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_ROCKET];
 
     #if DEBUG == 1
     d[0] = '\0';
@@ -126,7 +126,7 @@ void testButtons()
     }
 
     if (KEY_WAS_HIT(KEY_K))
-        PlayerActor.health = 10;
+        PLAYER_ACTOR.health = 10;
 
     if (KEY_WAS_HIT(KEY_PAGEUP))
         changeMusicVolume(VOLUME_UP);

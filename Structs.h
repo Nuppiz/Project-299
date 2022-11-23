@@ -88,8 +88,13 @@ typedef struct
 
 typedef struct
 {
+    int anim_ids[NUM_ANIMS];
+} AnimSet_t;
+
+typedef struct
+{
     uint8_t flags;
-    Anim_t* anim;
+    int anim_id;
     int frame;
     time_t next_frame;
     time_t frame_interval;
@@ -155,6 +160,8 @@ typedef struct
     ticks_t last_shot; // last shot taken
     Weapon_t* primary_weapon;
     Weapon_t* secondary_weapon;
+    Sprite_t sprite;
+    AnimSet_t* animset;
 } Actor_t;
 
 typedef struct

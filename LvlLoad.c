@@ -357,6 +357,7 @@ void levelLoader(char* level_name, uint8_t load_type)
         loadTileset(tileset_file);
     }
     fclose(level_file);
+    testInitPlayerAnim();
 }
 
 void setEntityTilemap()
@@ -406,10 +407,10 @@ void saveGameState(char* foldername)
         delay(60000);
     }
     fwrite(&Game.current_level_name, LEVEL_NAME_MAX, 1, save_file);
-    fwrite(&PlayerActor.health, 2, 1, save_file);
-    fwrite(&PlayerActor.position.x, 8, 1, save_file);
-    fwrite(&PlayerActor.position.y, 8, 1, save_file);
-    fwrite(&PlayerActor.primary_weapon->id, 2, 1, save_file);
+    fwrite(&PLAYER_ACTOR.health, 2, 1, save_file);
+    fwrite(&PLAYER_ACTOR.position.x, 8, 1, save_file);
+    fwrite(&PLAYER_ACTOR.position.y, 8, 1, save_file);
+    fwrite(&PLAYER_ACTOR.primary_weapon->id, 2, 1, save_file);
     fwrite(&System, sizeof(System_t), 1, save_file);
     fwrite(&Timers, sizeof(Timer_t), 1, save_file);
     fclose(save_file);
@@ -461,19 +462,19 @@ void loadGameState(char* foldername)
         fseek(state_file, 0x0F, SEEK_SET);
         fread(&player_hp, 2, 1, state_file);
         if (player_hp > 0) // avoid infinite death loop
-            PlayerActor.health = player_hp;
+            PLAYER_ACTOR.health = player_hp;
         fread(&player_loc.x, 8, 1, state_file);
         fread(&player_loc.y, 8, 1, state_file);
         fread(&current_weapon, 2, 1, state_file);
-        PlayerActor.position.x = player_loc.x;
-        PlayerActor.position.y = player_loc.y;
-        PlayerActor.primary_weapon = &Weapons[current_weapon];
-        updateGridLoc(&PlayerActor);
+        PLAYER_ACTOR.position.x = player_loc.x;
+        PLAYER_ACTOR.position.y = player_loc.y;
+        PLAYER_ACTOR.primary_weapon = &Weapons[current_weapon];
+        updateGridLoc(&PLAYER_ACTOR);
         // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
-        if (checkForPortal(PlayerActor.grid_loc) == TRUE)
+        if (checkForPortal(PLAYER_ACTOR.grid_loc) == TRUE)
         {
-            PlayerActor.position = moveFromPortal(PlayerActor.position);
-            updateGridLoc(&PlayerActor);
+            PLAYER_ACTOR.position = moveFromPortal(PLAYER_ACTOR.position);
+            updateGridLoc(&PLAYER_ACTOR);
         }
         fread(&System, sizeof(System_t), 1, state_file);
         fread(&Timers, sizeof(Timer_t), 1, state_file);
