@@ -9,92 +9,70 @@
 extern GameData_t Game;
 extern Entity_t Entities[];
 
+Vec2_int getGridLocation(Vec2 pos)
+{
+    Vec2_int grid_loc;
+    
+    grid_loc.x = pos.x / SQUARE_SIZE;
+    grid_loc.y = pos.y / SQUARE_SIZE;
+
+    return grid_loc;
+}
+
 void updateGridLoc(Actor_t* actor) // actor's location on the grid
 {   
     // calculated by dividing the actor's x/y location by square size
-    actor->grid_loc.x = actor->position.x / SQUARE_SIZE;
-    actor->grid_loc.y = actor->position.y / SQUARE_SIZE;
+    actor->grid_loc = getGridLocation(actor->position);
 }
 
-int getTileCollision(Vec2 pos)
+Tile_t* getTileAt(Vec2_int grid_location)
 {
-    int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
-    uint8_t tile_obstacle;
-    
-    // calculate current grid position
-    pos.x /= SQUARE_SIZE;
-    pos.y /= SQUARE_SIZE;
-    
-    // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * Game.Map.width + (int)pos.x;
-    
-    tile_obstacle = Game.Map.tilemap[object_tile].obstacle; // check collision flag at that index
-    
-    return tile_obstacle; // return said data
+    int tile_index = grid_location.y * Game.Map.width + grid_location.x;
+
+    return &Game.Map.tilemap[tile_index];
 }
 
-int getTileBulletBlock(Vec2 pos)
+int getEntityTypeAt(Vec2_int grid_location)
 {
-    int object_tile; // tile which the object is on (or attempting to be), i.e. array index number from grid_array
-    uint8_t tile_bullet;
+    Tile_t* tile = getTileAt(grid_location);
     
-    // calculate current grid position
-    pos.x /= SQUARE_SIZE;
-    pos.y /= SQUARE_SIZE;
+    if (tile->is_entity == TRUE) // check if there's an entity at that tile
+        return Entities[tile->entity_value].type;
     
-    // check which grid_array index it corresponds to
-    object_tile = (int)pos.y * Game.Map.width + (int)pos.x;
-    
-    tile_bullet = Game.Map.tilemap[object_tile].block_bullets; // check bullet block flag at that index
-    
-    return tile_bullet; // return said data
+    return ENT_NONE;
 }
 
-int checkForPortal(Vec2_int grid_location)
+Vec2 forceMove(Vec2 pos)
 {
-    int actor_tile; // tile which the actor is on (or attempting to be), i.e. array index number from grid_array
-    
-    // check which grid_array index it corresponds to
-    actor_tile = grid_location.y * Game.Map.width + grid_location.x;
-    
-    if (Game.Map.tilemap[actor_tile].is_entity == 1 && Entities[Game.Map.tilemap[actor_tile].entity_value].type == ENT_PORTAL) // check if there's a portal at that tile
-        return TRUE;
-    
-    return FALSE;
-}
+    Vec2 try_position;
 
-Vec2 moveFromPortal(Vec2 pos)
-{
-    Vec2 temp_position;
-    Vec2 new_position;
-
-    temp_position.x = pos.x;
-    temp_position.y = pos.y - SQUARE_SIZE;
-    if (getTileCollision(temp_position) == FALSE)
+    // up
+    try_position.x = pos.x;
+    try_position.y = pos.y - SQUARE_SIZE;
+    if (getTileAt(getGridLocation(try_position))->obstacle == FALSE)
     {
-        new_position = temp_position;
-        return new_position;
+        return try_position;
     }
-    temp_position.x = pos.x + SQUARE_SIZE;
-    temp_position.y = pos.y;
-    if (getTileCollision(temp_position) == FALSE)
+    // right
+    try_position.x = pos.x + SQUARE_SIZE;
+    try_position.y = pos.y;
+    if (getTileAt(getGridLocation(try_position))->obstacle == FALSE)
     {
-        new_position = temp_position;
-        return new_position;
+        return try_position;
     }
-    temp_position.x = pos.x;
-    temp_position.y = pos.y + SQUARE_SIZE;
-    if (getTileCollision(temp_position) == FALSE)
+    // down
+    try_position.x = pos.x;
+    try_position.y = pos.y + SQUARE_SIZE;
+    if (getTileAt(getGridLocation(try_position))->obstacle == FALSE)
     {
-        new_position = temp_position;
-        return new_position;
+        return try_position;
     }
-    temp_position.x = pos.x - SQUARE_SIZE;
-    temp_position.y = pos.y;
-    if (getTileCollision(temp_position) == FALSE)
+    // left
+    try_position.x = pos.x - SQUARE_SIZE;
+    try_position.y = pos.y;
+    if (getTileAt(getGridLocation(try_position))->obstacle == FALSE)
     {
-        new_position = temp_position;
-        return new_position;
+        return try_position;
     }
     // can't move, return original position
     return pos;
@@ -230,7 +208,7 @@ void moveActor(Actor_t* actor, Vec2 movement)
         test_point_b.y = actor->position.y + actor->radius;
         
         // if the movement would result in the actor moving inside of a wall...
-        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
+        if (getTileAt(getGridLocation(test_point_a))->obstacle == TRUE || getTileAt(getGridLocation(test_point_b))->obstacle == TRUE)
         {
             // ...cancel movement and set velocity to 0
             actor->position.x = (actor->grid_loc.x + 1) * SQUARE_SIZE - actor->radius - 1;
@@ -247,7 +225,7 @@ void moveActor(Actor_t* actor, Vec2 movement)
         test_point_b.x = actor->position.x - actor->radius;
         test_point_b.y = actor->position.y + actor->radius;
         
-        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
+        if (getTileAt(getGridLocation(test_point_a))->obstacle == TRUE || getTileAt(getGridLocation(test_point_b))->obstacle == TRUE)
         {
             actor->position.x = actor->grid_loc.x * SQUARE_SIZE + actor->radius;
             actor->velocity.x = 0.0;
@@ -264,7 +242,7 @@ void moveActor(Actor_t* actor, Vec2 movement)
         test_point_b.x = actor->position.x - actor->radius;
         test_point_b.y = actor->position.y - actor->radius;
         
-        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
+        if (getTileAt(getGridLocation(test_point_a))->obstacle == TRUE || getTileAt(getGridLocation(test_point_b))->obstacle == TRUE)
         {
             actor->position.y = actor->grid_loc.y * SQUARE_SIZE + actor->radius;
             actor->velocity.y = 0.0;
@@ -280,7 +258,7 @@ void moveActor(Actor_t* actor, Vec2 movement)
         test_point_b.x = actor->position.x - actor->radius;
         test_point_b.y = actor->position.y + actor->radius;
         
-        if (getTileCollision(test_point_a) == TRUE || getTileCollision(test_point_b) == TRUE)
+        if (getTileAt(getGridLocation(test_point_a))->obstacle == TRUE || getTileAt(getGridLocation(test_point_b))->obstacle == TRUE)
         {
             actor->position.y = (actor->grid_loc.y + 1) * SQUARE_SIZE - actor->radius - 1;
             actor->velocity.y = 0.0;

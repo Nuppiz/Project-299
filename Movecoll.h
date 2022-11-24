@@ -3,11 +3,11 @@
 
 #include "Structs.h"
 
+Vec2_int getGridLocation(Vec2 pos);
 void updateGridLoc(Actor_t* actor);
-int getTileCollision(Vec2 pos);
-int getTileBulletBlock(Vec2 pos);
-int checkForPortal(Vec2_int grid_location);
-Vec2 moveFromPortal(Vec2 pos);
+Tile_t* getTileAt(Vec2_int grid_location);
+int getEntityTypeAt(Vec2_int grid_location);
+Vec2 forceMove(Vec2 pos);
 //void moveAllActors();
 //void collideAllActors();
 void physics();

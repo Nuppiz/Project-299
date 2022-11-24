@@ -76,7 +76,7 @@ void deleteEntity(int entity_id, int tilemap_loc)
 {
     Game.Map.tilemap[tilemap_loc].is_entity = 0;
     Game.Map.tilemap[tilemap_loc].entity_value = 0;
-    Entities[entity_id].type = ENT_DELETED;
+    Entities[entity_id].type = ENT_NONE;
 }
 
 Tile_t* getEntityTile(int x, int y)
@@ -206,7 +206,7 @@ void runCounter(Entity_t* counter)
     {
         toggleCounter(counter);
         if (counter->data.counter.only_once == 1)
-            counter->type = ENT_DELETED;
+            counter->type = ENT_NONE;
         else
             counter->data.counter.value = 0;
     }
@@ -308,7 +308,7 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
         pos.x += dir.x * BULLET_STEP;
         pos.y += dir.y * BULLET_STEP;
 
-        if (getTileBulletBlock(pos) == TRUE)
+        if (getTileAt(getGridLocation(pos))->block_bullets == TRUE)
         {
             if (weapon_id != WEAPON_FIST)
                 particleFx(pos, dir, FX_SPARKS);
@@ -421,7 +421,7 @@ void moveProjectiles()
                 playSFX(Effects[Projectiles[i].effect_id].sound_id);
                 Projectiles[i].state = FALSE;
             }
-            else if (Projectiles[i].state == TRUE && getTileBulletBlock(Projectiles[i].position) == TRUE)
+            else if (Projectiles[i].state == TRUE && getTileAt(getGridLocation(Projectiles[i].position))->block_bullets == TRUE)
             {
                 playSFX(Effects[Projectiles[i].effect_id].sound_id);
                 Projectiles[i].state = FALSE;
@@ -463,7 +463,7 @@ void entityLoop()
 
     for (i = 0; i < MAX_ENTITIES; i++)
     {
-        if (Entities[i].type != ENT_DELETED)
+        if (Entities[i].type != ENT_NONE)
         {
             if (Entities[i].type == ENT_SPAWNER)
                 runSpawner(&Entities[i]);
@@ -492,7 +492,7 @@ void actorDeathLoop()
                 playSFX(SOUND_DEATH);
                 loadAfterDeath(Game.current_level_name);
             }       
-            else if (Game.Actors[i].trigger_on_death != -1)
+            else if (Game.Actors[i].trigger_on_death != UINT16_MAX)
             {
                 playSFX(SOUND_DEATH_E);
                 deathTrigger(i);

@@ -156,7 +156,7 @@ typedef struct
     uint8_t color;
     id_t texture_id;
     int health;
-    int8_t trigger_on_death; // entity ID to trigger on death
+    id_t trigger_on_death; // entity ID to trigger on death
     ticks_t last_shot; // last shot taken
     Weapon_t* primary_weapon;
     Weapon_t* secondary_weapon;
@@ -199,7 +199,7 @@ typedef struct {
         struct t_button {uint8_t target;} button;
         struct t_spawner {double angle; ticks_t last_spawn_time; ticks_t spawn_time_interval;
         int8_t max_actors; uint8_t num_actors; uint16_t spawn_type: 5;
-        uint16_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
+        id_t trigger_on_death: 5; uint16_t toggleable : 1; uint16_t only_once : 1;} spawner;
         struct t_trigger {ticks_t last_trigger_time; ticks_t trigger_interval; int8_t target_ids[4]; uint8_t only_once;} trigger;
         struct t_counter {uint16_t value : 5; uint16_t max_value : 5; uint16_t target_id : 5; uint16_t only_once : 1;} counter;
         struct t_portal {char level_name[30]; int x; int y; double angle;} portal;

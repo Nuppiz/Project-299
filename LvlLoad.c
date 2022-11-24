@@ -21,6 +21,7 @@ char levelname_global[15];
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
+    "",
     "Door",
     "Button",
     "Spawner",
@@ -112,7 +113,7 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
     int ent_x, ent_y, state, tilemap_location, only_once; double angle; // common variables
     int locked, key; // door variables
     int target; // switch/button variables
-    ticks_t last_spawn_time; ticks_t spawn_interval, toggleable, max_actors, num_actors, spawn_type, trigger_on_death; // spawner variables
+    ticks_t last_spawn_time, spawn_interval; id_t toggleable, max_actors, num_actors, spawn_type, trigger_on_death; // spawner variables
     ticks_t last_trigger_time; ticks_t trigger_interval; int target_ids[4]; // trigger variables
     int max_value, target_id; // counter variables
     char level_name[20]; int portal_x, portal_y; // portal variables
@@ -302,7 +303,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             {
                 fscanf(level_file, "%d %d %lf %d %d %s",
                     &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, -1, WEAPON_PISTOL, texture_filename);
+                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, UINT16_MAX, WEAPON_PISTOL, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
@@ -471,9 +472,9 @@ void loadGameState(char* foldername)
         PLAYER_ACTOR.primary_weapon = &Weapons[current_weapon];
         updateGridLoc(&PLAYER_ACTOR);
         // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
-        if (checkForPortal(PLAYER_ACTOR.grid_loc) == TRUE)
+        if (getEntityTypeAt(PLAYER_ACTOR.grid_loc) == ENT_PORTAL)
         {
-            PLAYER_ACTOR.position = moveFromPortal(PLAYER_ACTOR.position);
+            PLAYER_ACTOR.position = forceMove(PLAYER_ACTOR.position);
             updateGridLoc(&PLAYER_ACTOR);
         }
         fread(&System, sizeof(System_t), 1, state_file);

@@ -36,7 +36,7 @@ Anim_array Animations = {0};
 
 Sprite_t Rocket = {SPRITE_IS_ANIM, 0, 0, 0, 3};
 Sprite_t Explosion = {SPRITE_IS_ANIM, 0, 0, 0, 2};
-Sprite_t DudeSprite = {SPRITE_IS_ANIM, 0, 0, 0, 10};
+Sprite_t DudeSprite = {SPRITE_IS_ANIM, 0, 0, 0, 5};
 
 AnimSet_t DudeAnimSet = {0};
 
@@ -260,6 +260,9 @@ void makeAnimset()
 {
     DudeAnimSet.anim_ids[ANIM_IDLE] = loadAnimation("ANIMS/DUDEIDLE.ANI");
     DudeAnimSet.anim_ids[ANIM_WALK] = loadAnimation("ANIMS/DUDEWALK.ANI");
+    DudeAnimSet.anim_ids[ANIM_PUNCH_STILL] = loadAnimation("ANIMS/DUDESTP.ANI");
+    DudeAnimSet.anim_ids[ANIM_PUNCH_WALK] = loadAnimation("ANIMS/DUDEWALP.ANI");
+    DudeAnimSet.anim_ids[ANIM_SHOOT] = loadAnimation("ANIMS/DUDEGUNS.ANI");
     DudeSprite.anim_id = 4;
 }
 

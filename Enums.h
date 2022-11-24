@@ -17,13 +17,13 @@ enum TextureMaterials
 
 enum EntityTypes
 {
+    ENT_NONE,
     ENT_DOOR,
     ENT_BUTTON,
     ENT_SPAWNER,
     ENT_TRIGGER,
     ENT_COUNTER,
     ENT_PORTAL,
-    ENT_DELETED,
     NUM_ENTITYTYPES
 };
 
@@ -132,6 +132,9 @@ enum AnimCharacter
 {
     ANIM_IDLE,
     ANIM_WALK,
+    ANIM_PUNCH_STILL,
+    ANIM_PUNCH_WALK,
+    ANIM_SHOOT,
     NUM_ANIMS
 };
 

@@ -14,7 +14,6 @@
 
 #define SCREEN_WIDTH        320       /* width in pixels of mode 0x13 */
 #define SCREEN_HEIGHT       200       /* height in pixels of mode 0x13 */
-#define NUM_COLORS          256       /* number of colors in mode 0x13 */
 
 #define PALETTE_WRITE       0x03C8
 #define PALETTE_DATA        0x03C9

@@ -32,7 +32,7 @@ id_t getNewId()
     return id;
 }
 
-id_t createActor(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, int8_t trigger_on_death, id_t primary_weapon, char* texture_name)
+id_t createActor(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, id_t trigger_on_death, id_t primary_weapon, char* texture_name)
 {
 	Vec2 direction; // temporary container for direction value
     id_t id = getNewId();

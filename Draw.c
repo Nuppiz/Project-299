@@ -5,6 +5,7 @@
 #include "Video.h"
 #include "Vectors.h"
 #include "Loadgfx.h"
+#include "Keyb.h"
 
 /* Graphics drawing functions */
 
@@ -17,6 +18,8 @@ extern Texture_array TileTextures;
 extern Anim_array Animations;
 extern Tile_t TileSet[];
 extern Item_t* Items;
+extern Keyboard_t Keyboard;
+extern Weapon_t Weapons[];
 
 // test subjects, del later
 extern Sprite_t Rocket;
@@ -594,7 +597,7 @@ void testColors()
     int i, x;
     int y = 100;
 
-    for (i = 0, x = 31; i < NUM_COLORS; i++, x++)
+    for (i = 0, x = 31; i < 256; i++, x++)
         SET_PIXEL(x, y, i);
 }
 
@@ -861,7 +864,9 @@ void drawAnim()
     static int animation_counter = 0;
     static ticks_t last_frame_drawn;
 
-    drawTexture(110, 100, &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]]);
+    Texture_t* texture = &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]];
+
+    drawTexture(110, 100, texture);
 
     if (last_frame_drawn + 10 < System.ticks)
     {
@@ -885,7 +890,9 @@ void testDrawAnimFromName(int x, int y, char* name)
 
     if ((i = findAnim(name)) != 0)
     {
-        drawTexture(x, y, &ObjectTextures.textures[Animations.anims[i].frame_ids[frame_counter]]);
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[i].frame_ids[frame_counter]];
+
+        drawTexture(x, y, texture);
 
         if (last_frame_drawn + 5 < System.ticks)
         {
@@ -903,6 +910,8 @@ void testDrawAnimFromName(int x, int y, char* name)
 
 void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
 {
+    Texture_t* texture;
+
     if (sprite->next_frame <= System.ticks)
     {
         sprite->next_frame += sprite->frame_interval;
@@ -913,52 +922,64 @@ void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
         }
     }
 
+    texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]];
+
     if (angle != 0.0)
-        drawTextureRotated(x, y, angle, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]], TRANSPARENT_COLOR);
+        drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
     else
-        drawTexture(x, y, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]]);
+        drawTexture(x, y, texture);
 }
 
 void drawSprite(int x, int y, double angle, Sprite_t* sprite)
 {
     if (sprite->flags == SPRITE_IS_STATIC)
     {
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]];
+
         if (angle != 0.0)
-            drawTextureRotated(x, y, angle, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]], TRANSPARENT_COLOR);
+            drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
         else
-            drawTexture(x, y, &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]]);
+            drawTexture(x, y, texture);
     }
     else
         drawAnimFromSprite(x, y, angle, sprite);
 }
 
-void setActorAnim(Actor_t* actor, int new_anim_id)
+void setActorAnim(Actor_t* actor, int new_anim_type)
 {
-    actor->sprite.anim_id = actor->animset->anim_ids[new_anim_id];
+    actor->sprite.anim_id = actor->animset->anim_ids[new_anim_type];
+    actor->sprite.frame = 0;
 }
 
 void drawActors()
 {
-    int i = 0; // actor array "index"
+    int i; // actor array "index"
     int start_x;
     int start_y;
+    Texture_t* texture;
+    Actor_t* actor;
     char str[8] = {0};
 
-    while (i < Game.actor_count)
+    for (i = 0; i < Game.actor_count; i++)
     {
-        start_x = Game.Actors[i].position.x - camera_offset.x - ObjectTextures.textures[Game.Actors[i].texture_id].width / 2;
-        start_y = Game.Actors[i].position.y - camera_offset.y - ObjectTextures.textures[Game.Actors[i].texture_id].height / 2;
-        if ((i != 0) && &ObjectTextures.textures[Game.Actors[i].texture_id] != NULL)
-            drawTextureRotated(start_x, start_y, Game.Actors[i].angle, &ObjectTextures.textures[Game.Actors[i].texture_id], TRANSPARENT_COLOR);
+        actor = &Game.Actors[i];
+        texture = &ObjectTextures.textures[actor->texture_id];
+
+        start_x = actor->position.x - camera_offset.x - texture->width / 2;
+        start_y = actor->position.y - camera_offset.y - texture->height / 2;
+        
+        if ((i != 0) && texture != NULL)
+            drawTextureRotated(start_x, start_y, actor->angle, texture, TRANSPARENT_COLOR);
         else
             drawSprite(start_x, start_y, PLAYER_ACTOR.angle, &PLAYER_ACTOR.sprite);
-        drawDot(&Game.Actors[i]);
+
+        drawDot(actor);
+
         #if DEBUG == 1
         str[0] = '\0';
-        sprintf(str, "%u", Game.Actors[i].id);
+        sprintf(str, "%u", actor->id);
         drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
         #endif
-        i++;
     }
 }
 
@@ -1007,14 +1028,36 @@ void testSetPlayerAnim()
 {
     if (PLAYER_ACTOR.magnitude != 0.0)
     {
-        setActorAnim(&PLAYER_ACTOR, ANIM_WALK);
+        if (!KEY_IS_PRESSED(KEY_SPACEBAR) && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_WALK])
+            setActorAnim(&PLAYER_ACTOR, ANIM_WALK);
         //PLAYER_ACTOR.sprite.flags = SPRITE_IS_ANIM;
+        else if (KEY_IS_PRESSED(KEY_SPACEBAR))
+            if (PLAYER_ACTOR.primary_weapon == &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_WALK])
+                setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_WALK);
+            else if (PLAYER_ACTOR.primary_weapon != &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
+                setActorAnim(&PLAYER_ACTOR, ANIM_SHOOT);
     }
-    else
+    else if (PLAYER_ACTOR.magnitude == 0.0)
     {
-        setActorAnim(&PLAYER_ACTOR, ANIM_IDLE);
+        if (!KEY_IS_PRESSED(KEY_SPACEBAR))
+            setActorAnim(&PLAYER_ACTOR, ANIM_IDLE);
+        else
+            if (PLAYER_ACTOR.primary_weapon == &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_STILL])
+                setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_STILL);
+            else if (PLAYER_ACTOR.primary_weapon != &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
+                setActorAnim(&PLAYER_ACTOR, ANIM_SHOOT);
         //PLAYER_ACTOR.sprite.flags = SPRITE_IS_STATIC;
     }
+}
+
+void animTestBlock()
+{
+    drawAnim();
+    testDrawAnimFromName(60, 80, "ANIMS/ROCKET.ANI");
+    testDrawAnimFromName(60, 100, "ANIMS/EXPLO.ANI");
+    testDrawAnimFromName(60, 140, "ANIMS/LOL.ANI");
+    testRocketAngle();
+    drawSprite(10, 120, 0.0, &Explosion);
 }
 
 void gameDraw()
@@ -1026,12 +1069,7 @@ void gameDraw()
     drawActors();
     drawHealth();
     drawStats();
-    drawAnim();
-    testDrawAnimFromName(60, 80, "ANIMS/ROCKET.ANI");
-    testDrawAnimFromName(60, 100, "ANIMS/EXPLO.ANI");
-    testDrawAnimFromName(60, 140, "ANIMS/LOL.ANI");
-    testRocketAngle();
-    drawSprite(10, 120, 0.0, &Explosion);
+    //animTestBlock();
     particleArrayManager();
     #if DEBUG == 1
     drawDebug();

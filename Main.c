@@ -38,65 +38,113 @@ void updateStats()
     #endif
 }
 
-void loop()
+void updateStates()
 {
     int i;
+    State_t* state;
+    
+    for (i = 0; i < state_count; i++)
+    {
+        state = Stack[i];
+        if ((state->flags & STATE_ENABLE_UPDATE))
+            state->update();
+    }
+}
 
-    while (System.running == 1)
-    {  
-        if (Timers.last_tick + System.tick_interval < System.time) // tick
+void handleInput()
+{
+    // only handle input from the state at the top of the stack
+    Stack[stack_top]->input(); 
+    clearKeys();
+}
+
+void processTick()
+{
+    handleInput();
+    updateStates();
+
+    if (System.paused == FALSE)
+    {
+        System.ticks++;
+        System.ticks_per_frame++;
+    }
+}
+
+void handleTicks()
+{
+    if (Timers.last_tick + System.tick_interval < System.time)
+    {
+        do
         {
-            do
-            {
-                Timers.last_tick = System.time;
-                Stack[stack_top]->input(); // only handle input from the state at the top of the stack
-                clearKeys();
-                for (i = 0; i < state_count; i++)
-                {
-                    if ((Stack[i]->flags & STATE_ENABLE_UPDATE))
-                        Stack[i]->update();
-                }
+            Timers.last_tick = System.time;
+            Timers.accumulator -= System.tick_interval;
 
-                Timers.accumulator -= System.tick_interval;
-                if (System.paused == FALSE)
-                {
-                    System.ticks++;
-                    System.ticks_per_frame++;
-                }
-            }
-            while (Timers.accumulator >= System.tick_interval);
+            processTick();
         }
+        while (Timers.accumulator >= System.tick_interval);
+    }
+}
 
-        if (Timers.last_frame + System.frame_interval < System.time) // frame
-        {
-            Timers.last_frame = System.time;
+void drawStates()
+{
+    int i;
+    State_t* state;
 
-            for (i = 0; i < state_count; i++)
-            {
-                if ((Stack[i]->flags & STATE_ENABLE_DRAW))
-                    Stack[i]->draw();
-            }
-            render();
+    for (i = 0; i < state_count; i++)
+    {
+        state = Stack[i];
+        if ((state->flags & STATE_ENABLE_DRAW))
+            state->draw();
+    }
+}
 
-            System.frames++;
-            Timers.frame_count++;
-            Timers.accumulator += System.time - Timers.last_frame;
-            System.ticks_per_frame = 0;
+void renderFrame()
+{
+    drawStates();
+    render();
 
-            #if DEBUG == 1
-            updateStats();
-            #endif
-        }
+    System.frames++;
+    Timers.frame_count++;
+}
+
+void handleFrame()
+{
+    if (Timers.last_frame + System.frame_interval < System.time)
+    {
+        Timers.last_frame = System.time;
+        Timers.accumulator += System.time - Timers.last_frame;
+
+        renderFrame();
+        
+        System.ticks_per_frame = 0;
 
         #if DEBUG == 1
-        if (Timers.last_time + 1000 < System.time) // FPS calculation; optional for debugging
-        {
-            Timers.last_time += 1000;
-            System.seconds++;
-            System.fps_avg = (float)System.frames/System.seconds;
-            System.fps = Timers.frame_count;
-            Timers.frame_count = 0;
-        }
+        updateStats();
+        #endif
+    }
+}
+
+void fpsCount()
+{
+    if (Timers.last_time + 1000 < System.time) // FPS calculation; optional for debugging
+    {
+        Timers.last_time += 1000;
+        System.seconds++;
+        System.fps_avg = (float)System.frames/System.seconds;
+        System.fps = Timers.frame_count;
+        Timers.frame_count = 0;
+    }
+}
+
+void loop()
+{
+    while (System.running == 1)
+    {
+        handleTicks();
+        handleFrame();
+
+        #if DEBUG == 1
+        fpsCount();
         #endif
     }
 }
