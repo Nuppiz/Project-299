@@ -7,6 +7,7 @@
 #include "LvlLoad.h"
 #include "Menu.h"
 #include "Text.h"
+#include "Mouse.h"
 
 flags_t player_control = 0;
 extern System_t System;
@@ -144,6 +145,14 @@ void testButtons()
     {
         quickLoad();
     }
+
+    else if (KEY_WAS_HIT(KEY_I))
+    {
+        if ((player_control & CONTROL_MOUSE_AIM) == 0)
+            player_control |= CONTROL_MOUSE_AIM;
+        else
+            player_control &= ~CONTROL_MOUSE_AIM;
+    }
 }
 
 void processKeyEvents(uint8_t text_input, TextInput_t* destination)
@@ -173,7 +182,13 @@ void gameInput()
 {
     playerControl();
 
+    showMouse();
     testButtons();
+
+    handleMouseInput();
+    
+    if (KEY_IS_PRESSED(KEY_H))
+        playerMouseAim();
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))

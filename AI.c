@@ -47,31 +47,6 @@ int testFieldOfView(Vec2 origin, Vec2 direction, Vec2 target)
     return OUT_OF_SIGHT;
 }
 
-int whichSide(Vec2 actor_direction, Vec2 actor_to_target)
-{
-    if (crossVec2(actor_to_target, actor_direction) >= 0)
-        return LEFT_SIDE;
-    
-    return RIGHT_SIDE;
-}
-
-void turnTowards(Actor_t* actor, Vec2 target)
-{
-    Vec2 actor_to_target = getVec2(actor->position, target);
-    int side            = whichSide(actor->direction, actor_to_target);
-
-    if (side == LEFT_SIDE)
-    {
-        (actor->control) |= CONTROL_LEFT;
-        (actor->control) &= ~CONTROL_RIGHT;
-    }
-    else if (side == RIGHT_SIDE)
-    {
-        (actor->control) |= CONTROL_RIGHT;
-        (actor->control) &= ~CONTROL_LEFT;
-    }
-}
-
 void chaseTarget(Actor_t* chaser)
 {
     Vec2 actor_to_target;
@@ -82,7 +57,6 @@ void chaseTarget(Actor_t* chaser)
     char* d;
     #endif
 
-    
     actor_to_target = getVec2(chaser->position, chaser->move_target);
     distance_sq      = getVec2LengthSquared(actor_to_target);
     cross_product    = crossVec2(actor_to_target, chaser->direction);

@@ -8,6 +8,8 @@
 
 extern GameData_t Game;
 extern Entity_t Entities[];
+extern flags_t player_control;
+extern Vec2 camera_offset;
 
 Vec2_int getGridLocation(Vec2 pos)
 {
@@ -76,6 +78,59 @@ Vec2 forceMove(Vec2 pos)
     }
     // can't move, return original position
     return pos;
+}
+
+int whichSide(Vec2 actor_direction, Vec2 actor_to_target)
+{
+    if (crossVec2(actor_to_target, actor_direction) >= 0)
+        return LEFT_SIDE;
+    
+    return RIGHT_SIDE;
+}
+
+void turnTowards(Actor_t* actor, Vec2 target)
+{
+    Vec2 actor_to_target = getVec2(actor->position, target);
+    int side            = whichSide(actor->direction, actor_to_target);
+
+    if (side == LEFT_SIDE)
+    {
+        (actor->control) |= CONTROL_LEFT;
+        (actor->control) &= ~CONTROL_RIGHT;
+    }
+    else if (side == RIGHT_SIDE)
+    {
+        (actor->control) |= CONTROL_RIGHT;
+        (actor->control) &= ~CONTROL_LEFT;
+    }
+}
+
+void playerTurnTowards(Vec2 target)
+{
+    Vec2 player_position;
+    Vec2 actor_to_target;
+    double cross_product;
+
+    player_position.x = PLAYER_ACTOR.position.x - camera_offset.x;
+    player_position.y = PLAYER_ACTOR.position.y - camera_offset.y;
+    actor_to_target = getVec2(player_position, target);
+    cross_product = crossVec2(actor_to_target, PLAYER_ACTOR.direction);
+
+    if (cross_product > MOUSE_TURN_THRESHOLD)
+    {
+        player_control |= CONTROL_LEFT;
+        player_control &= ~CONTROL_RIGHT;
+    }
+    else if (cross_product < -MOUSE_TURN_THRESHOLD)
+    {
+        player_control |= CONTROL_RIGHT;
+        player_control &= ~CONTROL_LEFT;
+    }
+    else
+    {
+        player_control &= ~CONTROL_LEFT;
+        player_control &= ~CONTROL_RIGHT;
+    }
 }
 
 void edgeDetectActor(Actor_t* actor)

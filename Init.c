@@ -5,6 +5,7 @@
 #include "Loadgfx.h"
 #include "Sound.h"
 #include "Menu.h"
+#include "Mouse.h"
 
 extern System_t System;
 extern Timer_t Timers;
@@ -207,6 +208,8 @@ void otherInit()
 {
     initKeyboard();
 	printf("Keyboard OK\n");
+    initMouse();
+    printf("Mouse OK\n");
     initSystem();
     if (!checkDirectoryExists("SAVES"))
     {
