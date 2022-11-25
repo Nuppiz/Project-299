@@ -44,7 +44,6 @@ void getMouse(int* x, int* y, int* left, int* right)
 
 void playerMouseAim()
 {
-    sprintf(debug[DEBUG_INPUT], "C.X: %f\nC.Y %f", mouse_location.x, mouse_location.y);
     playerTurnTowards(mouse_location);
 }
 

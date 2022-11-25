@@ -109,28 +109,15 @@ void playerTurnTowards(Vec2 target)
 {
     Vec2 player_position;
     Vec2 actor_to_target;
-    double cross_product;
 
     player_position.x = PLAYER_ACTOR.position.x - camera_offset.x;
     player_position.y = PLAYER_ACTOR.position.y - camera_offset.y;
     actor_to_target = getVec2(player_position, target);
-    cross_product = crossVec2(actor_to_target, PLAYER_ACTOR.direction);
 
-    if (cross_product > MOUSE_TURN_THRESHOLD)
-    {
-        player_control |= CONTROL_LEFT;
-        player_control &= ~CONTROL_RIGHT;
-    }
-    else if (cross_product < -MOUSE_TURN_THRESHOLD)
-    {
-        player_control |= CONTROL_RIGHT;
-        player_control &= ~CONTROL_LEFT;
-    }
-    else
-    {
-        player_control &= ~CONTROL_LEFT;
-        player_control &= ~CONTROL_RIGHT;
-    }
+    if (actor_to_target.x == 0.0 && actor_to_target.y == 0.0)
+        actor_to_target.x = 1;
+
+    PLAYER_ACTOR.angle = atan2(actor_to_target.y, actor_to_target.x);
 }
 
 void edgeDetectActor(Actor_t* actor)
