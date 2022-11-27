@@ -6,6 +6,7 @@
 #include "Text.h"
 #include "Draw.h"
 #include "Movecoll.h"
+#include "Action.h"
 
 /* Level data and entity loader, savegame functionalities*/
 
@@ -187,13 +188,18 @@ void entityLoader(FILE* level_file, int entity_id, int entity_type)
 
 void freeAllEntities()
 {
-    int i, tilemap_loc;
+    int i;
+    Entity_t* entity;
+    Tile_t* tile;
+
     for (i = 0; i < MAX_ENTITIES; i++)
     {
-        tilemap_loc = Entities[i].y * Game.Map.width + Entities[i].x;
-        Game.Map.tilemap[tilemap_loc].is_entity = 0;
-        Game.Map.tilemap[tilemap_loc].entity_value = 0;
-        memset(&Entities[i], 0, sizeof(Entity_t));
+        entity = &Entities[i];
+        tile = getEntityTile(entity);
+
+        tile->is_entity = 0;
+        tile->entity_value = 0;
+        memset(entity, 0, sizeof(Entity_t));
     }
 }
 
@@ -363,26 +369,26 @@ void levelLoader(char* level_name, uint8_t load_type)
 
 void setEntityTilemap()
 {
-    int i, tilemap_location;
+    int i;
 
     for (i = 0; i < MAX_ENTITIES; i++)
     {
-        if (Entities[i].type != ENT_COUNTER)
-        {
-            tilemap_location = Entities[i].y * Game.Map.width + Entities[i].x;
+        Entity_t* entity = &Entities[i];
 
-            Game.Map.tilemap[tilemap_location].is_entity = 1;
-            Game.Map.tilemap[tilemap_location].entity_value = Entities[i].id;
-            if (Entities[i].type == ENT_DOOR || Entities[i].type == ENT_BUTTON)
+        if (entity->type != ENT_COUNTER)
+        {
+            Tile_t* tile = getEntityTile(entity);
+            tile->is_entity = 1;
+            tile->entity_value = entity->id;
+
+            if ((entity->type == ENT_DOOR || entity->type == ENT_BUTTON) && entity->state == 1)
             {
-                if (Entities[i].state == 1)
+                tile->texture_id++;
+                
+                if (entity->type == ENT_DOOR)
                 {
-                    Game.Map.tilemap[tilemap_location].texture_id++;
-                    if (Entities[i].type == ENT_DOOR)
-                    {
-                        Game.Map.tilemap[tilemap_location].obstacle = 0;
-                        Game.Map.tilemap[tilemap_location].block_bullets = 0;
-                    }
+                    tile->obstacle = 0;
+                    tile->block_bullets = 0;
                 }
             }
         }
@@ -481,6 +487,7 @@ void loadGameState(char* foldername)
         fread(&Timers, sizeof(Timer_t), 1, state_file);
         fclose(state_file);
     }
+    testInitPlayerAnim();
 }
 
 void loadLevelState(char* foldername, char* savename)

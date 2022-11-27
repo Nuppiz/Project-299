@@ -22,6 +22,7 @@ void gameUpdate()
     physics();
     checkForItem();
     checkForInteractive();
+    moveProjectiles();
     actorDeathLoop();
     entityLoop();
 }

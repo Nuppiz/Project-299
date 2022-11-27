@@ -27,15 +27,17 @@ void checkForItem() // might be replaced with better system later
 
     for (i = 0; i < Game.actor_count; i++)
     {
-        tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;
+        Actor_t* actor = &Game.Actors[i];
+        tilemap_loc = actor->grid_loc.y * Game.Map.width + actor->grid_loc.x;
         for (a = 0; a < Game.item_count; a++)
         {
-            if (tilemap_loc == Items[a].index && Items[a].state == 1)
+            Item_t* item = &Items[a];
+            if (tilemap_loc == item->index && item->state == 1)
             {
-                if (Items[a].type == ITEM_KEY_RED && i == 0)
+                if (item->type == ITEM_KEY_RED && actor->id == Game.player_id)
                 {
                     key_acquired = TRUE;
-                    Items[a].state = 0;
+                    item->state = 0;
                     playSFX(SOUND_ITEM);
                 }
             }
@@ -45,26 +47,33 @@ void checkForItem() // might be replaced with better system later
 
 void checkForInteractive() // temporary, will be replaced with better system later
 {
-    int tilemap_loc, i;
+    int i;
     static time_t last_env_damage = 0;
+    Actor_t* actor;
+    Tile_t* tile;
 
     for (i = 0; i < Game.actor_count; i++)
     {
-        tilemap_loc = Game.Actors[i].grid_loc.y * Game.Map.width + Game.Actors[i].grid_loc.x;;
-        if (Game.Map.tilemap[tilemap_loc].is_entity == 0)
+        actor = &Game.Actors[i];
+        tile = getTileAt(actor->grid_loc);
+
+        if (tile->is_entity == 0)
         {
-            if (Game.Map.tilemap[tilemap_loc].entity_value == TILE_DMG_10)
+            if (tile->entity_value == TILE_DMG_10)
             {
                 if (last_env_damage + HURT_INTERVAL < System.ticks)
                 {
                     last_env_damage = System.ticks;
-                    if (Game.Actors[i].id == Game.player_id)
+
+                    if (actor->id == Game.player_id)
                         playSFX(SOUND_HURT);
                     else
                         playSFX(SOUND_HURT_E);
-                    Game.Actors[i].health -= 10;
+
+                    actor->health -= 10;
+
                     #if DEBUG == 1
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
                     #endif
                 }
             }
@@ -72,78 +81,86 @@ void checkForInteractive() // temporary, will be replaced with better system lat
     }
 }
 
-void deleteEntity(int entity_id, int tilemap_loc)
-{
-    Game.Map.tilemap[tilemap_loc].is_entity = 0;
-    Game.Map.tilemap[tilemap_loc].entity_value = 0;
-    Entities[entity_id].type = ENT_NONE;
-}
-
-Tile_t* getEntityTile(int x, int y)
+Tile_t* getTileAtXY(int x, int y)
 {
     Tile_t* tile_location = &Game.Map.tilemap[y * Game.Map.width + x];
 
     return tile_location;
 }
 
-void runSpawner(Entity_t* spawner)
+Tile_t* getEntityTile(Entity_t* entity)
 {
-    Vec2 direction = getDirVec2(spawner->data.spawner.angle);
+    return &Game.Map.tilemap[entity->y * Game.Map.width + entity->x];
+}
+
+void deleteEntity(Entity_t* entity)
+{
+    Tile_t* entity_tile = getEntityTile(entity);
+    entity_tile->is_entity = 0;
+    entity_tile->entity_value = 0;
+    Entities[entity->id].type = ENT_NONE;
+}
+
+void runSpawner(Entity_t* entity)
+{
+    Vec2 direction = getDirVec2(entity->data.spawner.angle);
     int tilemap_loc;
 
-    if (spawner->state == 1)
+    if (entity->state == 1)
     {
-        if (spawner->data.spawner.last_spawn_time + spawner->data.spawner.spawn_time_interval < System.ticks)
+        struct t_spawner* spawner = &entity->data.spawner;
+
+        if (spawner->last_spawn_time + spawner->spawn_time_interval < System.ticks)
         {
-            spawner->data.spawner.last_spawn_time = System.ticks;
-            if (spawner->data.spawner.num_actors < spawner->data.spawner.max_actors || spawner->data.spawner.max_actors == -1)
+            spawner->last_spawn_time = System.ticks;
+            if (spawner->num_actors < spawner->max_actors || spawner->max_actors == -1)
             {
-                createActor(spawner->x * SQUARE_SIZE + direction.x * (rand() % 50), spawner->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->data.spawner.angle,
-                7, 0, 1, 0, Game.player_id, 100, spawner->data.spawner.trigger_on_death, 20, "SPRITES/DUDE2.7UP");
-                spawner->data.spawner.num_actors++;
+                createActor(entity->x * SQUARE_SIZE + direction.x * (rand() % 50), entity->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->angle,
+                7, 0, 1, 0, Game.player_id, 100, spawner->trigger_on_death, 20, "SPRITES/DUDE2.7UP");
+                spawner->num_actors++;
             }
-            if (spawner->data.spawner.num_actors >= spawner->data.spawner.max_actors && spawner->data.spawner.max_actors != -1)
+            if (spawner->num_actors >= spawner->max_actors && spawner->max_actors != -1)
             {
-                spawner->state = 0;
-                if (spawner->data.spawner.only_once == 1)
+                entity->state = 0;
+                if (spawner->only_once == 1)
                 {
-                    tilemap_loc = spawner->y * Game.Map.width + spawner->x;
-                    deleteEntity(Game.Map.tilemap[tilemap_loc].entity_value, tilemap_loc);
+                    deleteEntity(entity);
                 }
             }
         }
     }
 }
 
-void runTrigger(Entity_t* trigger)
+void runTrigger(Entity_t* entity)
 {
-    int i, tilemap_loc;
+    int i;
+    struct t_trigger* trigger = &entity->data.trigger;
 
-    if (PLAYER_ACTOR.grid_loc.x == trigger->x && PLAYER_ACTOR.grid_loc.y == trigger->y && trigger->state == 0)
+    if (PLAYER_ACTOR.grid_loc.x == entity->x && PLAYER_ACTOR.grid_loc.y == entity->y && entity->state == 0)
     {
-        trigger->data.trigger.last_trigger_time = System.ticks;
+
+        trigger->last_trigger_time = System.ticks;
         playSFX(SOUND_DOOR_O);
-        trigger->state = 1;
+        entity->state = 1;
         for (i = 0; i < 4; i++)
         {
-            if (trigger->data.trigger.target_ids[i] != -1 && Entities[trigger->data.trigger.target_ids[i]].type != ENT_COUNTER)
-                Entities[trigger->data.trigger.target_ids[i]].state ^= 1;
+            if (trigger->target_ids[i] != -1 && Entities[trigger->target_ids[i]].type != ENT_COUNTER)
+                Entities[trigger->target_ids[i]].state ^= 1;
             else
-                Entities[trigger->data.trigger.target_ids[i]].data.counter.value++;
+                Entities[trigger->target_ids[i]].data.counter.value++;
         }
-        if (trigger->data.trigger.only_once == 1)
+        if (trigger->only_once == 1)
         {
-            tilemap_loc = trigger->y * Game.Map.width + trigger->x;
-            deleteEntity(Game.Map.tilemap[tilemap_loc].entity_value, tilemap_loc);
+            deleteEntity(entity);
         }
     }
-    if (trigger->data.trigger.last_trigger_time + trigger->data.trigger.trigger_interval < System.ticks && trigger->state == 1)
-        trigger->state = 0;
+    if (trigger->last_trigger_time + trigger->trigger_interval < System.ticks && entity->state == 1)
+        entity->state = 0;
 }
 
 void toggleDoor(Entity_t* door)
 {
-    Tile_t* tile = getEntityTile(door->x, door->y);
+    Tile_t* tile = getTileAtXY(door->x, door->y);
 
     door->state ^= 1;
     tile->obstacle ^= 1;
@@ -179,7 +196,7 @@ void useDoor(Entity_t* door, uint8_t use_mode)
 
 void toggleButton(Entity_t* button)
 {
-    Tile_t* tile = getEntityTile(button->x, button->y);
+    Tile_t* tile = getTileAtXY(button->x, button->y);
 
     button->state ^= 1;
     tile->texture_id = (button->state) == 1 ? tile->texture_id + 1 : tile->texture_id - 1;
@@ -193,44 +210,49 @@ void toggleButton(Entity_t* button)
 
 void toggleCounter(Entity_t* counter)
 {
-    switch (Entities[counter->data.counter.target_id].type)
+    Entity_t* target = &Entities[counter->data.counter.target_id];
+    switch (target->type)
     {
-    case ENT_DOOR: toggleDoor(&Entities[counter->data.counter.target_id]); break;
-    case ENT_BUTTON: toggleButton(&Entities[counter->data.counter.target_id]); break;
+    case ENT_DOOR: toggleDoor(target); break;
+    case ENT_BUTTON: toggleButton(target); break;
     }
 }
 
-void runCounter(Entity_t* counter)
+void runCounter(Entity_t* entity)
 {
-    if (counter->data.counter.value == counter->data.counter.max_value)
+    struct t_counter* counter = &entity->data.counter;
+
+    if (counter->value == counter->max_value)
     {
-        toggleCounter(counter);
-        if (counter->data.counter.only_once == 1)
-            counter->type = ENT_NONE;
+        toggleCounter(entity);
+        if (counter->only_once == 1)
+            entity->type = ENT_NONE;
         else
-            counter->data.counter.value = 0;
+            counter->value = 0;
     }
 }
 
-void usePortal(Entity_t* portal)
+void usePortal(Entity_t* entity)
 {
     uint16_t portal_x, portal_y;
     double portal_angle;
     char levelpath[30] = LEVEL_PATH;
-    if (PLAYER_ACTOR.grid_loc.x == portal->x && PLAYER_ACTOR.grid_loc.y == portal->y && portal->state == 1)
+    struct t_portal* portal = &entity->data.portal;
+
+    if (PLAYER_ACTOR.grid_loc.x == entity->x && PLAYER_ACTOR.grid_loc.y == entity->y && entity->state == 1)
     {
         playSFX(SOUND_PORTAL);
-        if (portal->data.portal.level_name != NULL)
+        if (portal->level_name != NULL)
         {
-            strcat(levelpath, portal->data.portal.level_name);
+            strcat(levelpath, portal->level_name);
             if (checkFileExists(levelpath) == FALSE)
                 return;
             else
             {
-                portal_x = portal->data.portal.x;
-                portal_y = portal->data.portal.y;
-                portal_angle = portal->data.portal.angle;
-                levelTransition(Game.current_level_name, portal->data.portal.level_name);
+                portal_x = portal->x;
+                portal_y = portal->y;
+                portal_angle = portal->angle;
+                levelTransition(Game.current_level_name, portal->level_name);
                 PLAYER_ACTOR.velocity.x = 0.0;
                 PLAYER_ACTOR.velocity.y = 0.0;
                 PLAYER_ACTOR.position.x = portal_x;
@@ -242,9 +264,9 @@ void usePortal(Entity_t* portal)
         }
         else
         {
-            PLAYER_ACTOR.position.x = portal->data.portal.x;
-            PLAYER_ACTOR.position.y = portal->data.portal.y;
-            PLAYER_ACTOR.angle = portal->data.portal.angle;
+            PLAYER_ACTOR.position.x = portal->x;
+            PLAYER_ACTOR.position.y = portal->y;
+            PLAYER_ACTOR.angle = portal->angle;
         }
     }
 }
@@ -319,24 +341,25 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
         {
             for (i = 0; i < Game.actor_count; i++)
             {
-                if (checkForHit(pos, Game.Actors[i].position, Game.Actors[i].radius) == TRUE)
+                Actor_t* actor = &Game.Actors[i];
+                if (checkForHit(pos, actor->position, actor->radius) == TRUE)
                 {
                     hit_something = TRUE;
                     particleFx(pos, dir, FX_BLOOD);
-                    Game.Actors[i].health -= damage;
+                    actor->health -= damage;
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[i].health);
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
                     #endif
-                    if (Game.Actors[i].target_id_secondary == UINT16_MAX)
-                        Game.Actors[i].target_id_secondary = Game.Actors[i].target_id_primary; // save previous primary target but only if secondary slot is blank
-                    Game.Actors[i].target_id_primary = source_id; // infighting mechanic
-                    if (Game.Actors[i].ai_mode != AI_CHASE) // if not yet fighting, fight!
-                        Game.Actors[i].ai_mode = AI_CHASE;
+                    if (actor->target_id_secondary == UINT16_MAX)
+                        actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
+                    actor->target_id_primary = source_id; // infighting mechanic
+                    if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
+                        actor->ai_mode = AI_CHASE;
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
-                        if (Game.Actors[i].id == Game.player_id)
+                        if (actor->id == Game.player_id)
                             playSFX(SOUND_HURT);
                         else
                             playSFX(SOUND_HURT_E);
@@ -375,56 +398,60 @@ void moveProjectiles()
 {
     int i, a;
     Vec2 distance;
+    Projectile_t* projectile;
 
     for (i = 0; i < 64; i++)
     {
         if (Projectiles[i].state == TRUE)
         {
-            Projectiles[i].position.x += Projectiles[i].velocity.x;
-            Projectiles[i].position.y += Projectiles[i].velocity.y;
-            distance.x = Projectiles[i].position.x - Projectiles[i].origin.x;
-            distance.y = Projectiles[i].position.y - Projectiles[i].origin.y;
+            projectile = &Projectiles[i];
+
+            projectile->position.x += projectile->velocity.x;
+            projectile->position.y += projectile->velocity.y;
+            distance.x = projectile->position.x - projectile->origin.x;
+            distance.y = projectile->position.y - projectile->origin.y;
             for (a = 0; a < Game.actor_count; a++)
             {
-                if (Game.Actors[a].id != Projectiles[i].source_id && checkForHit(Projectiles[i].position, Game.Actors[a].position, Game.Actors[a].radius) == TRUE)
+                Actor_t* actor = &Game.Actors[a];
+                if (actor->id != projectile->source_id && checkForHit(projectile->position, actor->position, actor->radius) == TRUE)
                 {
-                    Projectiles[i].state = FALSE;
-                    Game.Actors[a].health -= Projectiles[i].damage;
+                    projectile->state = FALSE;
+                    actor->health -= projectile->damage;
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", a);
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", Game.Actors[a].health);
+                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
                     #endif
-                    if (Game.Actors[a].target_id_secondary == UINT16_MAX)
-                        Game.Actors[a].target_id_secondary = Game.Actors[a].target_id_primary; // save previous primary target but only if secondary slot is blank
-                    Game.Actors[a].target_id_primary = Projectiles[i].source_id; // infighting mechanic
-                    if (Game.Actors[a].ai_mode != AI_CHASE) // if not yet fighting, fight!
-                        Game.Actors[a].ai_mode = AI_CHASE;
+                    if (actor->target_id_secondary == UINT16_MAX)
+                        actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
+                    actor->target_id_primary = projectile->source_id; // infighting mechanic
+                    if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
+                        actor->ai_mode = AI_CHASE;
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
-                        if (Game.Actors[a].id == Game.player_id)
+                        if (actor->id == Game.player_id)
                         {
-                            playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                            playSFX(Effects[projectile->effect_id].sound_id);
                             playSFX(SOUND_HURT);
                         }
                         else
                         {
-                            playSFX(Effects[Projectiles[i].effect_id].sound_id);
+                            playSFX(Effects[projectile->effect_id].sound_id);
                             playSFX(SOUND_HURT_E);
                         }
                     }
                 }
             }
 
-            if (Projectiles[i].state == TRUE && getVec2LengthSquared(distance) >= Projectiles[i].max_range)
+            if (projectile->state == TRUE && getVec2LengthSquared(distance) >= projectile->max_range)
             {
-                playSFX(Effects[Projectiles[i].effect_id].sound_id);
-                Projectiles[i].state = FALSE;
+                playSFX(Effects[projectile->effect_id].sound_id);
+                projectile->state = FALSE;
             }
-            else if (Projectiles[i].state == TRUE && getTileAt(getGridLocation(Projectiles[i].position))->block_bullets == TRUE)
+            else if (projectile->state == TRUE && getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE)
             {
-                playSFX(Effects[Projectiles[i].effect_id].sound_id);
-                Projectiles[i].state = FALSE;
+                playSFX(Effects[projectile->effect_id].sound_id);
+                projectile->state = FALSE;
             }
         }
     }
@@ -463,47 +490,54 @@ void entityLoop()
 
     for (i = 0; i < MAX_ENTITIES; i++)
     {
-        if (Entities[i].type != ENT_NONE)
+        Entity_t* entity = &Entities[i];
+        switch (entity->type)
         {
-            if (Entities[i].type == ENT_SPAWNER)
-                runSpawner(&Entities[i]);
-            else if (Entities[i].type == ENT_TRIGGER)
-                runTrigger(&Entities[i]);
-            else if (Entities[i].type == ENT_COUNTER)
-                runCounter(&Entities[i]);
-            else if (Entities[i].type == ENT_PORTAL)
-                usePortal(&Entities[i]);
+        case ENT_SPAWNER:
+            runSpawner(entity);
+            break;
+        case ENT_TRIGGER:
+            runTrigger(entity);
+            break;
+        case ENT_COUNTER:
+            runCounter(entity);
+            break;
+        case ENT_PORTAL:
+            usePortal(entity);
+            break;
+        default:
+            break;
         }
     }
-    moveProjectiles();
-    //sprintf(debug[DEBUG_ENTITIES], "MAP: %s", Game.current_level_name);
 }
 
 void actorDeathLoop()
 {
     int i;
+    Actor_t* actor;
 
     for (i = 0; i < Game.actor_count; i++)
     {
-        if (Game.Actors[i].health <= 0)
+        actor = &Game.Actors[i];
+        if (actor->health <= 0)
         {
-            if (Game.Actors[i].id == Game.player_id)
+            if (actor->id == Game.player_id)
             { 
                 playSFX(SOUND_DEATH);
                 loadAfterDeath(Game.current_level_name);
             }       
-            else if (Game.Actors[i].trigger_on_death != UINT16_MAX)
+            else if (actor->trigger_on_death != UINT16_MAX)
             {
                 playSFX(SOUND_DEATH_E);
                 deathTrigger(i);
-                spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
-                deleteActor(Game.Actors[i].id);
+                spawnCorpse(actor->position, actor->angle, -1);
+                deleteActor(actor->id);
             }
             else
             {
                 playSFX(SOUND_DEATH_E);
-                spawnCorpse(Game.Actors[i].position, Game.Actors[i].angle, -1);
-                deleteActor(Game.Actors[i].id);
+                spawnCorpse(actor->position, actor->angle, -1);
+                deleteActor(actor->id);
             }
         }
     }
