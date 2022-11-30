@@ -88,7 +88,7 @@ typedef struct
 
 typedef struct
 {
-    int anim_ids[NUM_ANIMS];
+    int anim_ids[NUM_ACTORANIMS];
 } AnimSet_t;
 
 typedef struct
@@ -133,6 +133,19 @@ typedef struct
     int8_t effect_id;
     uint8_t state;
 } Projectile_t;
+
+typedef struct
+{
+    char* name;
+    float walk_speed;
+    float run_speed;
+    float turn_rate;
+    int radius; // collision box radius
+    int health;
+    id_t primary_weapon_id;
+    id_t secondary_weapon_id;
+    AnimSet_t animset;
+} ActorTemplate_t;
 
 typedef struct
 {

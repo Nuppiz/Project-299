@@ -124,18 +124,24 @@ enum StateIndex
 
 enum AnimSets
 {
-    ANIMSET_CHARACTER,
+    ANIMSET_ACTOR,
     NUM_ANIMSETS
 };
 
-enum AnimCharacter
+enum AnimActor
 {
     ANIM_IDLE,
     ANIM_WALK,
     ANIM_PUNCH_STILL,
     ANIM_PUNCH_WALK,
     ANIM_SHOOT,
-    NUM_ANIMS
+    NUM_ACTORANIMS
+};
+
+enum ActorTemplates
+{
+    ACT_PLAYER,
+    NUM_ACTORTEMPLATES
 };
 
 #endif/* ENUMS_H */

@@ -1,0 +1,6 @@
+$stats 2.0 3.5 0.087 7 100 1 0
+$anim idle ANIMS/DUDEIDLE.ANI
+$anim walk ANIMS/DUDEWALK.ANI
+$anim melee_stationary ANIMS/DUDESTP.ANI
+$anim melee_moving ANIMS/DUDEWALP.ANI
+$anim shoot ANIMS/DUDEGUNS.ANI

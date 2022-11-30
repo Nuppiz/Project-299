@@ -19,6 +19,7 @@ extern Weapon_t Weapons[];
 Tile_t TileSet[TILESET_MAX];
 Item_t* Items;
 char levelname_global[15];
+extern int actortemplate_count;
 
 const char* entity_type_strings[NUM_ENTITYTYPES] =
 {
@@ -217,13 +218,14 @@ void levelLoader(char* level_name, uint8_t load_type)
     // tileset variables
     int tileset_found = FALSE;
     char tileset_file[20] = DEFAULT_TILESET;
-    char texture_filename[20];
 
     // actor variables
     int x, y;
     double angle;
     int radius, control, ai_mode, ai_timer, health, trigger_on_death, weapon_id;
-    id_t ai_target, texture_id;
+    id_t ai_target;
+    char texture_filename[20];
+    char template_filename[30];
 
     // entity variables
     char entity_name[20];
@@ -264,6 +266,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             free(Items);
             Game.item_capacity = 0;
         }
+        actortemplate_count = 0;
     }
 
     strcpy(Game.current_level_name, temp_level);
@@ -307,9 +310,11 @@ void levelLoader(char* level_name, uint8_t load_type)
             }
             else if (strcmp(buffer, "player") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%d %d %lf %d %d %s",
-                    &x, &y, &angle, &radius, &control, texture_filename);
-                Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, UINT16_MAX, WEAPON_PISTOL, texture_filename);
+                fscanf(level_file, "%s %d %d %lf %d",
+                    template_filename, &x, &y, &angle, &control);
+                
+                Game.player_id = createActorFromTemplate(template_filename, (float)x, (float)y, angle, control, 0, 0, 0, UINT16_MAX);
+                //Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, UINT16_MAX, WEAPON_PISTOL, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {

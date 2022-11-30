@@ -968,9 +968,9 @@ void drawActors()
         start_x = actor->position.x - camera_offset.x - texture->width / 2;
         start_y = actor->position.y - camera_offset.y - texture->height / 2;
         
-        if ((i != 0) && boundaryCheck(start_x, start_y) == TRUE && texture != NULL)
+        if ((i != 0) && boundaryCheckRadius(start_x, start_y, actor->radius) != FULLY_OUT && texture != NULL)
             drawTextureRotated(start_x, start_y, actor->angle, texture, TRANSPARENT_COLOR);
-        else if (boundaryCheck(start_x, start_y) == TRUE)
+        else if (boundaryCheckRadius(start_x, start_y, actor->radius) != FULLY_OUT)
             drawSprite(start_x, start_y, PLAYER_ACTOR.angle, &PLAYER_ACTOR.sprite);
 
         drawDot(actor);
