@@ -6,6 +6,7 @@
 #include "Sound.h"
 #include "Menu.h"
 #include "Mouse.h"
+#include "Game.h"
 
 extern System_t System;
 extern Timer_t Timers;
@@ -216,6 +217,7 @@ void otherInit()
         createDirectory("SAVES");
     }
     initWeapons();
+    initActorTemplates();
 	printf("System variables OK\n");
     #if DEBUG == 1
     initDebug();

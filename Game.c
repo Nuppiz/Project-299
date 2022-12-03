@@ -75,6 +75,8 @@ int loadActorTemplate(char* filename)
         return 0;
     }
 
+    ActorTemplates[actortemplate_id] = ActorTemplates[ACT_ERROR];
+
     ActorTemplates[actortemplate_id].name = malloc(strlen(filename) + 1);
     strcpy(ActorTemplates[actortemplate_id].name, filename);
 

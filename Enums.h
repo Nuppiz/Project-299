@@ -145,4 +145,17 @@ enum ActorTemplates
     NUM_ACTORTEMPLATES
 };
 
+enum ActorCommands
+{
+    CMD_FORWARD,
+    CMD_BACKWARD,
+    CMD_TURNLEFT,
+    CMD_TURNRIGHT,
+    CMD_STRAFELEFT,
+    CMD_STRAFERIGHT,
+    CMD_RUN,
+    CMD_ATTACK,
+    NUM_ACTORCOMMANDS
+};
+
 #endif/* ENUMS_H */
