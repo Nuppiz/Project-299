@@ -1,4 +1,10 @@
-$stats 2.0 3.5 0.087 7 100 1 0
+$walk_speed 2.0
+$run_speed 3.5
+$turn_rate 0.087
+$radius 7
+$health 100
+$primary_weapon_id 1
+$secondary_weapon_id 0
 $anim idle ANIMS/DUDEIDLE.ANI
 $anim walk ANIMS/DUDEWALK.ANI
 $anim melee_stationary ANIMS/DUDESTP.ANI

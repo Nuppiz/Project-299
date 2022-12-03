@@ -14,8 +14,8 @@ extern System_t System;
 extern Weapon_t Weapons[];
 extern Sprite_t DudeSprite;
 extern AnimSet_t DudeAnimSet;
-ActorTemplate_t ActorTemplates[2];
-int actortemplate_count = 0;
+ActorTemplate_t ActorTemplates[NUM_ACTORTEMPLATES];
+int actortemplate_count = 1;
 
 id_t getNewId()
 {
@@ -34,12 +34,26 @@ id_t getNewId()
     return id;
 }
 
+void initActorTemplates()
+{
+    ActorTemplates[ACT_ERROR].name = malloc(10);
+    ActorTemplates[ACT_ERROR].name = "ERROR.ACT";
+    ActorTemplates[ACT_ERROR].walk_speed = 1.0; 
+    ActorTemplates[ACT_ERROR].run_speed = 2.0;
+    ActorTemplates[ACT_ERROR].turn_rate = 0.05 ;
+    ActorTemplates[ACT_ERROR].radius = 5;
+    ActorTemplates[ACT_ERROR].health = 50;
+    ActorTemplates[ACT_ERROR].primary_weapon_id = 0; 
+    ActorTemplates[ACT_ERROR].secondary_weapon_id = 0;
+}
+
 int loadActorTemplate(char* filename)
 {
     // file/traversing variables
     FILE* actortemplate_file;
     char c;
     char buffer[100];
+    int actortemplate_id = actortemplate_count;
     // stat variables
     float walk_speed, run_speed, turn_rate;
     int radius, health;
@@ -61,18 +75,41 @@ int loadActorTemplate(char* filename)
         return 0;
     }
 
-    ActorTemplates[actortemplate_count + 1].name = malloc(strlen(filename) + 1);
-    strcpy(ActorTemplates[actortemplate_count + 1].name, filename);
+    ActorTemplates[actortemplate_id].name = malloc(strlen(filename) + 1);
+    strcpy(ActorTemplates[actortemplate_id].name, filename);
 
     do
     {
         if (c == '$')
         {
             fscanf(actortemplate_file, "%s", buffer);
-            if (strcmp(buffer, "stats") == 0)
+            if (strcmp(buffer, "walk_speed") == 0)
             {
-                fscanf(actortemplate_file, "%f %f %f %d %d %d %d %d",
-                &walk_speed, &run_speed, &turn_rate, &radius, &health, &primary_weapon_id, &secondary_weapon_id);
+                fscanf(actortemplate_file, "%f", &walk_speed);
+            }
+            else if (strcmp(buffer, "run_speed") == 0)
+            {
+                fscanf(actortemplate_file, "%f", &run_speed);
+            }
+            else if (strcmp(buffer, "turn_rate") == 0)
+            {
+                fscanf(actortemplate_file, "%f", &turn_rate);
+            }
+            else if (strcmp(buffer, "radius") == 0)
+            {
+                fscanf(actortemplate_file, "%d", &radius);
+            }
+            else if (strcmp(buffer, "health") == 0)
+            {
+                fscanf(actortemplate_file, "%d", &health);
+            }
+            else if (strcmp(buffer, "primary_weapon_id") == 0)
+            {
+                fscanf(actortemplate_file, "%d", &primary_weapon_id);
+            }
+            else if (strcmp(buffer, "secondary_weapon_id") == 0)
+            {
+                fscanf(actortemplate_file, "%d", &secondary_weapon_id);
             }
             else if (strcmp(buffer, "anim") == 0)
             {
@@ -80,7 +117,7 @@ int loadActorTemplate(char* filename)
                 if ((animset_enum = actorAnimTypeCheck(anim_name)) != RETURN_ERROR)
                 {
                     fscanf(actortemplate_file, "%s", anim_filename);
-                    ActorTemplates[actortemplate_count + 1].animset.anim_ids[animset_enum] = loadAnimation(anim_filename);
+                    ActorTemplates[actortemplate_id].animset.anim_ids[animset_enum] = loadAnimation(anim_filename);
                 }
                 else
                 {
@@ -96,16 +133,16 @@ int loadActorTemplate(char* filename)
 
     fclose(actortemplate_file);
 
-    ActorTemplates[actortemplate_count + 1].walk_speed = walk_speed;
-    ActorTemplates[actortemplate_count + 1].run_speed = run_speed;
-    ActorTemplates[actortemplate_count + 1].turn_rate = turn_rate;
-    ActorTemplates[actortemplate_count + 1].radius = radius;
-    ActorTemplates[actortemplate_count + 1].health = health;
-    ActorTemplates[actortemplate_count + 1].primary_weapon_id = primary_weapon_id;
-    ActorTemplates[actortemplate_count + 1].secondary_weapon_id = secondary_weapon_id;
+    ActorTemplates[actortemplate_id].walk_speed = walk_speed;
+    ActorTemplates[actortemplate_id].run_speed = run_speed;
+    ActorTemplates[actortemplate_id].turn_rate = turn_rate;
+    ActorTemplates[actortemplate_id].radius = radius;
+    ActorTemplates[actortemplate_id].health = health;
+    ActorTemplates[actortemplate_id].primary_weapon_id = primary_weapon_id;
+    ActorTemplates[actortemplate_id].secondary_weapon_id = secondary_weapon_id;
 
     actortemplate_count++;
-    return actortemplate_count;
+    return actortemplate_id;
 }
 
 id_t createActorFromTemplate(char* template_name, float x, float y, double angle, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, id_t trigger_on_death)
