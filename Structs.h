@@ -49,6 +49,13 @@ typedef struct
 
 typedef struct
 {
+    uint8_t keycode;
+    uint8_t state;
+    ticks_t time;
+} InputEvent_t;
+
+typedef struct
+{
     double x, y;
 } Vec2;
 
