@@ -42,6 +42,16 @@
 #define KEY_WAS_RELEASED(k) (Keyboard.keystates[k] & KEY_RELEASED_FLAG)
 #define KEY_WAS_TOGGLED(k)  (Keyboard.keystates[k] & (KEY_HIT_FLAG|KEY_RELEASED_FLAG))
 
+#define wrapEnd(x,max)    if ((x)>=(max))   (x)=0
+#define wrapStart(x,max)  if ((x)<0)        (x)=(max)-1   
+#define incAndWrap(x,max) if (++(x)>=(max)) (x)=0
+#define decAndWrap(x,max) if (--(x)<0)      (x)=(max)-1
+#define rWrapEnd(x,max)    ((x)>=(max)) ? 0:(x)
+#define rWrapStart(x,max)  ((x)<0) ? (max)-1:(x)
+#define rIncAndWrap(x,max) ((x)+1>=(max)) ? 0:(x)+1
+#define rDecAndWrap(x,max) ((x)-1<0) ? (max)-1:(x)-1
+
+#define SCAN_BUFFER_SIZE    32
 #define KEYHANDLER_INT      9
  
 #define X_AXIS              1

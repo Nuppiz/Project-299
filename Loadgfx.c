@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Structs.h"
 #include "Exit.h"
+#include "General.h"
 
 /* Graphics loading functions */
 
@@ -30,15 +31,6 @@ uint8_t error_pixels[400] =
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-const char* actor_anim_strings[NUM_ACTORANIMS] =
-{
-    "idle",
-    "walk",
-    "melee_stationary",
-    "melee_moving",
-    "shoot",
-};
-
 Texture_array ObjectTextures = {0};
 Texture_array TileTextures = {0};
 Anim_array Animations = {0};
@@ -56,20 +48,6 @@ void loadGfx(char* filename, uint8_t* destination, uint16_t data_size)
     file_ptr = fopen(filename, "rb");
     fread(destination, 1, data_size, file_ptr);
     fclose(file_ptr);
-}
-
-int actorAnimTypeCheck(char* anim_name)
-{
-    int actoranim_type_index;
-
-    for (actoranim_type_index = 0; actoranim_type_index < NUM_ACTORANIMS; actoranim_type_index++)
-    {
-        if (strcmp(anim_name, actor_anim_strings[actoranim_type_index]) == 0)
-            return actoranim_type_index;
-    }
-    printf("Unable to open file %s!\n", anim_name);
-    delay(60000);
-    return RETURN_ERROR;
 }
 
 int findTexture(char* filename, Texture_array* array)

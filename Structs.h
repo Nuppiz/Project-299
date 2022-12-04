@@ -41,8 +41,8 @@ typedef struct
 
 typedef struct
 {
-    KeyEvent_t queue[256];
-    uint8_t keystates[256];
+    KeyEvent_t queue[KB_QUEUE_LENGTH];
+    uint8_t keystates[KB_ARRAY_LENGTH];
     uint8_t queue_head;
     uint8_t queue_tail;
 } Keyboard_t;
@@ -53,6 +53,14 @@ typedef struct
     uint8_t state;
     ticks_t time;
 } InputEvent_t;
+
+typedef struct
+{
+    InputEvent_t EventQueue[KB_QUEUE_LENGTH];
+    uint8_t KeyStates[KB_ARRAY_LENGTH]; // TO-DO: split into multiple arrays
+    uint8_t queue_head;
+    uint8_t queue_tail;
+} Input_t;
 
 typedef struct
 {

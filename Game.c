@@ -1,8 +1,10 @@
 #include "Common.h"
+#include "Game.h"
 #include "LvlLoad.h"
 #include "Structs.h"
 #include "Loadgfx.h"
 #include "Vectors.h"
+#include "General.h"
 
 #define ACTOR_CHUNK_SIZE 16
 
@@ -16,6 +18,27 @@ extern Sprite_t DudeSprite;
 extern AnimSet_t DudeAnimSet;
 ActorTemplate_t ActorTemplates[NUM_ACTORTEMPLATES];
 int actortemplate_count = 1;
+
+char* actor_variable_strings[] = 
+{
+    "walk_speed",
+    "run_speed",
+    "turn_rate",
+    "radius",
+    "health",
+    "primary_weapon_id",
+    "secondary_weapon_id",
+    "anim"
+};
+
+char* actor_anim_strings[NUM_ACTORANIMS] =
+{
+    "idle",
+    "walk",
+    "melee_stationary",
+    "melee_moving",
+    "shoot",
+};
 
 id_t getNewId()
 {
@@ -49,101 +72,73 @@ void initActorTemplates()
 
 int loadActorTemplate(char* filename)
 {
-    // file/traversing variables
-    FILE* actortemplate_file;
+    FILE* act_file;
     char c;
     char buffer[100];
     int actortemplate_id = actortemplate_count;
-    // stat variables
-    float walk_speed, run_speed, turn_rate;
-    int radius, health;
-    id_t primary_weapon_id, secondary_weapon_id;
-    // animation variables
-    char anim_name[20];
-    char anim_filename[30];
-    int animset_enum;
+    ActorTemplate_t* actortemplate;
 
-    actortemplate_file = fopen(filename, "r");
+    actortemplate = &ActorTemplates[actortemplate_id];
+    act_file = fopen(filename, "r");
 
-    if (actortemplate_file == NULL)
+    if (act_file == NULL)
     {
-        fclose(actortemplate_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open actor template file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        fclose(act_file);
+        quitError("Unable to open actor template file!\n"
+                  "Please check the file actually exists!\n");
         return 0;
     }
 
-    ActorTemplates[actortemplate_id] = ActorTemplates[ACT_ERROR];
-
-    ActorTemplates[actortemplate_id].name = malloc(strlen(filename) + 1);
-    strcpy(ActorTemplates[actortemplate_id].name, filename);
+    *actortemplate = ActorTemplates[ACT_ERROR];
+    actortemplate->name = malloc(strlen(filename) + 1);
+    strcpy(actortemplate->name, filename);
 
     do
     {
+        int actor_var_id;
+
         if (c == '$')
         {
-            fscanf(actortemplate_file, "%s", buffer);
-            if (strcmp(buffer, "walk_speed") == 0)
+            fscanf(act_file, "%s", buffer);
+            actor_var_id = searchStringList(buffer, actor_variable_strings, NUM_ACTOR_VARIABLE_STRINGS);
+
+            switch (actor_var_id)
             {
-                fscanf(actortemplate_file, "%f", &walk_speed);
-            }
-            else if (strcmp(buffer, "run_speed") == 0)
-            {
-                fscanf(actortemplate_file, "%f", &run_speed);
-            }
-            else if (strcmp(buffer, "turn_rate") == 0)
-            {
-                fscanf(actortemplate_file, "%f", &turn_rate);
-            }
-            else if (strcmp(buffer, "radius") == 0)
-            {
-                fscanf(actortemplate_file, "%d", &radius);
-            }
-            else if (strcmp(buffer, "health") == 0)
-            {
-                fscanf(actortemplate_file, "%d", &health);
-            }
-            else if (strcmp(buffer, "primary_weapon_id") == 0)
-            {
-                fscanf(actortemplate_file, "%d", &primary_weapon_id);
-            }
-            else if (strcmp(buffer, "secondary_weapon_id") == 0)
-            {
-                fscanf(actortemplate_file, "%d", &secondary_weapon_id);
-            }
-            else if (strcmp(buffer, "anim") == 0)
-            {
-                fscanf(actortemplate_file, "%s", anim_name);
-                if ((animset_enum = actorAnimTypeCheck(anim_name)) != RETURN_ERROR)
+                case ACT_VAR_WALK_SPEED:  fscanf(act_file, "%f", &actortemplate->walk_speed);           break;
+                case ACT_VAR_RUN_SPEED:   fscanf(act_file, "%f", &actortemplate->run_speed);            break;
+                case ACT_VAR_TURN_RATE:   fscanf(act_file, "%f", &actortemplate->turn_rate);            break;
+                case ACT_VAR_RADIUS:      fscanf(act_file, "%d", &actortemplate->radius);               break;
+                case ACT_VAR_HEALTH:      fscanf(act_file, "%d", &actortemplate->health);               break;
+                case ACT_VAR_WEAPON1_ID:  fscanf(act_file, "%d", &actortemplate->primary_weapon_id);    break;
+                case ACT_VAR_WEAPON2_ID:  fscanf(act_file, "%d", &actortemplate->secondary_weapon_id);  break;
+                case ACT_VAR_ANIM:
                 {
-                    fscanf(actortemplate_file, "%s", anim_filename);
-                    ActorTemplates[actortemplate_id].animset.anim_ids[animset_enum] = loadAnimation(anim_filename);
-                }
-                else
-                {
-                    fclose(actortemplate_file);
-                    setVideoMode(TEXT_MODE);
-                    printf("Error loading animset!\n");
-                    System.running = 0;
-                    return 0;
+                    int actoranim_type_index;
+                    char anim_name[20];
+                    char anim_filename[30];
+
+                    fscanf(act_file, "%s", anim_name);
+                    actoranim_type_index = searchStringList(anim_name, actor_anim_strings, NUM_ACTORANIMS);
+
+                    if (actoranim_type_index != RETURN_ERROR)
+                    {
+                        fscanf(act_file, "%s", anim_filename);
+                        actortemplate->animset.anim_ids[actoranim_type_index] = loadAnimation(anim_filename);
+                    }
+                    else
+                    {
+                        fclose(act_file);
+                        quitError("Error loading animset!\n");
+                        return 0;
+                    }
                 }
             }
         }
-    } while ((c = fgetc(actortemplate_file)) != EOF);
+    } while ((c = fgetc(act_file)) != EOF);
 
-    fclose(actortemplate_file);
-
-    ActorTemplates[actortemplate_id].walk_speed = walk_speed;
-    ActorTemplates[actortemplate_id].run_speed = run_speed;
-    ActorTemplates[actortemplate_id].turn_rate = turn_rate;
-    ActorTemplates[actortemplate_id].radius = radius;
-    ActorTemplates[actortemplate_id].health = health;
-    ActorTemplates[actortemplate_id].primary_weapon_id = primary_weapon_id;
-    ActorTemplates[actortemplate_id].secondary_weapon_id = secondary_weapon_id;
-
+    fclose(act_file);
     actortemplate_count++;
+
     return actortemplate_id;
 }
 

@@ -7,6 +7,7 @@
 #include "Draw.h"
 #include "Movecoll.h"
 #include "Action.h"
+#include "General.h"
 
 /* Level data and entity loader, savegame functionalities*/
 
@@ -21,7 +22,7 @@ Item_t* Items;
 char levelname_global[15];
 extern int actortemplate_count;
 
-const char* entity_type_strings[NUM_ENTITYTYPES] =
+char* entity_type_strings[NUM_ENTITYTYPES] =
 {
     "",
     "Door",
@@ -32,17 +33,11 @@ const char* entity_type_strings[NUM_ENTITYTYPES] =
     "Portal",
 };
 
-const char* item_type_strings[NUM_ITEMTYPES] =
+char* item_type_strings[NUM_ITEMTYPES] =
 {
     "Key_Red",
     "Key_Blue",
     "Key_Yellow",
-};
-
-const char* interactive_type_strings[NUM_INTERACTIVE_TILES] =
-{
-    "None",
-    "Spikes",
 };
 
 void loadTileset(char* filename)
@@ -82,30 +77,6 @@ void loadTileset(char* filename)
         }
     }
     fclose(tileset);
-}
-
-int entityTypeCheck(char* entity_name)
-{
-    int entity_type_index;
-
-    for (entity_type_index = 0; entity_type_index < NUM_ENTITYTYPES; entity_type_index++)
-    {
-        if (strcmp(entity_name, entity_type_strings[entity_type_index]) == 0)
-            return entity_type_index;
-    }
-    return RETURN_ERROR;
-}
-
-int itemTypeCheck(char* item_name)
-{
-    int item_type_index;
-
-    for (item_type_index = 0; item_type_index < NUM_ITEMTYPES; item_type_index++)
-    {
-        if (strcmp(item_name, item_type_strings[item_type_index]) == 0)
-            return item_type_index;
-    }
-    return RETURN_ERROR;
 }
 
 void entityLoader(FILE* level_file, int entity_id, int entity_type)
@@ -325,7 +296,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %s", &entity_id, entity_name);
-                entity_type = entityTypeCheck(entity_name);
+                entity_type = searchStringList(entity_name, entity_type_strings, NUM_ENTITYTYPES);
                 if (entity_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
@@ -341,7 +312,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             else if (strcmp(buffer, "item") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%s %d %d", item_name, &tilemap_location, &state);
-                item_type = itemTypeCheck(item_name);
+                item_type = searchStringList(item_name, item_type_strings, NUM_ITEMTYPES);
                 if (item_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu

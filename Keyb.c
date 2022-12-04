@@ -5,18 +5,54 @@
 
 extern System_t System;
 Keyboard_t Keyboard = {0};
+Input_t Input = {0};
 
 static void interrupt (far *old_Keyhandler_ISR)(void);
 
 void pushKeyEvent(KeyEvent_t event)
 {
-    if ((uint8_t)(Keyboard.queue_tail+1) != Keyboard.queue_head)
+    if ((uint8_t)(Keyboard.queue_tail + 1) != Keyboard.queue_head)
         Keyboard.queue[Keyboard.queue_tail++] = event;
+}
+
+void pushInputEvent(InputEvent_t event)
+{
+    if ((uint8_t)(Input.queue_tail + 1) != Input.queue_head)
+        Input.EventQueue[Input.queue_tail++] = event;
+}
+
+void handleInputEvents() // keymap should be an array of commands
+{
+    while (Input.queue_head != Input.queue_tail) 
+    {
+        InputEvent_t event = Input.EventQueue[Input.queue_head];
+        Input.queue_head++;
+
+        /* chain of responsibility */
+
+        /* if ((g_Input.flags & INP_FLAG_GLOBAL_KEYS)
+            && handleGlobalKeys(event) == HANDLED)
+            continue;
+
+        if ((g_Input.flags & INP_FLAG_WRITE_TEXT)
+            && handleTextInput(event) == HANDLED)
+            continue;
+
+        // handle UI keys here (menu movement, selection, etc. also in-game inventory and such)
+        //if ((g_Input.flags & INP_FLAG_UI_CONTROL)
+        //    && handleUIControl(event))
+        //    continue;
+
+        if ((g_Input.flags & INP_FLAG_GAME_CONTROL)
+            && handleGameControl(event) == HANDLED)
+            continue;*/
+    }
 }
 
 static void handleScanCode(uint8_t scan)
 {
     KeyEvent_t event;
+    InputEvent_t inputevent;
     static uint8_t status = 0;
 
     if (scan == KEY_SPECIAL_CODE)
@@ -28,20 +64,27 @@ static void handleScanCode(uint8_t scan)
     event.keycode = (scan & ~KEY_RELEASED_FLAG) | status;
     event.time    = System.ticks;
 
+    inputevent.keycode = scan;
+    inputevent.time = System.ticks;
+
     if (scan & KEY_RELEASED_FLAG)
     {
         // Clear key down flag, set key released flag
         Keyboard.keystates[event.keycode] &= ~KEY_PRESSED_FLAG;
         Keyboard.keystates[event.keycode] |= KEY_RELEASED_FLAG;
         event.type = KEY_RELEASED_FLAG;
+        inputevent.state = 0;
         pushKeyEvent(event);
+        pushInputEvent(inputevent);
     }
     else if (!(Keyboard.keystates[event.keycode] == KEY_PRESSED_FLAG))
     {
         // Key newly pressed (not a repeat); set key down and key struck flags
         Keyboard.keystates[event.keycode] |= KEY_PRESSED_FLAG|KEY_HIT_FLAG;
         event.type = KEY_HIT_FLAG;
+        inputevent.state = 1;
         pushKeyEvent(event);
+        pushInputEvent(inputevent);
     }
     status = 0;
 }
