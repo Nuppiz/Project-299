@@ -59,15 +59,27 @@ id_t getNewId()
 
 void initActorTemplates()
 {
-    ActorTemplates[ACT_ERROR].name = malloc(10);
-    ActorTemplates[ACT_ERROR].name = "ERROR.ACT";
-    ActorTemplates[ACT_ERROR].walk_speed = 1.0; 
-    ActorTemplates[ACT_ERROR].run_speed = 2.0;
-    ActorTemplates[ACT_ERROR].turn_rate = 0.05 ;
-    ActorTemplates[ACT_ERROR].radius = 5;
-    ActorTemplates[ACT_ERROR].health = 50;
-    ActorTemplates[ACT_ERROR].primary_weapon_id = 0; 
-    ActorTemplates[ACT_ERROR].secondary_weapon_id = 0;
+    ActorTemplates[ACT_DEFAULT].name = malloc(12);
+    ActorTemplates[ACT_DEFAULT].name = "DEFAULT.ACT";
+    ActorTemplates[ACT_DEFAULT].walk_speed = 1.0; 
+    ActorTemplates[ACT_DEFAULT].run_speed = 2.0;
+    ActorTemplates[ACT_DEFAULT].turn_rate = 0.05 ;
+    ActorTemplates[ACT_DEFAULT].radius = 5;
+    ActorTemplates[ACT_DEFAULT].health = 50;
+    ActorTemplates[ACT_DEFAULT].primary_weapon_id = 0; 
+    ActorTemplates[ACT_DEFAULT].secondary_weapon_id = 0;
+}
+
+int findActorTemplate(char* name)
+{
+    int i;
+
+    for (i = 0; i < actortemplate_count; i++)
+    {
+        if (strcmp(name, ActorTemplates[i].name) == 0)
+            return i;
+    }
+    return 0;
 }
 
 int loadActorTemplate(char* filename)
@@ -75,10 +87,9 @@ int loadActorTemplate(char* filename)
     FILE* act_file;
     char c;
     char buffer[100];
-    int actortemplate_id = actortemplate_count;
+    int actortemplate_id;
     ActorTemplate_t* actortemplate;
 
-    actortemplate = &ActorTemplates[actortemplate_id];
     act_file = fopen(filename, "r");
 
     if (act_file == NULL)
@@ -89,7 +100,13 @@ int loadActorTemplate(char* filename)
         return 0;
     }
 
-    *actortemplate = ActorTemplates[ACT_ERROR];
+    if ((actortemplate_id = findActorTemplate(filename)) != 0)
+        return actortemplate_id;
+
+    actortemplate_id = actortemplate_count;
+    actortemplate = &ActorTemplates[actortemplate_id];
+
+    *actortemplate = ActorTemplates[ACT_DEFAULT];
     actortemplate->name = malloc(strlen(filename) + 1);
     strcpy(actortemplate->name, filename);
 

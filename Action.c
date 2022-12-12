@@ -259,7 +259,7 @@ void usePortal(Entity_t* entity)
                 PLAYER_ACTOR.position.y = portal_y;
                 PLAYER_ACTOR.angle = portal_angle;
                 updateGridLoc(&PLAYER_ACTOR);
-                saveGameState("AUTO/");
+                saveGameState("CURRENT/");
             }
         }
         else
@@ -429,16 +429,11 @@ void moveProjectiles()
                     if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
                     {
                         Timers.last_sfx = System.ticks;
+                        playSFX(Effects[projectile->effect_id].sound_id);
                         if (actor->id == Game.player_id)
-                        {
-                            playSFX(Effects[projectile->effect_id].sound_id);
                             playSFX(SOUND_HURT);
-                        }
                         else
-                        {
-                            playSFX(Effects[projectile->effect_id].sound_id);
                             playSFX(SOUND_HURT_E);
-                        }
                     }
                 }
             }

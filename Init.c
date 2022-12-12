@@ -7,6 +7,7 @@
 #include "Menu.h"
 #include "Mouse.h"
 #include "Game.h"
+#include "General.h"
 
 extern System_t System;
 extern Timer_t Timers;
@@ -173,10 +174,8 @@ void initWeapons()
     if (weapon_file == NULL)
     {
         fclose(weapon_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open file: WEAPONS.DAT");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError("Unable to open file: WEAPONS.DAT\n"
+                  "Please check the file actually exists!\n");
         return;
     }
 
@@ -249,9 +248,9 @@ void menuInit()
 
 void gameInit()
 {
-    if (!checkDirectoryExists("SAVES/AUTO"))
+    if (!checkDirectoryExists("SAVES/CURRENT"))
     {
-        createDirectory("SAVES/AUTO");
+        createDirectory("SAVES/CURRENT");
     }
 }
 

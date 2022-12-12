@@ -140,7 +140,7 @@ enum AnimActor
 
 enum ActorTemplates
 {
-    ACT_ERROR,
+    ACT_DEFAULT,
     ACT_PLAYER,
     NUM_ACTORTEMPLATES
 };

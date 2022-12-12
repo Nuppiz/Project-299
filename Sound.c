@@ -3,6 +3,7 @@
 #include "Structs.h"
 #include "MIDAS/MIDAS.H"
 #include "Exit.h"
+#include "General.h"
 
 /* MIDAS Sound System and related functions */
 
@@ -393,10 +394,8 @@ void generateSFXFileTable()
     if (SFX_list_file == NULL)
     {
         fclose(SFX_list_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open SFX list file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError("Unable to open SFX list file!\n"
+                  "Please check the file actually exists!\n");
         return;
     }
 

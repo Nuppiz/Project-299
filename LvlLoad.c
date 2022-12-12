@@ -17,10 +17,11 @@ extern Timer_t Timers;
 extern GameData_t Game;
 extern Texture_array TileTextures;
 extern Weapon_t Weapons[];
+extern ActorTemplate_t ActorTemplates[];
+extern int actortemplate_count;
 Tile_t TileSet[TILESET_MAX];
 Item_t* Items;
 char levelname_global[15];
-extern int actortemplate_count;
 
 char* entity_type_strings[NUM_ENTITYTYPES] =
 {
@@ -218,11 +219,11 @@ void levelLoader(char* level_name, uint8_t load_type)
     
     if (level_file == NULL)
     {
+        char level_error_string[120];
+        sprintf(level_error_string, "Unable to open file: %s\n"
+                "Please check the file actually exists!\n", level_name);
         fclose(level_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open file: %s", level_name);
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError(level_error_string);
         return;
     }
 
@@ -237,7 +238,6 @@ void levelLoader(char* level_name, uint8_t load_type)
             free(Items);
             Game.item_capacity = 0;
         }
-        actortemplate_count = 0;
     }
 
     strcpy(Game.current_level_name, temp_level);
@@ -301,10 +301,8 @@ void levelLoader(char* level_name, uint8_t load_type)
                 {
                     // replace later with just exit to main menu
                     fclose(level_file);
-                    setVideoMode(TEXT_MODE);
-                    printf("Level load error: invalid entity type.\n");
-                    printf("Please check the level file!\n");
-                    System.running = 0;
+                    quitError("Level load error: invalid entity type.\n"
+                              "Please check the level file!\n");
                     return;
                 }
                 entityLoader(level_file, entity_id, entity_type);
@@ -317,10 +315,8 @@ void levelLoader(char* level_name, uint8_t load_type)
                 {
                     // replace later with just exit to main menu
                     fclose(level_file);
-                    setVideoMode(TEXT_MODE);
-                    printf("Level load error: invalid item tile type.\n");
-                    printf("Please check the level file!\n");
-                    System.running = 0;
+                    quitError("Level load error: invalid item tile type.\n"
+                              "Please check the level file!\n");
                     return;
                 }
                 Items[Game.item_count].index = tilemap_location;
@@ -340,7 +336,8 @@ void levelLoader(char* level_name, uint8_t load_type)
         loadTileset(tileset_file);
     }
     fclose(level_file);
-    testInitPlayerAnim();
+    if (load_type != LOAD_SAVED_LEVEL)
+        testInitPlayerAnim();
 }
 
 void setEntityTilemap()
@@ -423,6 +420,7 @@ void saveLevelState(char* foldername, char* levelname)
     fwrite(&Game, sizeof(GameData_t), 1, save_file);
     fwrite(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
     fwrite(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
+    fwrite(ActorTemplates, sizeof(ActorTemplate_t), actortemplate_count, save_file);
     fwrite(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fwrite(Items, sizeof(Item_t), Game.item_capacity, save_file);
     System.paused = FALSE;
@@ -492,6 +490,7 @@ void loadLevelState(char* foldername, char* savename)
     fread(&Game.player_id, 2, 1, save_file);
     fread(Game.Actors, sizeof(Actor_t), Game.actor_capacity, save_file);
     fread(Game.ActorsById, sizeof(id_t), Game.id_capacity, save_file);
+    fread(ActorTemplates, sizeof(ActorTemplate_t), actortemplate_count, save_file);
     fread(Entities, sizeof(Entity_t), MAX_ENTITIES, save_file);
     fread(Items, sizeof(Item_t), Game.item_capacity, save_file);
     fclose(save_file);
@@ -503,7 +502,7 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     char prevsavename[30] = {'\0'};
     char newsavename[30] = {'\0'};
     char loadsavename[30] = {'\0'};
-    char savepath[45] = "SAVES/AUTO/";
+    char savepath[45] = "SAVES/CURRENT/";
 
     // create save file names
     strncpy(prevsavename, prevlevelname, (strlen(prevlevelname) - 4)); // drop the level filename ending
@@ -513,28 +512,28 @@ void levelTransition(char* prevlevelname, char* newlevelname)
     strcat(savepath, loadsavename); // construct folder path for file existence check
 
     // save the level we're exiting and stats
-    saveLevelState("AUTO/", prevsavename);
-    saveGameState("AUTO/");
+    saveLevelState("CURRENT/", prevsavename);
+    saveGameState("CURRENT/");
 
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
         levelLoader(newlevelname, LOAD_SAVED_LEVEL);
-        loadLevelState("AUTO/", loadsavename);
+        loadLevelState("CURRENT/", loadsavename);
     }
     else // else load everything from level file
         levelLoader(newlevelname, LOAD_NEW_LEVEL);
 
     // save current status of the level we're entering
-    saveLevelState("AUTO/", newsavename);
+    saveLevelState("CURRENT/", newsavename);
 
     // load stats
-    loadGameState("AUTO/");
+    loadGameState("CURRENT/");
 }
 
 void loadAfterDeath(char* currentlevel)
 {
     char loadsavename[30] = {'\0'};
-    char savepath[45] = "SAVES/AUTO/";
+    char savepath[45] = "SAVES/CURRENT/";
 
     strncpy(loadsavename, currentlevel, (strlen(currentlevel) - 4)); // drop the level filename ending
     strcat(loadsavename, ".SAV"); // add save filename ending
@@ -543,8 +542,8 @@ void loadAfterDeath(char* currentlevel)
     if (checkFileExists(savepath)) // if savefile exists, load save
     {
         levelLoader(currentlevel, LOAD_SAVED_LEVEL);
-        loadLevelState("AUTO/", loadsavename);
-        loadGameState("AUTO/");
+        loadLevelState("CURRENT/", loadsavename);
+        loadGameState("CURRENT/");
     }
     else // else load everything from level file
         levelLoader(currentlevel, LOAD_NEW_LEVEL);
@@ -553,7 +552,7 @@ void loadAfterDeath(char* currentlevel)
 void quickSave(char* levelname)
 {
     char savename[30] = {'\0'};
-    copyAllFolderToFolder("SAVES/AUTO/", "SAVES/QUICK/"); // copy all contents of the autosave folder
+    copyAllFolderToFolder("SAVES/CURRENT/", "SAVES/QUICK/"); // copy all contents of the CURRENT save folder
     strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
     saveLevelState("QUICK/", savename);
     saveGameState("QUICK/");
@@ -594,6 +593,7 @@ void quickLoad()
         levelLoader(levelname_global, LOAD_SAVED_LEVEL);
         loadLevelState("QUICK/", loadname);
         loadGameState("QUICK/");
+        copyAllFolderToFolder("SAVES/QUICK/", "SAVES/CURRENT/"); // copy all contents to the CURRENT save folder
     }
     levelname_global[0] = '\0'; // reset levelname
 }

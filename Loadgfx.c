@@ -148,10 +148,8 @@ void loadTexturesFromList(char* list_filename, Texture_array* array)
     if (tex_list_file == NULL)
     {
         fclose(tex_list_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open texture list file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError("Unable to open texture list file!\n"
+                  "Please check the file actually exists!\n");
     }
 
     do
@@ -189,10 +187,8 @@ int loadAnimation(char* filename)
     if (anim_file == NULL)
     {
         fclose(anim_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open animation file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError("Unable to open animation file!\n"
+                  "Please check the file actually exists!\n");
         return 0;
     }
 
@@ -235,10 +231,9 @@ void loadAnimsFromList(char* list_filename)
     if (anim_list_file == NULL)
     {
         fclose(anim_list_file);
-        setVideoMode(TEXT_MODE);
-        printf("Unable to open texture list file!\n");
-        printf("Please check the file actually exists!\n");
-        System.running = 0;
+        quitError("Unable to open texture list file!\n"
+                  "Please check the file actually exists!\n");
+        return;
     }
 
     do

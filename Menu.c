@@ -237,10 +237,10 @@ void menuLoadGame()
     directory_count = countSubdirectories("SAVES");
     directory_list = malloc(directory_count * sizeof(char*));
     listSubdirectories("SAVES", directory_list);
-    // AUTO and QUICK should go first on the list
+    // CURRENT and QUICK should go first on the list
     for (i = 0; i < directory_count; i++)
     {
-        if (strcmp(directory_list[i], "AUTO") == 0 || strcmp(directory_list[i], "QUICK") == 0)
+        if (strcmp(directory_list[i], "CURRENT") == 0 || strcmp(directory_list[i], "QUICK") == 0)
         {
             strcpy(loadmenu_options[d].text, directory_list[i]);
             d++;
@@ -249,7 +249,7 @@ void menuLoadGame()
     // then the rest
     for (i = 0; i < directory_count; i++)
     {
-        if (strcmp(directory_list[i], "AUTO") != 0 && strcmp(directory_list[i], "QUICK") != 0)
+        if (strcmp(directory_list[i], "CURRENT") != 0 && strcmp(directory_list[i], "QUICK") != 0)
         {
             strcpy(loadmenu_options[d].text, directory_list[i]);
             d++;
@@ -269,10 +269,10 @@ void menuSaveGame()
     directory_count = countSubdirectories("SAVES");
     directory_list = malloc(directory_count * sizeof(char*));
     listSubdirectories("SAVES", directory_list);
-    // AUTO and QUICK should go first on the list
+    // CURRENT and QUICK should go first on the list
     for (i = 0; i < directory_count; i++)
     {
-        if (strcmp(directory_list[i], "AUTO") == 0 || strcmp(directory_list[i], "QUICK") == 0)
+        if (strcmp(directory_list[i], "CURRENT") == 0 || strcmp(directory_list[i], "QUICK") == 0)
         {
             strcpy(savemenu_options[d].text, directory_list[i]);
             d++;
@@ -281,7 +281,7 @@ void menuSaveGame()
     // then the rest
     for (i = 0; i < directory_count; i++)
     {
-        if (strcmp(directory_list[i], "AUTO") != 0 && strcmp(directory_list[i], "QUICK") != 0)
+        if (strcmp(directory_list[i], "CURRENT") != 0 && strcmp(directory_list[i], "QUICK") != 0)
         {
             strcpy(savemenu_options[d].text, directory_list[i]);
             d++;
@@ -321,12 +321,12 @@ void menuNewGame()
     popState();
     pushState(STATE_INGAME);
     levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
-    if (!checkDirectoryExists("SAVES/AUTO"))
+    if (!checkDirectoryExists("SAVES/CURRENT"))
     {
-        createDirectory("SAVES/AUTO");
+        createDirectory("SAVES/CURRENT");
     }
     else
-        deleteDirectoryContents("SAVES/AUTO");
+        deleteDirectoryContents("SAVES/CURRENT");
     Timers.accumulator = 0;
     Timers.frame_count = 0;
     Timers.last_env_damage = 0;
@@ -420,6 +420,7 @@ void loadGameFromMenu()
                 levelLoader(levelname_global, LOAD_SAVED_LEVEL);
                 loadLevelState(foldername, savefilename);
                 loadGameState(foldername);
+                copyAllFolderToFolder(savepath, "SAVES/CURRENT/");
             }
         }
         levelname_global[0] = '\0'; // reset levelname
@@ -474,7 +475,7 @@ void saveGameFromMenu()
             if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
                 createDirectory(savepath);
 
-            copyAllFolderToFolder("SAVES/AUTO/", savepath);
+            copyAllFolderToFolder("SAVES/CURRENT/", savepath);
             strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
             saveLevelState(foldername, savefilename);
             saveGameState(foldername);

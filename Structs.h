@@ -111,7 +111,7 @@ typedef struct
     uint8_t flags;
     int anim_id;
     int frame;
-    time_t next_frame;
+    time_t last_frame;
     time_t frame_interval;
 } Sprite_t;
 
@@ -134,6 +134,9 @@ typedef struct
 typedef struct
 {
     uint8_t sound_id; // id number to the enum table that contains sound effects
+    uint16_t damage; // damage at the center of the effect
+    uint16_t radius; // radius for explosion / poison splash etc.
+    id_t sprite_id; // animation graphic
 } WeaponEffect_t;
 
 typedef struct
@@ -145,7 +148,8 @@ typedef struct
     Vec2_int grid_loc;
     uint16_t max_range;
     uint16_t damage;
-    int8_t effect_id;
+    Sprite_t sprite;
+    int8_t effect_id; // effect to spawn on "death"
     uint8_t state;
 } Projectile_t;
 

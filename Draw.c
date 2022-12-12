@@ -912,9 +912,9 @@ void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
 {
     Texture_t* texture;
 
-    if (sprite->next_frame <= System.ticks)
+    if (sprite->last_frame + sprite->frame_interval < System.ticks)
     {
-        sprite->next_frame += sprite->frame_interval;
+        sprite->last_frame = System.ticks;
         sprite->frame++;
         if (sprite->frame >= Animations.anims[sprite->anim_id].num_frames)
         {
