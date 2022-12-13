@@ -35,6 +35,10 @@ Corpse_t Corpses[MAX_CORPSES] = {0};
 int corpse_read = 0;
 int corpse_write = 0;
 
+TempSprite_t EffectSprites[MAX_TEMPSPRITES] = {0};
+int effectsprite_read = 0;
+int effectsprite_write = 0;
+
 int boundaryCheck(int x, int y)
 {
     if (x < SCREEN_WIDTH && x >= 0 && y < SCREEN_HEIGHT && y >= 0)
@@ -857,6 +861,91 @@ void emptyCorpseArray()
     corpse_write = 0;
 }
 
+void increaseEffectSpriteRead()
+{
+    effectsprite_read++;
+
+    if (effectsprite_read == MAX_TEMPSPRITES)
+        effectsprite_read = 0;
+}
+
+void increaseEffectSpriteWrite()
+{
+    effectsprite_write++;
+
+    if (effectsprite_write == MAX_TEMPSPRITES)
+        effectsprite_write = 0;
+
+    if (effectsprite_write == effectsprite_read)
+        increaseEffectSpriteRead();
+}
+
+void decrementEffectSpriteWrite()
+{
+    effectsprite_write--;
+
+    if (effectsprite_write < 0)
+        effectsprite_write = MAX_TEMPSPRITES - 1;
+}
+
+void spawnEffectSprite(Vec2 pos, double angle, Sprite_t* sprite)
+{
+    EffectSprites[effectsprite_write].pos.x = pos.x;
+    EffectSprites[effectsprite_write].pos.y = pos.y;
+    EffectSprites[effectsprite_write].angle = angle;
+    EffectSprites[effectsprite_write].sprite = sprite;
+
+    increaseEffectSpriteWrite();
+}
+
+void deleteEffectSprite(int index)
+{
+    int last_effectsprite = (effectsprite_write == 0) ? MAX_TEMPSPRITES - 1 : effectsprite_write - 1;
+
+    if (last_effectsprite != effectsprite_read)
+        EffectSprites[index] = EffectSprites[last_effectsprite];
+
+    decrementEffectSpriteWrite();
+}
+
+void effectSpriteArrayManager()
+{
+    int i = effectsprite_read;
+
+    while (i != effectsprite_write)
+    {
+        TempSprite_t* fxsprite = &EffectSprites[i];
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[fxsprite->sprite->anim_id].frame_ids[fxsprite->frame]];
+
+        if (fxsprite->angle != 0.0)
+            drawTextureRotated(fxsprite->pos.x - camera_offset.x - texture->width/2, fxsprite->pos.y - camera_offset.y - texture->height/2,
+            fxsprite->angle, texture, TRANSPARENT_COLOR);
+        else
+            drawTexture(fxsprite->pos.x - camera_offset.x - texture->width/2, fxsprite->pos.y - camera_offset.y- texture->height/2, texture);
+
+        fxsprite->frame++;
+        if (fxsprite->frame >= Animations.anims[fxsprite->sprite->anim_id].num_frames)
+        {
+            fxsprite->frame = 0;
+            deleteEffectSprite(i);
+            continue;
+        }
+        i++;
+        if (i == MAX_TEMPSPRITES)
+        {
+            i = 0;
+        }
+    }
+}
+
+void emptyEffectSpriteArray()
+{
+    int i;
+    memset(EffectSprites, 0, sizeof(TempSprite_t) * MAX_TEMPSPRITES);
+    effectsprite_read = 0;
+    effectsprite_write = 0;
+}
+
 // test function, delete/flesh out later
 void drawAnim()
 {
@@ -927,7 +1016,7 @@ void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
     if (angle != 0.0)
         drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
     else
-        drawTexture(x, y, texture);
+        drawTexturePartial(x, y, texture);
 }
 
 void drawSprite(int x, int y, double angle, Sprite_t* sprite)
@@ -1071,6 +1160,7 @@ void gameDraw()
     drawStats();
     //animTestBlock();
     particleArrayManager();
+    effectSpriteArrayManager();
     #if DEBUG == 1
     drawDebug();
     #endif

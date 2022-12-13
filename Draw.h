@@ -9,6 +9,7 @@ void drawRectangleVGA(int x, int y, int w, int h, uint8_t color);
 void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type);
 void spawnCorpse(Vec2 pos, double angle, int8_t life);
 void emptyCorpseArray();
+void spawnEffectSprite(Vec2 pos, double angle, Sprite_t* sprite);
 void titleDraw();
 void menuDraw();
 void gameDraw();

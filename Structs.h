@@ -117,6 +117,14 @@ typedef struct
 
 typedef struct
 {
+    Vec2 pos;
+    double angle;
+    int frame;
+    Sprite_t* sprite;
+} TempSprite_t;
+
+typedef struct
+{
     id_t id; // id number in the weapons array
     char name[20];
     uint16_t range; // absolute maximum range for projectiles/hitting the target (if melee)
@@ -145,6 +153,7 @@ typedef struct
     Vec2 origin;
     Vec2 position;
     Vec2 velocity;
+    double angle;
     Vec2_int grid_loc;
     uint16_t max_range;
     uint16_t damage;

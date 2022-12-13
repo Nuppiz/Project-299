@@ -19,6 +19,8 @@ extern Weapon_t Weapons[];
 WeaponEffect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
 Projectile_t Projectiles[64] = {0};
 
+extern Sprite_t Explosion;
+
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
 void checkForItem() // might be replaced with better system later
@@ -373,7 +375,7 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
         particleFx(pos, dir, FX_DIRT);
 }
 
-void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range)
+void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, double angle, Vec2 dir, int max_range)
 {
     static int i = 0;
 
@@ -382,6 +384,7 @@ void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int ma
     Projectiles[i].origin.y = pos.y;
     Projectiles[i].position.x = pos.x;
     Projectiles[i].position.y = pos.y;
+    Projectiles[i].angle = angle;
     Projectiles[i].velocity.x = dir.x * Weapons[weapon_id].projectile_speed;
     Projectiles[i].velocity.y = dir.y * Weapons[weapon_id].projectile_speed;
     Projectiles[i].max_range = max_range * max_range; // max range is squared to save an expensive sqrt operation later
@@ -430,6 +433,7 @@ void moveProjectiles()
                     {
                         Timers.last_sfx = System.ticks;
                         playSFX(Effects[projectile->effect_id].sound_id);
+                        spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
                         if (actor->id == Game.player_id)
                             playSFX(SOUND_HURT);
                         else
@@ -441,11 +445,13 @@ void moveProjectiles()
             if (projectile->state == TRUE && getVec2LengthSquared(distance) >= projectile->max_range)
             {
                 playSFX(Effects[projectile->effect_id].sound_id);
+                spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
                 projectile->state = FALSE;
             }
             else if (projectile->state == TRUE && getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE)
             {
                 playSFX(Effects[projectile->effect_id].sound_id);
+                spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
                 projectile->state = FALSE;
             }
         }
@@ -474,7 +480,7 @@ void shootWeapon(Weapon_t* weapon, Actor_t* source)
             if (weapon->projectile_speed == HITSCAN)
                 hitScan(weapon->id, source->id, projectile_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)), weapon->damage);
             else
-                createProjectile(weapon->id, source->id, projectile_loc, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)));
+                createProjectile(weapon->id, source->id, projectile_loc, angle, direction, weapon->range + (rand() % weapon->projectile_spread - (weapon->projectile_spread / 2)));
         }
     }
 }

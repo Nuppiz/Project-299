@@ -46,7 +46,8 @@ void listSubdirectories(char* directory, char** dir_list)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        printf("Could not open current directory");
+        quitError("Could not open current directory!\n");
+        return;
     }
 
     while ((dir = readdir(dr)) != NULL)
@@ -75,7 +76,7 @@ int countSubdirectories(char* directory)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        printf("Could not open current directory");
+        quitError("Could not open directory!\n");
         return 0;
     }
 
