@@ -19,7 +19,9 @@ extern Weapon_t Weapons[];
 WeaponEffect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
 Projectile_t Projectiles[64] = {0};
 
+extern Sprite_t Rocket;
 extern Sprite_t Explosion;
+extern Vec2 camera_offset;
 
 uint8_t key_acquired = 0; // replace later with proper inventory system
 
@@ -378,26 +380,28 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
 void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, double angle, Vec2 dir, int max_range)
 {
     static int i = 0;
+    Projectile_t* projectile = &Projectiles[i];
 
-    Projectiles[i].source_id = source_id;
-    Projectiles[i].origin.x = pos.x;
-    Projectiles[i].origin.y = pos.y;
-    Projectiles[i].position.x = pos.x;
-    Projectiles[i].position.y = pos.y;
-    Projectiles[i].angle = angle;
-    Projectiles[i].velocity.x = dir.x * Weapons[weapon_id].projectile_speed;
-    Projectiles[i].velocity.y = dir.y * Weapons[weapon_id].projectile_speed;
-    Projectiles[i].max_range = max_range * max_range; // max range is squared to save an expensive sqrt operation later
-    Projectiles[i].damage = Weapons[weapon_id].damage;
-    Projectiles[i].effect_id = Weapons[weapon_id].effect_id;
-    Projectiles[i].state = TRUE;
+    projectile->source_id = source_id;
+    projectile->origin.x = pos.x;
+    projectile->origin.y = pos.y;
+    projectile->position.x = pos.x;
+    projectile->position.y = pos.y;
+    projectile->angle = angle;
+    projectile->velocity.x = dir.x * Weapons[weapon_id].projectile_speed;
+    projectile->velocity.y = dir.y * Weapons[weapon_id].projectile_speed;
+    projectile->max_range = max_range * max_range; // max range is squared to save an expensive sqrt operation later
+    projectile->damage = Weapons[weapon_id].damage;
+    projectile->effect_id = Weapons[weapon_id].effect_id;
+    projectile->state = TRUE;
+    projectile->sprite_id = spawnTempSprite(KILL_COMMAND, MOVING_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Rocket);
     i++;
 
     if (i == 64)
         i = 0;
 }
 
-void moveProjectiles()
+void handleProjectiles()
 {
     int i, a;
     Vec2 distance;
@@ -405,7 +409,7 @@ void moveProjectiles()
 
     for (i = 0; i < 64; i++)
     {
-        if (Projectiles[i].state == TRUE)
+        if (Projectiles[i].state == ACTIVE)
         {
             projectile = &Projectiles[i];
 
@@ -418,7 +422,7 @@ void moveProjectiles()
                 Actor_t* actor = &Game.Actors[a];
                 if (actor->id != projectile->source_id && checkForHit(projectile->position, actor->position, actor->radius) == TRUE)
                 {
-                    projectile->state = FALSE;
+                    projectile->state = INACTIVE;
                     actor->health -= projectile->damage;
                     #if DEBUG == 1
                     sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", a);
@@ -433,7 +437,8 @@ void moveProjectiles()
                     {
                         Timers.last_sfx = System.ticks;
                         playSFX(Effects[projectile->effect_id].sound_id);
-                        spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
+                        deleteTempSprite(projectile->sprite_id);
+                        spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
                         if (actor->id == Game.player_id)
                             playSFX(SOUND_HURT);
                         else
@@ -442,17 +447,19 @@ void moveProjectiles()
                 }
             }
 
-            if (projectile->state == TRUE && getVec2LengthSquared(distance) >= projectile->max_range)
+            if (projectile->state == ACTIVE && getVec2LengthSquared(distance) >= projectile->max_range)
             {
                 playSFX(Effects[projectile->effect_id].sound_id);
-                spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
-                projectile->state = FALSE;
+                deleteTempSprite(projectile->sprite_id);
+                spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
+                projectile->state = INACTIVE;
             }
-            else if (projectile->state == TRUE && getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE)
+            else if (projectile->state == ACTIVE && getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE)
             {
                 playSFX(Effects[projectile->effect_id].sound_id);
-                spawnEffectSprite(projectile->position, projectile->angle, &Explosion);
-                projectile->state = FALSE;
+                deleteTempSprite(projectile->sprite_id);
+                spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
+                projectile->state = INACTIVE;
             }
         }
     }

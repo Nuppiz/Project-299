@@ -35,9 +35,9 @@ Corpse_t Corpses[MAX_CORPSES] = {0};
 int corpse_read = 0;
 int corpse_write = 0;
 
-TempSprite_t EffectSprites[MAX_TEMPSPRITES] = {0};
-int effectsprite_read = 0;
-int effectsprite_write = 0;
+TempSprite_t TempSprites[MAX_TEMPSPRITES] = {0};
+int tempsprite_read = 0;
+int tempsprite_write = 0;
 
 int boundaryCheck(int x, int y)
 {
@@ -861,74 +861,102 @@ void emptyCorpseArray()
     corpse_write = 0;
 }
 
-void increaseEffectSpriteRead()
+void increaseTempSpriteRead()
 {
-    effectsprite_read++;
+    tempsprite_read++;
 
-    if (effectsprite_read == MAX_TEMPSPRITES)
-        effectsprite_read = 0;
+    if (tempsprite_read == MAX_TEMPSPRITES)
+        tempsprite_read = 0;
 }
 
-void increaseEffectSpriteWrite()
+void increaseTempSpriteWrite()
 {
-    effectsprite_write++;
+    tempsprite_write++;
 
-    if (effectsprite_write == MAX_TEMPSPRITES)
-        effectsprite_write = 0;
+    if (tempsprite_write == MAX_TEMPSPRITES)
+        tempsprite_write = 0;
 
-    if (effectsprite_write == effectsprite_read)
-        increaseEffectSpriteRead();
+    if (tempsprite_write == tempsprite_read)
+        increaseTempSpriteRead();
 }
 
-void decrementEffectSpriteWrite()
+void decrementTempSpriteWrite()
 {
-    effectsprite_write--;
+    tempsprite_write--;
 
-    if (effectsprite_write < 0)
-        effectsprite_write = MAX_TEMPSPRITES - 1;
+    if (tempsprite_write < 0)
+        tempsprite_write = MAX_TEMPSPRITES - 1;
 }
 
-void spawnEffectSprite(Vec2 pos, double angle, Sprite_t* sprite)
+int spawnTempSprite(uint8_t draw_type, uint8_t move_type, Vec2 pos, Vec2 vel, double angle, Sprite_t* sprite)
 {
-    EffectSprites[effectsprite_write].pos.x = pos.x;
-    EffectSprites[effectsprite_write].pos.y = pos.y;
-    EffectSprites[effectsprite_write].angle = angle;
-    EffectSprites[effectsprite_write].sprite = sprite;
+    TempSprite_t* tempspr = &TempSprites[tempsprite_write];
 
-    increaseEffectSpriteWrite();
+    tempspr->draw_type = draw_type;
+    tempspr->move_type = move_type;
+    tempspr->pos.x = pos.x;
+    tempspr->pos.y = pos.y;
+    tempspr->vel.x = vel.x;
+    tempspr->vel.y = vel.y;
+    tempspr->angle = angle;
+    tempspr->sprite = sprite;
+
+    increaseTempSpriteWrite();
+    return tempsprite_write;
 }
 
-void deleteEffectSprite(int index)
+void deleteTempSprite(int index)
 {
-    int last_effectsprite = (effectsprite_write == 0) ? MAX_TEMPSPRITES - 1 : effectsprite_write - 1;
+    int last_effectsprite = (tempsprite_write == 0) ? MAX_TEMPSPRITES - 1 : tempsprite_write - 1;
 
-    if (last_effectsprite != effectsprite_read)
-        EffectSprites[index] = EffectSprites[last_effectsprite];
+    if (last_effectsprite != tempsprite_read)
+        TempSprites[index] = TempSprites[last_effectsprite];
 
-    decrementEffectSpriteWrite();
+    decrementTempSpriteWrite();
 }
 
-void effectSpriteArrayManager()
+void tempSpriteArrayManager()
 {
-    int i = effectsprite_read;
+    int i = tempsprite_read;
 
-    while (i != effectsprite_write)
+    while (i != tempsprite_write)
     {
-        TempSprite_t* fxsprite = &EffectSprites[i];
-        Texture_t* texture = &ObjectTextures.textures[Animations.anims[fxsprite->sprite->anim_id].frame_ids[fxsprite->frame]];
+        TempSprite_t* tempsprite = &TempSprites[i];
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[tempsprite->sprite->anim_id].frame_ids[tempsprite->frame]];
 
-        if (fxsprite->angle != 0.0)
-            drawTextureRotated(fxsprite->pos.x - camera_offset.x - texture->width/2, fxsprite->pos.y - camera_offset.y - texture->height/2,
-            fxsprite->angle, texture, TRANSPARENT_COLOR);
-        else
-            drawTexture(fxsprite->pos.x - camera_offset.x - texture->width/2, fxsprite->pos.y - camera_offset.y- texture->height/2, texture);
-
-        fxsprite->frame++;
-        if (fxsprite->frame >= Animations.anims[fxsprite->sprite->anim_id].num_frames)
+        if (tempsprite->draw_type == STATIC_SPRITE)
         {
-            fxsprite->frame = 0;
-            deleteEffectSprite(i);
-            continue;
+            if (tempsprite->angle != 0.0)
+                drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
+                tempsprite->angle, texture, TRANSPARENT_COLOR);
+            else
+                drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y- texture->height/2, texture);
+        }
+
+        else
+        {
+            tempsprite->pos.x += tempsprite->vel.x * System.ticks_per_frame;
+            tempsprite->pos.y += tempsprite->vel.y * System.ticks_per_frame;
+            if (tempsprite->angle != 0.0)
+                drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
+                                   tempsprite->angle, texture, TRANSPARENT_COLOR);
+            else
+                drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2, texture);
+        }
+
+        tempsprite->frame++;
+        if (tempsprite->frame >= Animations.anims[tempsprite->sprite->anim_id].num_frames)
+        {
+            if (tempsprite->draw_type == RUN_ONCE)
+            {
+                tempsprite->frame = 0;
+                deleteTempSprite(i);
+                continue;
+            }
+            else
+            {
+                tempsprite->frame = 0;
+            }
         }
         i++;
         if (i == MAX_TEMPSPRITES)
@@ -938,12 +966,12 @@ void effectSpriteArrayManager()
     }
 }
 
-void emptyEffectSpriteArray()
+void emptyTempSpriteArray()
 {
     int i;
-    memset(EffectSprites, 0, sizeof(TempSprite_t) * MAX_TEMPSPRITES);
-    effectsprite_read = 0;
-    effectsprite_write = 0;
+    memset(TempSprites, 0, sizeof(TempSprite_t) * MAX_TEMPSPRITES);
+    tempsprite_read = 0;
+    tempsprite_write = 0;
 }
 
 // test function, delete/flesh out later
@@ -1160,7 +1188,7 @@ void gameDraw()
     drawStats();
     //animTestBlock();
     particleArrayManager();
-    effectSpriteArrayManager();
+    tempSpriteArrayManager();
     #if DEBUG == 1
     drawDebug();
     #endif

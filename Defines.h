@@ -210,6 +210,13 @@
 #define BULLET_MAX_DISTANCE    150
 #define BULLET_HIT_ANGLE       0.5
 #define HITSCAN                -1
+#define ACTIVE                 1
+#define INACTIVE               0
+
+#define RUN_ONCE               0
+#define KILL_COMMAND           1
+#define STATIC_SPRITE          0
+#define MOVING_SPRITE          1
 
 #define LOAD_NEW_LEVEL         0
 #define LOAD_SAVED_LEVEL       1

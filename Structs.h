@@ -117,7 +117,10 @@ typedef struct
 
 typedef struct
 {
+    uint8_t draw_type; // run once or until a "kill" command
+    uint8_t move_type; // static or moving
     Vec2 pos;
+    Vec2 vel;
     double angle;
     int frame;
     Sprite_t* sprite;
@@ -157,7 +160,7 @@ typedef struct
     Vec2_int grid_loc;
     uint16_t max_range;
     uint16_t damage;
-    Sprite_t sprite;
+    int sprite_id; // id in the TempSprites array
     int8_t effect_id; // effect to spawn on "death"
     uint8_t state;
 } Projectile_t;

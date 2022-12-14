@@ -37,36 +37,6 @@ void createDirectory(char* path)
     mkdir(path);
 }
 
-void listSubdirectories(char* directory, char** dir_list)
-{
-    struct dirent* dir;
-    struct stat stats;
-    int dir_i = 0;
-    DIR* dr = opendir(directory);
-
-    if (dr == NULL)  // opendir returns NULL if couldn't open directory
-    {
-        quitError("Could not open current directory!\n");
-        return;
-    }
-
-    while ((dir = readdir(dr)) != NULL)
-    {
-        stat(dir->d_name, &stats);
-        if (stats.st_mode & S_IFDIR) // only list folders (dirent can be both a file or a folder)
-        {
-            if (dir->d_name[0] != '.')
-            {
-                dir_list[dir_i] = malloc(strlen(dir->d_name + 1));
-                strcpy(dir_list[dir_i], dir->d_name);
-                dir_i++;
-            }
-        }
-    }
-  
-    closedir(dr);
-}
-
 int countSubdirectories(char* directory)
 {
     struct dirent* dir;
@@ -88,6 +58,43 @@ int countSubdirectories(char* directory)
             if (dir->d_name[0] != '.')
             {
                 dir_count++;
+            }
+        }
+    }
+  
+    closedir(dr);
+    return dir_count;
+}
+
+int listSubdirectories(char* directory, char*** dir_list)
+{
+    struct dirent* dir;
+    struct stat stats;
+    int dir_i = 0;
+    int dir_count = 0;
+    DIR* dr;
+
+    dir_count = countSubdirectories(directory);
+    *dir_list = malloc(dir_count * sizeof(char*));
+
+    dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open current directory!\n");
+        return -1;
+    }
+
+    while ((dir = readdir(dr)) != NULL)
+    {
+        stat(dir->d_name, &stats);
+        if (stats.st_mode & S_IFDIR) // only list folders (dirent can be both a file or a folder)
+        {
+            if (dir->d_name[0] != '.')
+            {
+                *dir_list[dir_i] = malloc(strlen(dir->d_name + 1));
+                strcpy(*dir_list[dir_i], dir->d_name);
+                dir_i++;
             }
         }
     }
@@ -170,4 +177,140 @@ void copyAllFolderToFolder(char* source_dir, char* destination_dir)
         }
     }
     closedir(folder);
+}
+
+int checkFileExtension(char* filename, char* ext)
+{
+    char c;
+    int i;
+    int ext_start = -1;
+
+    for (i = 0; (c = filename[i]) != '\0'; i++)
+    {
+        if (c == '.')
+            ext_start = i;
+    }
+
+    if (ext_start < 0)
+        return 0;
+
+    return strcmp(&filename[ext_start+1], ext);
+}
+
+int countFiles(char* directory)
+{
+    struct dirent* file;
+    struct stat stats;
+    int file_count = 0;
+    DIR* dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open directory!\n");
+        return 0;
+    }
+
+    while ((file = readdir(dr)) != NULL)
+    {
+        stat(file->d_name, &stats);
+        if ((stats.st_mode & S_IFDIR) == 0) // only count files
+            file_count++;
+    }
+  
+    closedir(dr);
+    return file_count;
+}
+
+int countFilesByExtension(char* directory, char* ext)
+{
+    struct dirent* file;
+    struct stat stats;
+    int file_count = 0;
+    DIR* dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open directory!\n");
+        return 0;
+    }
+
+    while ((file = readdir(dr)) != NULL)
+    {
+        stat(file->d_name, &stats);
+        // only count matching files
+        if ((stats.st_mode & S_IFDIR) == 0 && checkFileExtension(file->d_name, ext) == 0)
+            file_count++;
+    }
+  
+    closedir(dr);
+    return file_count;
+}
+
+int listFiles(char* directory, char** file_list)
+{
+    struct dirent* file;
+    struct stat stats;
+    int file_i = 0;
+    int file_count = 0;
+    DIR* dr;
+
+    file_count = countFiles(directory);
+    file_list = malloc(file_count * sizeof(char*));
+
+    dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open current directory!\n");
+        return -1;
+    }
+
+    while ((file = readdir(dr)) != NULL)
+    {
+        stat(file->d_name, &stats);
+        if ((stats.st_mode & S_IFDIR) == 0) // only list files
+        {
+            file_list[file_i] = malloc(strlen(file->d_name + 1));
+            strcpy(file_list[file_i], file->d_name);
+            file_i++;
+        }
+    }
+  
+    closedir(dr);
+    return file_count;
+}
+
+int listFilesByExtension(char* directory, char* ext, char** file_list)
+{
+    struct dirent* file;
+    struct stat stats;
+    int file_i = 0;
+    int file_count = 0;
+    DIR* dr;
+
+    file_count = countFilesByExtension(directory, ext);
+    file_list = malloc(file_count * sizeof(char*));
+
+    dr = opendir(directory);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open current directory!\n");
+        return -1;
+    }
+
+    while ((file = readdir(dr)) != NULL)
+    {
+        stat(file->d_name, &stats);
+        // only list matching files
+        if ((stats.st_mode & S_IFDIR) == 0 && checkFileExtension(file->d_name, ext) == 0)
+        {
+            file_list[file_i] = malloc(strlen(file->d_name + 1));
+            strcpy(file_list[file_i], file->d_name);
+            file_i++;
+        }
+    }
+  
+    closedir(dr);
+    return file_count;
 }

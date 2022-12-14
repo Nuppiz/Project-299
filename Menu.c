@@ -234,9 +234,10 @@ void menuLoadGame()
     char** directory_list;
 
     current_menu = &loadmenu;
-    directory_count = countSubdirectories("SAVES");
-    directory_list = malloc(directory_count * sizeof(char*));
-    listSubdirectories("SAVES", directory_list);
+    //directory_count = countSubdirectories("SAVES");
+    //directory_list = malloc(directory_count * sizeof(char*));
+
+    directory_count = listSubdirectories("SAVES", &directory_list);
     // CURRENT and QUICK should go first on the list
     for (i = 0; i < directory_count; i++)
     {
@@ -266,9 +267,10 @@ void menuSaveGame()
     char** directory_list;
 
     current_menu = &savemenu;
-    directory_count = countSubdirectories("SAVES");
-    directory_list = malloc(directory_count * sizeof(char*));
-    listSubdirectories("SAVES", directory_list);
+    //directory_count = countSubdirectories("SAVES");
+    //directory_list = malloc(directory_count * sizeof(char*));
+    
+    directory_count = listSubdirectories("SAVES", &directory_list);
     // CURRENT and QUICK should go first on the list
     for (i = 0; i < directory_count; i++)
     {
