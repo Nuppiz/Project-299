@@ -686,12 +686,14 @@ void decrementParticleWrite()
 
 void spawnParticle(Vec2 pos, Vec2 vel, uint8_t color, int8_t life)
 {
-    Particles[particle_write].pos.x = pos.x;
-    Particles[particle_write].pos.y = pos.y;
-    Particles[particle_write].vel.x = vel.x;
-    Particles[particle_write].vel.y = vel.y;
-    Particles[particle_write].color = color;
-    Particles[particle_write].life = life;
+    Particle_t* particle = &Particles[particle_write];
+
+    particle->pos.x = pos.x;
+    particle->pos.y = pos.y;
+    particle->vel.x = vel.x;
+    particle->vel.y = vel.y;
+    particle->color = color;
+    particle->life = life;
 
     increaseParticleWrite();
 }
@@ -766,13 +768,14 @@ void particleArrayManager()
 
     while (i != particle_write)
     {
-        Particles[i].life -= System.ticks_per_frame;
-        if (Particles[i].life <= 0)
+        Particle_t* particle = &Particles[i];
+        particle->life -= System.ticks_per_frame;
+        if (particle->life <= 0)
         {
             deleteParticle(i);
             continue;
         }    
-        drawParticle(&Particles[i].pos, Particles[i].vel, Particles[i].color);
+        drawParticle(&particle->pos, particle->vel, particle->color);
         i++;
         if (i == MAX_PARTICLES)
         {
@@ -810,10 +813,12 @@ void decrementCorpseWrite()
 
 void spawnCorpse(Vec2 pos, double angle, int8_t life)
 {
-    Corpses[corpse_write].pos.x = pos.x;
-    Corpses[corpse_write].pos.y = pos.y;
-    Corpses[corpse_write].life = life;
-    Corpses[corpse_write].sprite = saveRotatedTexture(angle, &ObjectTextures.textures[TEX_CORPSE], TRANSPARENT_COLOR);
+    Corpse_t* corpse = &Corpses[corpse_write];
+
+    corpse->pos.x = pos.x;
+    corpse->pos.y = pos.y;
+    corpse->life = life;
+    corpse->sprite = saveRotatedTexture(angle, &ObjectTextures.textures[TEX_CORPSE], TRANSPARENT_COLOR);
 
     increaseCorpseWrite();
 }
@@ -891,9 +896,11 @@ void decrementTempSpriteWrite()
 int spawnTempSprite(uint8_t draw_type, uint8_t move_type, Vec2 pos, Vec2 vel, double angle, Sprite_t* sprite)
 {
     TempSprite_t* tempspr = &TempSprites[tempsprite_write];
+    int tempsprite_id = tempsprite_write;
 
     tempspr->draw_type = draw_type;
     tempspr->move_type = move_type;
+    tempspr->status = ACTIVE;
     tempspr->pos.x = pos.x;
     tempspr->pos.y = pos.y;
     tempspr->vel.x = vel.x;
@@ -902,17 +909,23 @@ int spawnTempSprite(uint8_t draw_type, uint8_t move_type, Vec2 pos, Vec2 vel, do
     tempspr->sprite = sprite;
 
     increaseTempSpriteWrite();
-    return tempsprite_write;
+    return tempsprite_id;
+}
+
+void updateTempSprite(int index, Vec2 pos, Vec2 vel, double angle)
+{
+    TempSprite_t* tempspr = &TempSprites[index];
+
+    tempspr->pos.x = pos.x;
+    tempspr->pos.y = pos.y;
+    tempspr->vel.x = vel.x;
+    tempspr->vel.y = vel.y;
+    tempspr->angle = angle;
 }
 
 void deleteTempSprite(int index)
 {
-    int last_effectsprite = (tempsprite_write == 0) ? MAX_TEMPSPRITES - 1 : tempsprite_write - 1;
-
-    if (last_effectsprite != tempsprite_read)
-        TempSprites[index] = TempSprites[last_effectsprite];
-
-    decrementTempSpriteWrite();
+    TempSprites[index].status = INACTIVE;
 }
 
 void tempSpriteArrayManager()
@@ -922,40 +935,43 @@ void tempSpriteArrayManager()
     while (i != tempsprite_write)
     {
         TempSprite_t* tempsprite = &TempSprites[i];
-        Texture_t* texture = &ObjectTextures.textures[Animations.anims[tempsprite->sprite->anim_id].frame_ids[tempsprite->frame]];
-
-        if (tempsprite->draw_type == STATIC_SPRITE)
+        if (tempsprite->status != INACTIVE)
         {
-            if (tempsprite->angle != 0.0)
-                drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
-                tempsprite->angle, texture, TRANSPARENT_COLOR);
-            else
-                drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y- texture->height/2, texture);
-        }
+            Texture_t* texture = &ObjectTextures.textures[Animations.anims[tempsprite->sprite->anim_id].frame_ids[tempsprite->frame]];
 
-        else
-        {
-            tempsprite->pos.x += tempsprite->vel.x * System.ticks_per_frame;
-            tempsprite->pos.y += tempsprite->vel.y * System.ticks_per_frame;
-            if (tempsprite->angle != 0.0)
-                drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
-                                   tempsprite->angle, texture, TRANSPARENT_COLOR);
-            else
-                drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2, texture);
-        }
-
-        tempsprite->frame++;
-        if (tempsprite->frame >= Animations.anims[tempsprite->sprite->anim_id].num_frames)
-        {
-            if (tempsprite->draw_type == RUN_ONCE)
+            if (tempsprite->move_type == STATIC_SPRITE)
             {
-                tempsprite->frame = 0;
-                deleteTempSprite(i);
-                continue;
+                if (tempsprite->angle != 0.0)
+                    drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
+                    tempsprite->angle, texture, TRANSPARENT_COLOR);
+                else
+                    drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y- texture->height/2, texture);
             }
-            else
+
+            else if (tempsprite->move_type == MOVING_SPRITE)
             {
-                tempsprite->frame = 0;
+                tempsprite->pos.x += tempsprite->vel.x * System.ticks_per_frame;
+                tempsprite->pos.y += tempsprite->vel.y * System.ticks_per_frame;
+                if (tempsprite->angle != 0.0)
+                    drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
+                                    tempsprite->angle, texture, TRANSPARENT_COLOR);
+                else
+                    drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2, texture);
+            }
+
+            tempsprite->frame++;
+            if (tempsprite->frame >= Animations.anims[tempsprite->sprite->anim_id].num_frames)
+            {
+                if (tempsprite->draw_type == RUN_ONCE)
+                {
+                    tempsprite->frame = 0;
+                    deleteTempSprite(i);
+                    continue;
+                }
+                else
+                {
+                    tempsprite->frame = 0;
+                }
             }
         }
         i++;
@@ -1189,6 +1205,7 @@ void gameDraw()
     //animTestBlock();
     particleArrayManager();
     tempSpriteArrayManager();
+    sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
     #if DEBUG == 1
     drawDebug();
     #endif

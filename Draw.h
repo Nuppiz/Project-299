@@ -9,6 +9,7 @@ void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type);
 void spawnCorpse(Vec2 pos, double angle, int8_t life);
 void emptyCorpseArray();
 int spawnTempSprite(uint8_t draw_type, uint8_t move_type, Vec2 pos, Vec2 vel, double angle, Sprite_t* sprite);
+void updateTempSprite(int index, Vec2 pos, Vec2 vel, double angle);
 void deleteTempSprite(int index);
 void titleDraw();
 void menuDraw();

@@ -101,7 +101,7 @@
 #define MAX_PARTICLES       128
 #define MAX_ENTITIES        32
 #define MAX_CORPSES         16
-#define MAX_TEMPSPRITES     16
+#define MAX_TEMPSPRITES     32
 
 #define WALK_SPEED          2.0
 #define RUN_SPEED           3.5
@@ -206,6 +206,7 @@
 
 #define OBJ_FLAG_DEAD          BIT_0
 
+#define MAX_PROJECTILES        64
 #define BULLET_STEP            4
 #define BULLET_MAX_DISTANCE    150
 #define BULLET_HIT_ANGLE       0.5

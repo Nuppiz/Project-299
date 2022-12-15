@@ -100,6 +100,7 @@ enum DebugIndex
     DEBUG_TESTFOV,
     DEBUG_CLOCK,
     DEBUG_SHOOT,
+    DEBUG_DRAW,
     DEBUG_ENTITIES,
     DEBUG_TEXT,
     NUM_DEBUG

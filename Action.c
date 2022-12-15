@@ -7,6 +7,7 @@
 #include "Draw.h"
 #include "LvlLoad.h"
 #include "Filech.h"
+#include "Video.h"
 
 /* Various actions between the player and other Entities/actors */
 
@@ -16,8 +17,12 @@ extern GameData_t Game;
 extern Entity_t Entities[];
 extern Item_t* Items;
 extern Weapon_t Weapons[];
-WeaponEffect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION};
-Projectile_t Projectiles[64] = {0};
+WeaponEffect_t Effects[NUM_EFFECTS] = {SOUND_EXPLOSION, 50, 50, 5};
+
+Projectile_t Projectiles[MAX_PROJECTILES] = {0};
+int projectile_read = 0;
+int projectile_write = 0;
+int num_projectiles = 0;
 
 extern Sprite_t Rocket;
 extern Sprite_t Explosion;
@@ -324,6 +329,91 @@ int checkForHit(Vec2 projectile_location, Vec2 target, int radius)
         return FALSE;
 }
 
+int actorHitLoop(id_t source_id, Vec2 pos, int damage)
+{
+    int i;
+    for (i = 0; i < Game.actor_count; i++)
+    {
+        Actor_t* actor = &Game.Actors[i];
+        if (actor->id != source_id && checkForHit(pos, actor->position, actor->radius) == TRUE)
+        {
+            actor->health -= damage;
+            if (actor->target_id_secondary == UINT16_MAX)
+                actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
+            actor->target_id_primary = source_id; // infighting mechanic
+            if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
+                actor->ai_mode = AI_CHASE;
+            if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
+            {
+                Timers.last_sfx = System.ticks;
+                if (actor->id == Game.player_id)
+                    playSFX(SOUND_HURT);
+                else
+                    playSFX(SOUND_HURT_E);
+            }
+            #if DEBUG == 1
+            sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+            sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+            #endif
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+void actorHit(id_t source_id, int damage, Actor_t* actor)
+{
+    actor->health -= damage;
+    if (actor->target_id_secondary == UINT16_MAX)
+        actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
+    actor->target_id_primary = source_id; // infighting mechanic
+    if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
+        actor->ai_mode = AI_CHASE;
+    if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
+    {
+        Timers.last_sfx = System.ticks;
+        if (actor->id == Game.player_id)
+            playSFX(SOUND_HURT);
+        else
+            playSFX(SOUND_HURT_E);
+    }
+    #if DEBUG == 1
+    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", actor->id);
+    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+    #endif
+}
+
+void splashDamage(id_t source_id, Vec2 pos, uint16_t damage, uint16_t radius)
+{
+    int splashline, i;
+
+    for (i = 0; i < Game.actor_count; i++)
+    {
+        Actor_t* actor = &Game.Actors[i];
+        Vec2 s = pos; // current splash test position
+        for (splashline = 0; splashline <= radius; splashline++)
+        {
+            Vec2 v = getVec2(pos, actor->position); // vector between impact site and actor
+            float distance = normalizeAndGetLength(&v);
+
+            if (distance > radius) // if target is too far
+                break;
+            else if (checkForHit(s, actor->position, actor->radius) == TRUE)
+            {
+                actorHit(source_id, damage - splashline, actor);
+                sprintf(debug[DEBUG_SHOOT], "S: %d", splashline);
+                break;
+            }
+            else if (getTileAt(getGridLocation(s))->block_bullets == TRUE)
+            {
+                //continue;
+            }
+            s.x += (v.x * 2);
+            s.y += (v.y * 2);
+        }
+    }
+}
+
 void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, int damage)
 {
     int bulletpath, i;
@@ -343,44 +433,55 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
         }
         else if (hit_something == FALSE)
         {
-            for (i = 0; i < Game.actor_count; i++)
-            {
-                Actor_t* actor = &Game.Actors[i];
-                if (checkForHit(pos, actor->position, actor->radius) == TRUE)
-                {
-                    hit_something = TRUE;
-                    particleFx(pos, dir, FX_BLOOD);
-                    actor->health -= damage;
-                    #if DEBUG == 1
-                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
-                    #endif
-                    if (actor->target_id_secondary == UINT16_MAX)
-                        actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
-                    actor->target_id_primary = source_id; // infighting mechanic
-                    if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
-                        actor->ai_mode = AI_CHASE;
-                    if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
-                    {
-                        Timers.last_sfx = System.ticks;
-                        if (actor->id == Game.player_id)
-                            playSFX(SOUND_HURT);
-                        else
-                            playSFX(SOUND_HURT_E);
-                    }
-                    break;
-                }
-            }
+            hit_something = actorHitLoop(source_id, pos, damage);
+            if (hit_something == TRUE)
+                particleFx(pos, dir, FX_BLOOD);            
         }
     }
     if (hit_something == FALSE && weapon_id != WEAPON_FIST)
         particleFx(pos, dir, FX_DIRT);
 }
 
+void increaseProjectileRead()
+{
+    projectile_read++;
+
+    if (projectile_read == MAX_PROJECTILES)
+        projectile_read = 0;
+}
+
+void increaseProjectileWrite()
+{
+    projectile_write++;
+
+    if (projectile_write == MAX_PROJECTILES)
+        projectile_write = 0;
+
+    if (projectile_write == projectile_read)
+        increaseProjectileRead();
+}
+
+void decrementProjectileWrite()
+{
+    projectile_write--;
+
+    if (projectile_write < 0)
+        projectile_write = MAX_PROJECTILES - 1;
+}
+
+void deleteProjectile(int index)
+{
+    int last_projectile = (projectile_write == 0) ? MAX_PROJECTILES - 1 : projectile_write - 1;
+
+    if (last_projectile != projectile_read)
+        Projectiles[index] = Projectiles[last_projectile];
+
+    decrementProjectileWrite();
+}
+
 void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, double angle, Vec2 dir, int max_range)
 {
-    static int i = 0;
-    Projectile_t* projectile = &Projectiles[i];
+    Projectile_t* projectile = &Projectiles[projectile_write];
 
     projectile->source_id = source_id;
     projectile->origin.x = pos.x;
@@ -394,75 +495,65 @@ void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, double angle, Ve
     projectile->damage = Weapons[weapon_id].damage;
     projectile->effect_id = Weapons[weapon_id].effect_id;
     projectile->state = TRUE;
-    projectile->sprite_id = spawnTempSprite(KILL_COMMAND, MOVING_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Rocket);
-    i++;
+    projectile->sprite_id = spawnTempSprite(KILL_COMMAND, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Rocket);
 
-    if (i == 64)
-        i = 0;
+    increaseProjectileWrite();
+    num_projectiles++;
+}
+
+void projectileImpact(int index)
+{
+    Projectile_t* projectile = &Projectiles[index];
+    playSFX(Effects[projectile->effect_id].sound_id);
+    spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
+    deleteTempSprite(projectile->sprite_id);
+    splashDamage(projectile->source_id, projectile->position, Effects[projectile->effect_id].damage, Effects[projectile->effect_id].radius);
+    deleteProjectile(index);
+    num_projectiles--;
+}
+
+void updateProjectile(Projectile_t* projectile)
+{
+    projectile->position.x += projectile->velocity.x;
+    projectile->position.y += projectile->velocity.y;
+    updateTempSprite(projectile->sprite_id, projectile->position, projectile->velocity, projectile->angle);
 }
 
 void handleProjectiles()
 {
-    int i, a;
+    int i = 0;
+    int a;
     Vec2 distance;
-    Projectile_t* projectile;
 
-    for (i = 0; i < 64; i++)
+    while (i != projectile_write)
     {
-        if (Projectiles[i].state == ACTIVE)
+        Projectile_t* projectile = &Projectiles[i];
+
+        updateProjectile(projectile);
+        distance.x = projectile->position.x - projectile->origin.x;
+        distance.y = projectile->position.y - projectile->origin.y;
+
+        if (actorHitLoop(projectile->source_id, projectile->position, projectile->damage) == TRUE || // hit someone
+            getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE || // hit a solid wall
+            getVec2LengthSquared(distance) >= projectile->max_range) // ran out of range
         {
-            projectile = &Projectiles[i];
-
-            projectile->position.x += projectile->velocity.x;
-            projectile->position.y += projectile->velocity.y;
-            distance.x = projectile->position.x - projectile->origin.x;
-            distance.y = projectile->position.y - projectile->origin.y;
-            for (a = 0; a < Game.actor_count; a++)
-            {
-                Actor_t* actor = &Game.Actors[a];
-                if (actor->id != projectile->source_id && checkForHit(projectile->position, actor->position, actor->radius) == TRUE)
-                {
-                    projectile->state = INACTIVE;
-                    actor->health -= projectile->damage;
-                    #if DEBUG == 1
-                    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", a);
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
-                    #endif
-                    if (actor->target_id_secondary == UINT16_MAX)
-                        actor->target_id_secondary = actor->target_id_primary; // save previous primary target but only if secondary slot is blank
-                    actor->target_id_primary = projectile->source_id; // infighting mechanic
-                    if (actor->ai_mode != AI_CHASE) // if not yet fighting, fight!
-                        actor->ai_mode = AI_CHASE;
-                    if (Timers.last_sfx + SFX_INTERVAL < System.ticks)
-                    {
-                        Timers.last_sfx = System.ticks;
-                        playSFX(Effects[projectile->effect_id].sound_id);
-                        deleteTempSprite(projectile->sprite_id);
-                        spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
-                        if (actor->id == Game.player_id)
-                            playSFX(SOUND_HURT);
-                        else
-                            playSFX(SOUND_HURT_E);
-                    }
-                }
-            }
-
-            if (projectile->state == ACTIVE && getVec2LengthSquared(distance) >= projectile->max_range)
-            {
-                playSFX(Effects[projectile->effect_id].sound_id);
-                deleteTempSprite(projectile->sprite_id);
-                spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
-                projectile->state = INACTIVE;
-            }
-            else if (projectile->state == ACTIVE && getTileAt(getGridLocation(projectile->position))->block_bullets == TRUE)
-            {
-                playSFX(Effects[projectile->effect_id].sound_id);
-                deleteTempSprite(projectile->sprite_id);
-                spawnTempSprite(RUN_ONCE, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Explosion);
-                projectile->state = INACTIVE;
-            }
+            projectileImpact(i);
+            continue;
+        }
+        i++;
+        if (i == MAX_PROJECTILES)
+        {
+            i = 0;
         }
     }
+}
+
+void emptyProjectileArray()
+{
+    int i;
+    memset(Projectiles, 0, sizeof(Projectile_t) * MAX_PROJECTILES);
+    projectile_read = 0;
+    projectile_write = 0;
 }
 
 void shootWeapon(Weapon_t* weapon, Actor_t* source)

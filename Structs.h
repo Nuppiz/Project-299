@@ -119,6 +119,7 @@ typedef struct
 {
     uint8_t draw_type; // run once or until a "kill" command
     uint8_t move_type; // static or moving
+    uint8_t status; // active/inactive
     Vec2 pos;
     Vec2 vel;
     double angle;
