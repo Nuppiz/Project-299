@@ -1205,8 +1205,8 @@ void gameDraw()
     //animTestBlock();
     particleArrayManager();
     tempSpriteArrayManager();
-    sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
     #if DEBUG == 1
+    sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
     drawDebug();
     #endif
 }

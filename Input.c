@@ -182,13 +182,15 @@ void gameInput()
 {
     playerControl();
 
-    showMouse();
     testButtons();
 
     handleMouseInput();
     
     if (KEY_IS_PRESSED(KEY_H))
+    {
         playerMouseAim();
+        showMouse();
+    }
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))

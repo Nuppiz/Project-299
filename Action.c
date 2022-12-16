@@ -390,7 +390,6 @@ void splashDamage(id_t source_id, Vec2 pos, uint16_t damage, uint16_t radius)
     for (i = 0; i < Game.actor_count; i++)
     {
         Actor_t* actor = &Game.Actors[i];
-        Vec2 s = pos; // current splash test position
         for (splashline = 0; splashline <= radius; splashline++)
         {
             Vec2 v = getVec2(pos, actor->position); // vector between impact site and actor
@@ -398,18 +397,20 @@ void splashDamage(id_t source_id, Vec2 pos, uint16_t damage, uint16_t radius)
 
             if (distance > radius) // if target is too far
                 break;
-            else if (checkForHit(s, actor->position, actor->radius) == TRUE)
+            if (checkForHit(pos, actor->position, actor->radius) == TRUE)
             {
                 actorHit(source_id, damage - splashline, actor);
+                #if DEBUG == 1
                 sprintf(debug[DEBUG_SHOOT], "S: %d", splashline);
+                #endif
                 break;
             }
-            else if (getTileAt(getGridLocation(s))->block_bullets == TRUE)
+            pos.x += (v.x * 10);
+            pos.y += (v.y * 10);
+            if (getTileAt(getGridLocation(pos))->block_bullets == TRUE)
             {
-                //continue;
+                break;
             }
-            s.x += (v.x * 2);
-            s.y += (v.y * 2);
         }
     }
 }
