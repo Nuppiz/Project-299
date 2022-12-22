@@ -167,7 +167,7 @@ void initWeapons()
     int i = 0;
 
     char name[20] = {'\0'};
-    int range, damage, extra_damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id, effect_id;
+    int range, damage, num_projectiles, projectile_speed, projectile_spread, shot_delay, ammo_type, sound_id, effect_id;
 
     weapon_file = fopen("WEAPONS.DAT", "r");
 
@@ -208,7 +208,7 @@ void otherInit()
 {
     initKeyboard();
 	printf("Keyboard OK\n");
-    initMouse();
+    //initMouse();
     printf("Mouse OK\n");
     initSystem();
     if (!checkDirectoryExists("SAVES"))

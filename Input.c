@@ -145,14 +145,6 @@ void testButtons()
     {
         quickLoad();
     }
-
-    else if (KEY_WAS_HIT(KEY_I))
-    {
-        if ((player_control & CONTROL_MOUSE_AIM) == 0)
-            player_control |= CONTROL_MOUSE_AIM;
-        else
-            player_control &= ~CONTROL_MOUSE_AIM;
-    }
 }
 
 void processKeyEvents(uint8_t text_input, TextInput_t* destination)
@@ -184,13 +176,13 @@ void gameInput()
 
     testButtons();
 
-    handleMouseInput();
+    /*handleMouseInput();
     
     if (KEY_IS_PRESSED(KEY_H))
     {
         playerMouseAim();
         showMouse();
-    }
+    }*/
     
     // F10 always exits, wherever you are
     if (KEY_WAS_HIT(KEY_F10))

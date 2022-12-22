@@ -64,7 +64,7 @@ typedef struct
 
 typedef struct
 {
-    double x, y;
+    float x, y;
 } Vec2;
 
 typedef struct
