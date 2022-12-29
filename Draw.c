@@ -1193,6 +1193,11 @@ void animTestBlock()
     drawSprite(10, 120, 0.0, &Explosion);
 }
 
+void testFont()
+{
+    drawText(1, 1, "[\\]^_'abcdefg\nhijklmnopqrst\nuvwxyz", COLOUR_WHITE);
+}
+
 void gameDraw()
 {
     calcCameraOffset();
@@ -1202,6 +1207,7 @@ void gameDraw()
     drawActors();
     drawHealth();
     drawStats();
+    testFont();
     //animTestBlock();
     particleArrayManager();
     tempSpriteArrayManager();

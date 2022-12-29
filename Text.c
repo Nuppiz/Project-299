@@ -3,18 +3,20 @@
 #include "Keyb.h"
 #include "Video.h"
 
+#define FONT_FILE_SIZE 7128
+
 /* Text input, output and drawing functions */
 
 extern uint8_t far screen_buf [];
 extern Menu_t* current_menu;
 extern Keyboard_t Keyboard;
-uint8_t alphabet [4240]; // Array to hold the typeface graphics
+uint8_t alphabet [FONT_FILE_SIZE]; // Array to hold the typeface graphics
 
 void loadFont()
 {
     FILE* file_ptr;
     file_ptr = fopen("FONT.7UP", "rb");
-    fread(alphabet, 1, 4240, file_ptr);
+    fread(alphabet, 1, FONT_FILE_SIZE, file_ptr);
     fclose(file_ptr);
 }
 
@@ -23,7 +25,7 @@ void loadFontNew()
     FILE* file_ptr;
     file_ptr = fopen("FONTD.7UP", "rb");
     fseek(file_ptr, 8, SEEK_SET); // skip header info
-    fread(alphabet, 1, 4240, file_ptr);
+    fread(alphabet, 1, FONT_FILE_SIZE, file_ptr);
     fclose(file_ptr);
 }
 
@@ -73,7 +75,7 @@ int drawText(int x, int y, char* string, uint8_t color)
             newlines++;
             continue;
         }
-        drawSymbol(x, y, c - 32, color);
+        drawSymbol(x, y, c - 24, color);
         x += 10;
     }
 
@@ -126,7 +128,7 @@ int drawTextVGA(int x, int y, char* string, uint8_t color)
             newlines++;
             continue;
         }
-        drawSymbolVGA(x, y, c - 32, color);
+        drawSymbolVGA(x, y, c - 24, color);
         x += 10;
     }
 
@@ -273,8 +275,8 @@ void getCharacter(KeyEvent_t* event, char* destination_str)
     {
         if ((c = keyToAscii(event->keycode)) != 0)
         {
-            if (c >= 97 && c < 123) // current typeface doesn't have non-caps letters, so convert them to caps
-                c -= 32;
+            /*if (c >= 97 && c < 123) // if current typeface doesn't have non-caps letters, convert them to caps
+                c -= 32;*/
             strncat(destination_str, &c, 1);
         }
     }
@@ -300,8 +302,8 @@ int handleTextInput(KeyEvent_t* event, TextInput_t* destination)
         default:
             if ((c = keyToAscii(event->keycode)) != 0)
             {
-                if (c >= 97 && c < 123) // current typeface doesn't have non-caps letters, so convert them to caps
-                    c -= 32;
+                /*if (c >= 97 && c < 123) // if current typeface doesn't have non-caps letters, onvert them to caps
+                    c -= 32;*/
                 writeChar(destination, c);
                 break;
             }
