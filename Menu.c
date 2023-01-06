@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Structs.h"
+#include "General.h"
 #include "Menu.h"
 #include "LvlLoad.h"
 #include "Text.h"
@@ -23,9 +24,14 @@ extern Timer_t Timers;
 extern GameData_t Game;
 extern Keyboard_t Keyboard;
 
-uint8_t story_text[] =
+char story_text[] =
     "I COULD WRITE A FANCY STORY BUT\n" 
     "CAN'T BE ARSED RN LOL";
+
+char savelist[MAX_SAVES][SAVENAME_MAX+1] = {0};
+
+Option_t loadmenu_options[MAX_SAVES];
+Option_t savemenu_options[MAX_SAVES];
 
 Option_t mainmenu_options[] =
 {
@@ -35,20 +41,6 @@ Option_t mainmenu_options[] =
     {"HELP!",     menuHelp},
     {"STORY",     menuStory},
     {"QUIT",      quitGame}
-};
-
-Option_t loadmenu_options[] =
-{
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
-    {"EMPTY    ", loadGameFromMenu},
 };
 
 Option_t settings_options[] =
@@ -84,20 +76,6 @@ Option_t ingamemenu_options[] =
     {"QUIT",      quitGame}
 };
 
-Option_t savemenu_options[] =
-{
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-    {"EMPTY    ", saveGameFromMenu},
-};
-
 Menu_t mainmenu =
 {
   6,
@@ -111,13 +89,24 @@ Menu_t mainmenu =
 
 Menu_t loadmenu =
 {
-  10,
+  MAX_SAVES,
   0,
   5,
   5,
   105,
   15,
   loadmenu_options
+};
+
+Menu_t savemenu =
+{
+  MAX_SAVES,
+  0,
+  5,
+  5,
+  105,
+  15,
+  savemenu_options
 };
 
 Menu_t optionsmenu =
@@ -162,17 +151,6 @@ Menu_t storymenu =
   80,
   0,
   basic_options
-};
-
-Menu_t savemenu =
-{
-  10,
-  0,
-  5,
-  5,
-  105,
-  15,
-  savemenu_options
 };
 
 Menu_t ingamemenu =
@@ -227,69 +205,46 @@ void menuMain()
     changeMenu();
 }
 
+void listSaves()
+{
+    StringList_t dirs;
+    char* temp;
+    int i, d;
+
+    dirs = listSubdirectories("SAVES");
+
+    // CURRENT and QUICK should go first on the list
+    for (i = 0, d = 0; i < dirs.count; i++)
+    {
+        if (strcmp(dirs.list[i], "CURRENT") == 0 || strcmp(dirs.list[i], "QUICK") == 0)
+        {
+            // swap string order
+            temp = dirs.list[d];
+            dirs.list[d] = dirs.list[i];
+            dirs.list[i] = temp;
+            d++;
+        }
+    }
+
+    // copy strings to menu options
+    for (i = 0; i < dirs.count; i++)
+        strcpy(savelist[i], dirs.list[i]);
+
+    // free
+    freeStringList(dirs);
+}
+
 void menuLoadGame()
 {
-    int directory_count, i;
-    int d = 0;
-    char** directory_list;
-
+    listSaves();
     current_menu = &loadmenu;
-    //directory_count = countSubdirectories("SAVES");
-    //directory_list = malloc(directory_count * sizeof(char*));
-
-    directory_count = listSubdirectories("SAVES", &directory_list);
-    // CURRENT and QUICK should go first on the list
-    for (i = 0; i < directory_count; i++)
-    {
-        if (strcmp(directory_list[i], "CURRENT") == 0 || strcmp(directory_list[i], "QUICK") == 0)
-        {
-            strcpy(loadmenu_options[d].text, directory_list[i]);
-            d++;
-        }
-    }
-    // then the rest
-    for (i = 0; i < directory_count; i++)
-    {
-        if (strcmp(directory_list[i], "CURRENT") != 0 && strcmp(directory_list[i], "QUICK") != 0)
-        {
-            strcpy(loadmenu_options[d].text, directory_list[i]);
-            d++;
-        }
-    }
-    free(directory_list);
     changeMenu();
 }
 
 void menuSaveGame()
 {
-    int directory_count, i;
-    int d = 0;
-    char** directory_list;
-
+    listSaves();
     current_menu = &savemenu;
-    //directory_count = countSubdirectories("SAVES");
-    //directory_list = malloc(directory_count * sizeof(char*));
-    
-    directory_count = listSubdirectories("SAVES", &directory_list);
-    // CURRENT and QUICK should go first on the list
-    for (i = 0; i < directory_count; i++)
-    {
-        if (strcmp(directory_list[i], "CURRENT") == 0 || strcmp(directory_list[i], "QUICK") == 0)
-        {
-            strcpy(savemenu_options[d].text, directory_list[i]);
-            d++;
-        }
-    }
-    // then the rest
-    for (i = 0; i < directory_count; i++)
-    {
-        if (strcmp(directory_list[i], "CURRENT") != 0 && strcmp(directory_list[i], "QUICK") != 0)
-        {
-            strcpy(savemenu_options[d].text, directory_list[i]);
-            d++;
-        }
-    }
-    free(directory_list);
     changeMenu();
 }
 
@@ -323,12 +278,12 @@ void menuNewGame()
     popState();
     pushState(STATE_INGAME);
     levelLoader("LEVEL3.LEV", LOAD_NEW_LEVEL);
+
     if (!checkDirectoryExists("SAVES/CURRENT"))
-    {
         createDirectory("SAVES/CURRENT");
-    }
     else
         deleteDirectoryContents("SAVES/CURRENT");
+
     Timers.accumulator = 0;
     Timers.frame_count = 0;
     Timers.last_env_damage = 0;
@@ -388,55 +343,24 @@ void dummy()
 void loadGameFromMenu()
 {
     char foldername[10];
-    char savepath[45] = {'\0'};
-    char curstatepath[45];
-    char savefilename[15] = {'\0'};
 
     strcpy(foldername, loadmenu_options[current_menu->cursor_loc].text);
 
     // if entry is labelled as empty, stop the function
-    if (strcmp(foldername, "EMPTY    ") != 0)
+    if (strcmp(foldername, "EMPTY") != 0)
     {
-        // construct the basic strings
-        strcpy(savepath, "SAVES/");
-
-        strcat(foldername, "/"); // add slash to the save subfolder name
-        strcat(savepath, foldername); // construct full folder path
-
-        strcpy(curstatepath, savepath);
-        strcat(curstatepath, "CURSTATE.SAV");
-
-        // make sure the folder contains CURSTATE
-        if (checkFileExists(curstatepath))
+        if (loadGame(foldername)) // if load is successful, set current state to ingame, else do nothing
         {
-            // check current level from the save folder
-            checkLevelFromSave(foldername);
-
-            strncpy(savefilename, levelname_global, (strlen(levelname_global) - 4)); // drop the level filename ending
-            strcat(savefilename, ".SAV"); // add save filename ending
-            strcat(savepath, savefilename);
-            if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
-            {
-                popState();
-                pushState(STATE_INGAME);
-                levelLoader(levelname_global, LOAD_SAVED_LEVEL);
-                loadLevelState(foldername, savefilename);
-                loadGameState(foldername);
-                copyAllFolderToFolder(savepath, "SAVES/CURRENT/");
-            }
+            popState();
+            pushState(STATE_INGAME);
         }
-        levelname_global[0] = '\0'; // reset levelname
     }
 }
 
 void saveGameFromMenu()
 {
-    // replace scanf with proper text input and printf with proper text output
-
     char foldername[10];
     TextInput_t folder_input;
-    char savepath[25] = "SAVES/"; // needed for the copy function
-    char savefilename[15] = {'\0'};
     uint8_t saving = TRUE;
 
     folder_input.capacity = 9;
@@ -471,16 +395,7 @@ void saveGameFromMenu()
         if (saving == TRUE)
         {
             strcpy(foldername, folder_input.buffer);
-            strcat(foldername, "/"); // add slash to the save subfolder name
-            strcat(savepath, foldername);
-
-            if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
-                createDirectory(savepath);
-
-            copyAllFolderToFolder("SAVES/CURRENT/", savepath);
-            strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
-            saveLevelState(foldername, savefilename);
-            saveGameState(foldername);
+            saveGame(foldername);
         }
     }
     
@@ -491,4 +406,18 @@ void saveGameFromMenu()
 void menuController()
 {
     current_menu->options[current_menu->cursor_loc].action();
+}
+
+void initSaveList()
+{
+    int i;
+
+    for (i = 0; i < MAX_SAVES; i++)
+    {
+        strcpy(savelist[i], "EMPTY");
+        loadmenu_options[i].text = savelist[i];
+        savemenu_options[i].text = savelist[i];
+        loadmenu_options[i].action = loadGameFromMenu;
+        savemenu_options[i].action = saveGameFromMenu;
+    }
 }

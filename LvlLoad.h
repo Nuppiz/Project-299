@@ -11,8 +11,10 @@ void loadGameState(char* foldername);
 void loadLevelState(char* foldername, char* savename);
 void levelTransition(char* prevlevelname, char* newlevelname);
 void loadAfterDeath(char* currentlevel);
-void quickSave(char* levelname);
-void checkLevelFromSave(char* foldername);
+int checkLevelFromSave(char* foldername);
+void saveGame(char* foldername);
+int loadGame(char* foldername);
 void quickLoad();
+void quickSave();
 
 #endif /* LVLLOAD_H */

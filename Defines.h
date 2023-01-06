@@ -223,6 +223,9 @@
 #define LOAD_SAVED_LEVEL       1
 #define LEVEL_NAME_MAX         15
 
+#define MAX_SAVES              10
+#define SAVENAME_MAX           12
+
 #define HURT_INTERVAL          40
 #define SFX_INTERVAL           20
 

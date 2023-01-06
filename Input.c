@@ -139,7 +139,7 @@ void testButtons()
         changeSFXVolume(VOLUME_DOWN);
     if (KEY_WAS_HIT(KEY_F5))
     {
-        quickSave(Game.current_level_name);
+        quickSave();
     }
     if (KEY_WAS_HIT(KEY_F6))
     {

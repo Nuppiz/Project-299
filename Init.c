@@ -215,6 +215,7 @@ void otherInit()
     {
         createDirectory("SAVES");
     }
+    initSaveList();
     initWeapons();
     initActorTemplates();
 	printf("System variables OK\n");

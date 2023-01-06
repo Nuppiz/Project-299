@@ -1,21 +1,22 @@
 #ifndef FILECH_H
 #define FILECH_H
 
+#include "Structs.h"
+
+int checkDirectoryExists(char* dirname);
 int checkFileExists(char* filename);
-int checkDirectoryExists(char* directory);
+int checkFileExtension(char* filename, char* ext);
 
 void createDirectory(char* path);
-void deleteDirectoryContents(char* directory);
-void copyAllFolderToFolder(char* source_dir, char* destination_dir);
+void deleteDirectoryContents(char* dirname);
+void copyAllFolderToFolder(char* source_dirname, char* dest_dirname);
 
-int countSubdirectories(char* directory);
-int listSubdirectories(char* directory, char*** dir_list);
+int countSubdirectories(char* dirname);
+int countFiles(char* dirname);
+int countFilesByExtension(char* dirname, char* ext);
 
-int countFiles(char* directory);
-int listFiles(char* directory, char** file_list);
+StringList_t listSubdirectories(char* dirname);
+StringList_t listFiles(char* dirname);
+StringList_t listFilesByExtension(char* dirname);
 
-int checkFileExtension(char* filename, char* ext);
-int countFilesByExtension(char* directory, char* ext);
-int listFilesByExtension(char* directory, char* ext, char** file_list);
-
-#endif /* FILECH_H */
+#endif/* FILECH_H */

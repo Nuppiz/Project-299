@@ -21,5 +21,6 @@ void quitGame();
 void dummy();
 void loadGameFromMenu();
 void saveGameFromMenu();
+void initSaveList();
 
-#endif /* MENU_H */
+#endif/* MENU_H */

@@ -327,4 +327,10 @@ typedef struct
     int start;
 } TextInput_t;
 
+typedef struct
+{
+    char** list;
+    int count;
+} StringList_t;
+
 #endif/* STRUCTS_H */

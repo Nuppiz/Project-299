@@ -296,7 +296,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %s", &entity_id, entity_name);
-                entity_type = searchStringList(entity_name, entity_type_strings, NUM_ENTITYTYPES);
+                entity_type = searchStringList_(entity_name, entity_type_strings, NUM_ENTITYTYPES);
                 if (entity_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
@@ -310,7 +310,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             else if (strcmp(buffer, "item") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%s %d %d", item_name, &tilemap_location, &state);
-                item_type = searchStringList(item_name, item_type_strings, NUM_ITEMTYPES);
+                item_type = searchStringList_(item_name, item_type_strings, NUM_ITEMTYPES);
                 if (item_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
@@ -549,17 +549,8 @@ void loadAfterDeath(char* currentlevel)
         levelLoader(currentlevel, LOAD_NEW_LEVEL);
 }
 
-void quickSave(char* levelname)
-{
-    char savename[30] = {'\0'};
-    copyAllFolderToFolder("SAVES/CURRENT/", "SAVES/QUICK/"); // copy all contents of the CURRENT save folder
-    strncpy(savename, levelname, (strlen(levelname) - 4)); // drop the level filename ending
-    saveLevelState("QUICK/", savename);
-    saveGameState("QUICK/");
-}
-
-// check level name from save file
-void checkLevelFromSave(char* foldername)
+// check level name from save file, return FALSE if CURSTATE cannot be opened
+int checkLevelFromSave(char* foldername)
 {
     FILE* save_file;
     char savefilepath[50] = "SAVES/";
@@ -575,25 +566,64 @@ void checkLevelFromSave(char* foldername)
         {
             fread(&levelname_global[i], 1, 1, save_file);
         }
+        fclose(save_file);
+        return TRUE;
     }
-    fclose(save_file);
+    return FALSE;
+}
+
+void saveGame(char* foldername)
+{
+    char savepath[25] = "SAVES/"; // needed for the copy function
+    char savefilename[15] = {'\0'};
+
+    strcat(foldername, "/"); // add slash to the save subfolder name
+    strcat(savepath, foldername);
+
+    if (!checkDirectoryExists(savepath)) // if folder doesn't exist, create it
+        createDirectory(savepath);
+
+    copyAllFolderToFolder("SAVES/CURRENT/", savepath);
+    strncpy(savefilename, Game.current_level_name, (strlen(Game.current_level_name) - 4)); // drop the level filename ending
+    saveLevelState(foldername, savefilename);
+    saveGameState(foldername);
+}
+
+int loadGame(char* foldername)
+{
+    char loadname[30] = {'\0'};
+    char savepath[45] = "SAVES/";
+    char savefolder[45] = "SAVES/";
+    strcat(foldername, "/"); // add subfolder slash
+    strcat(savepath, foldername); // construct full save folder path
+    strcat(savefolder, foldername); // separate copy for the file copying function
+    if (checkLevelFromSave(foldername)) // if CURSTATE is opened successfully, continue function
+    {
+        strncpy(loadname, levelname_global, (strlen(levelname_global) - 4)); // drop the level filename ending
+        strcat(loadname, ".SAV"); // add save filename ending
+        strcat(savepath, loadname); // construct full save file path
+
+        if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
+        {
+            levelLoader(levelname_global, LOAD_SAVED_LEVEL);
+            loadLevelState(foldername, loadname);
+            loadGameState(foldername);
+            deleteDirectoryContents("SAVES/CURRENT/"); // empty CURRENT folder
+            copyAllFolderToFolder(savefolder, "SAVES/CURRENT/"); // copy all contents to the CURRENT save folder
+            levelname_global[0] = '\0'; // reset levelname
+            return TRUE;
+        }
+    }
+    levelname_global[0] = '\0'; // reset levelname
+    return FALSE;
 }
 
 void quickLoad()
 {
-    char loadname[30] = {'\0'};
-    char savepath[45] = "SAVES/QUICK/";
-    checkLevelFromSave("QUICK/");
-    strncpy(loadname, levelname_global, (strlen(levelname_global) - 4)); // drop the level filename ending
-    strcat(loadname, ".SAV"); // add save filename ending
-    strcat(savepath, loadname); // construct folder path
+    loadGame("QUICK");
+}
 
-    if (checkFileExists(savepath)) // if savefile exists, load save, else do nothing
-    {
-        levelLoader(levelname_global, LOAD_SAVED_LEVEL);
-        loadLevelState("QUICK/", loadname);
-        loadGameState("QUICK/");
-        copyAllFolderToFolder("SAVES/QUICK/", "SAVES/CURRENT/"); // copy all contents to the CURRENT save folder
-    }
-    levelname_global[0] = '\0'; // reset levelname
+void quickSave()
+{
+    saveGame("QUICK");
 }

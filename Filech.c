@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Structs.h"
 #include <dir.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -6,6 +7,19 @@
 /* File and directory check, creation and deletion functions */
 
 #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+
+int checkDirectoryExists(char* dirname)
+{
+    struct stat stats;
+
+    stat(dirname, &stats);
+
+    // Check for folder existence
+    if (S_ISDIR(stats.st_mode))
+        return TRUE;
+
+    return FALSE;
+}
 
 int checkFileExists(char* filename)
 {
@@ -16,20 +30,27 @@ int checkFileExists(char* filename)
         exists = TRUE;
         fclose(fp); // close the file
     }
+    
     return exists;
 }
 
-int checkDirectoryExists(char* directory)
+// returns 0 if filename has a matching extension
+int checkFileExtension(char* filename, char* ext)
 {
-    struct stat stats;
+    char c;
+    int i;
+    int ext_start = -1;
 
-    stat(directory, &stats);
+    for (i = 0; (c = filename[i]) != '\0'; i++)
+    {
+        if (c == '.')
+            ext_start = i;
+    }
 
-    // Check for folder existence
-    if (S_ISDIR(stats.st_mode))
-        return TRUE;
+    if (ext_start < 0)
+        return 1;
 
-    return FALSE;
+    return strcmp(&filename[ext_start+1], ext);
 }
 
 void createDirectory(char* path)
@@ -37,88 +58,23 @@ void createDirectory(char* path)
     mkdir(path);
 }
 
-int countSubdirectories(char* directory)
+void deleteDirectoryContents(char* dirname)
 {
-    struct dirent* dir;
-    struct stat stats;
-    int dir_count = 0;
-    DIR* dr = opendir(directory);
-
-    if (dr == NULL)  // opendir returns NULL if couldn't open directory
-    {
-        quitError("Could not open directory!\n");
-        return 0;
-    }
-
-    while ((dir = readdir(dr)) != NULL)
-    {
-        stat(dir->d_name, &stats);
-        if (stats.st_mode & S_IFDIR) // only count folders (dirent can be both a file or a folder)
-        {
-            if (dir->d_name[0] != '.')
-            {
-                dir_count++;
-            }
-        }
-    }
-  
-    closedir(dr);
-    return dir_count;
-}
-
-int listSubdirectories(char* directory, char*** dir_list)
-{
-    struct dirent* dir;
-    struct stat stats;
-    int dir_i = 0;
-    int dir_count = 0;
-    DIR* dr;
-
-    dir_count = countSubdirectories(directory);
-    *dir_list = malloc(dir_count * sizeof(char*));
-
-    dr = opendir(directory);
-
-    if (dr == NULL)  // opendir returns NULL if couldn't open directory
-    {
-        quitError("Could not open current directory!\n");
-        return -1;
-    }
-
-    while ((dir = readdir(dr)) != NULL)
-    {
-        stat(dir->d_name, &stats);
-        if (stats.st_mode & S_IFDIR) // only list folders (dirent can be both a file or a folder)
-        {
-            if (dir->d_name[0] != '.')
-            {
-                *dir_list[dir_i] = malloc(strlen(dir->d_name + 1));
-                strcpy(*dir_list[dir_i], dir->d_name);
-                dir_i++;
-            }
-        }
-    }
-  
-    closedir(dr);
-    return dir_count;
-}
-
-void deleteDirectoryContents(char* directory)
-{
-    DIR* folder = opendir(directory);
+    DIR* folder = opendir(dirname);
     struct dirent* next_file;
     char filepath[50];
 
     while ((next_file = readdir(folder)) != NULL)
     {
         // build the path for each file in the folder
-        sprintf(filepath, "%s/%s", directory, next_file->d_name);
+        sprintf(filepath, "%s/%s", dirname, next_file->d_name);
         remove(filepath);
     }
+
     closedir(folder);
 }
 
-void copyFile(char* source_dir, char* source_filename, char* destination_dir, char* destination_filename)
+void copyFile(char* source_dirname, char* source_filename, char* dest_dirname, char* dest_filename)
 {
     FILE* source_file, *dest_file;
     char source_path[50] = {'\0'}; // container for the full path to source file
@@ -126,10 +82,10 @@ void copyFile(char* source_dir, char* source_filename, char* destination_dir, ch
     char c; // byte that is read/written
 
     // construct full file paths
-    strcpy(source_path, source_dir);
+    strcpy(source_path, source_dirname);
     strcat(source_path, source_filename);
-    strcpy(dest_path, destination_dir);
-    strcat(dest_path, destination_filename);
+    strcpy(dest_path, dest_dirname);
+    strcat(dest_path, dest_filename);
   
     // open first file for reading
     source_file = fopen(source_path, "rb");
@@ -161,9 +117,9 @@ void copyFile(char* source_dir, char* source_filename, char* destination_dir, ch
     fclose(dest_file);
 }
 
-void copyAllFolderToFolder(char* source_dir, char* destination_dir)
+void copyAllFolderToFolder(char* source_dirname, char* dest_dirname)
 {
-    DIR* folder = opendir(source_dir);
+    DIR* folder = opendir(source_dirname);
     struct dirent* file;
     char filename[15] = {"\0"};
 
@@ -173,36 +129,47 @@ void copyAllFolderToFolder(char* source_dir, char* destination_dir)
         if (file->d_name[0] != '.')
         {
             sprintf(filename, "%s", file->d_name);
-            copyFile(source_dir, file->d_name, destination_dir, file->d_name);
+            copyFile(source_dirname, file->d_name, dest_dirname, file->d_name);
         }
     }
+
     closedir(folder);
 }
 
-int checkFileExtension(char* filename, char* ext)
+int countSubdirectories(char* dirname)
 {
-    char c;
-    int i;
-    int ext_start = -1;
+    struct dirent* dir;
+    struct stat stats;
+    int dir_count = 0;
+    DIR* dr = opendir(dirname);
 
-    for (i = 0; (c = filename[i]) != '\0'; i++)
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        if (c == '.')
-            ext_start = i;
+        quitError("Could not open directory!\n");
+
+        return 0;
     }
 
-    if (ext_start < 0)
-        return 0;
+    while ((dir = readdir(dr)) != NULL)
+    {
+        stat(dir->d_name, &stats);
 
-    return strcmp(&filename[ext_start+1], ext);
+        // only count folders (dirent can be both a file or a folder)
+        if ((stats.st_mode & S_IFDIR) && dir->d_name[0] != '.')
+            dir_count++;
+    }
+  
+    closedir(dr);
+
+    return dir_count;
 }
 
-int countFiles(char* directory)
+int countFiles(char* dirname)
 {
     struct dirent* file;
     struct stat stats;
     int file_count = 0;
-    DIR* dr = opendir(directory);
+    DIR* dr = opendir(dirname);
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
@@ -213,20 +180,22 @@ int countFiles(char* directory)
     while ((file = readdir(dr)) != NULL)
     {
         stat(file->d_name, &stats);
-        if ((stats.st_mode & S_IFDIR) == 0) // only count files
+        // only count files
+        if ((stats.st_mode & S_IFDIR) == 0)
             file_count++;
     }
   
     closedir(dr);
+
     return file_count;
 }
 
-int countFilesByExtension(char* directory, char* ext)
+int countFilesByExtension(char* dirname, char* ext)
 {
     struct dirent* file;
     struct stat stats;
     int file_count = 0;
-    DIR* dr = opendir(directory);
+    DIR* dr = opendir(dirname);
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
@@ -243,74 +212,127 @@ int countFilesByExtension(char* directory, char* ext)
     }
   
     closedir(dr);
+
     return file_count;
 }
 
-int listFiles(char* directory, char** file_list)
+StringList_t listSubdirectories(char* dirname)
 {
-    struct dirent* file;
+    StringList_t subdirs;
+    struct dirent* dir;
     struct stat stats;
-    int file_i = 0;
-    int file_count = 0;
+    int dir_i = 0;
     DIR* dr;
 
-    file_count = countFiles(directory);
-    file_list = malloc(file_count * sizeof(char*));
+    subdirs.count = 0;
+    subdirs.list = NULL;
 
-    dr = opendir(directory);
+    dr = opendir(dirname);
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
         quitError("Could not open current directory!\n");
-        return -1;
+        
+        return subdirs;
     }
 
+    subdirs.count = countSubdirectories(dirname);
+    subdirs.list = malloc(subdirs.count * sizeof(char*));
+
+    while ((dir = readdir(dr)) != NULL)
+    {
+        stat(dir->d_name, &stats);
+
+        // only list folders (dirent can be both a file or a folder)
+        if ((stats.st_mode & S_IFDIR) && dir->d_name[0] != '.')
+        {
+            subdirs.list[dir_i] = malloc(strlen(dir->d_name + 1));
+            strcpy(subdirs.list[dir_i], dir->d_name);
+            dir_i++;
+        }
+    }
+  
+    closedir(dr);
+
+    return subdirs;
+}
+
+StringList_t listFiles(char* dirname)
+{
+    StringList_t files;
+    struct dirent* file;
+    struct stat stats;
+    int file_i = 0;
+    DIR* dr;
+
+    files.count = 0;
+    files.list = NULL;
+
+    dr = opendir(dirname);
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        quitError("Could not open current directory!\n");
+        
+        return files;
+    }
+
+    files.count = countFiles(dirname);
+    files.list = malloc(files.count * sizeof(char*));
+    
     while ((file = readdir(dr)) != NULL)
     {
         stat(file->d_name, &stats);
-        if ((stats.st_mode & S_IFDIR) == 0) // only list files
+        // only list files
+        if ((stats.st_mode & S_IFDIR) == 0)
         {
-            file_list[file_i] = malloc(strlen(file->d_name + 1));
-            strcpy(file_list[file_i], file->d_name);
+            files.list[file_i] = malloc(strlen(file->d_name + 1));
+            strcpy(files.list[file_i], file->d_name);
             file_i++;
         }
     }
   
     closedir(dr);
-    return file_count;
+
+    return files;
 }
 
-int listFilesByExtension(char* directory, char* ext, char** file_list)
+StringList_t listFilesByExtension(char* dirname, char* ext)
 {
+    StringList_t files;
     struct dirent* file;
     struct stat stats;
     int file_i = 0;
-    int file_count = 0;
     DIR* dr;
 
-    file_count = countFilesByExtension(directory, ext);
-    file_list = malloc(file_count * sizeof(char*));
+    files.count = 0;
+    files.list = NULL;
 
-    dr = opendir(directory);
+    dr = opendir(dirname);
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
         quitError("Could not open current directory!\n");
-        return -1;
+        
+        return files;
     }
 
+    files.count = countFilesByExtension(dirname, ext);
+    files.list = malloc(files.count * sizeof(char*));
+    
     while ((file = readdir(dr)) != NULL)
     {
         stat(file->d_name, &stats);
         // only list matching files
         if ((stats.st_mode & S_IFDIR) == 0 && checkFileExtension(file->d_name, ext) == 0)
         {
-            file_list[file_i] = malloc(strlen(file->d_name + 1));
-            strcpy(file_list[file_i], file->d_name);
+            files.list[file_i] = malloc(strlen(file->d_name + 1));
+            strcpy(files.list[file_i], file->d_name);
             file_i++;
         }
     }
   
     closedir(dr);
-    return file_count;
+
+    return files;
 }

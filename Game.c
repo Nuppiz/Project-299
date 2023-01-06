@@ -117,7 +117,7 @@ int loadActorTemplate(char* filename)
         if (c == '$')
         {
             fscanf(act_file, "%s", buffer);
-            actor_var_id = searchStringList(buffer, actor_variable_strings, NUM_ACTOR_VARIABLE_STRINGS);
+            actor_var_id = searchStringList_(buffer, actor_variable_strings, NUM_ACTOR_VARIABLE_STRINGS);
 
             switch (actor_var_id)
             {
@@ -135,7 +135,7 @@ int loadActorTemplate(char* filename)
                     char anim_filename[30];
 
                     fscanf(act_file, "%s", anim_name);
-                    actoranim_type_index = searchStringList(anim_name, actor_anim_strings, NUM_ACTORANIMS);
+                    actoranim_type_index = searchStringList_(anim_name, actor_anim_strings, NUM_ACTORANIMS);
 
                     if (actoranim_type_index != RETURN_ERROR)
                     {
