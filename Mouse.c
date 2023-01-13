@@ -55,7 +55,7 @@ void handleMouseInput()
 
     if (mouse_lb)
     {
-        shootWeapon(PLAYER_ACTOR.primary_weapon, &PLAYER_ACTOR);
+        shootWeapon(PLAYER_ACTOR.primary_weapon_id, &PLAYER_ACTOR);
     }
     else if (mouse_rb)
     {

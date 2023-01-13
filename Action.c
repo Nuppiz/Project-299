@@ -113,7 +113,6 @@ void deleteEntity(Entity_t* entity)
 void runSpawner(Entity_t* entity)
 {
     Vec2 direction = getDirVec2(entity->data.spawner.angle);
-    int tilemap_loc;
 
     if (entity->state == 1)
     {
@@ -122,19 +121,34 @@ void runSpawner(Entity_t* entity)
         if (spawner->last_spawn_time + spawner->spawn_time_interval < System.ticks)
         {
             spawner->last_spawn_time = System.ticks;
+
             if (spawner->num_actors < spawner->max_actors || spawner->max_actors == -1)
             {
-                createActor(entity->x * SQUARE_SIZE + direction.x * (rand() % 50), entity->y * SQUARE_SIZE + direction.y * (rand() % 50), spawner->angle,
-                7, 0, 1, 0, Game.player_id, 100, spawner->trigger_on_death, 20, "SPRITES/DUDE2.7UP");
+                Actor_t actor = {0};
+                
+                actor.position.x = entity->x * SQUARE_SIZE + direction.x * (rand() % 50);
+                actor.position.y = entity->y * SQUARE_SIZE + direction.y * (rand() % 50);
+                actor.angle = spawner->angle;
+                /* replace variables from here onwards with template system */
+                actor.radius = 7;
+                actor.control = 0;
+                actor.ai_mode = AI_IDLE;
+                actor.ai_timer = 100;
+                actor.target_id_primary = Game.player_id;
+                actor.health = 100;
+                actor.trigger_on_death = -1;
+                actor.primary_weapon_id = WEAPON_PISTOL;
+
+                createActor(actor, "SPRITES/DUDE2.7UP");
                 spawner->num_actors++;
             }
+
             if (spawner->num_actors >= spawner->max_actors && spawner->max_actors != -1)
             {
                 entity->state = 0;
+
                 if (spawner->only_once == 1)
-                {
                     deleteEntity(entity);
-                }
             }
         }
     }
@@ -557,11 +571,12 @@ void emptyProjectileArray()
     projectile_write = 0;
 }
 
-void shootWeapon(Weapon_t* weapon, Actor_t* source)
+void shootWeapon(int weapon_id, Actor_t* source)
 {
     Vec2 projectile_loc, direction;
     double angle;
     int i;
+    Weapon_t* weapon = &Weapons[weapon_id];
 
     if (source->last_shot + weapon->shot_delay < System.ticks)
     {

@@ -8,6 +8,7 @@
 
 extern System_t System;
 extern GameData_t Game;
+extern Weapon_t Weapons[];
 
 int testLineOfSight(Vec2 p, Vec2 target)
 {
@@ -147,9 +148,9 @@ void act(Actor_t* actor)
         if (actor->ai_timer > 0)
         {
             chaseTarget(actor);
-            if (actor->last_shot + actor->primary_weapon->shot_delay < System.ticks);
+            if (actor->last_shot + Weapons[actor->primary_weapon_id].shot_delay < System.ticks);
             {
-                shootWeapon(actor->primary_weapon, actor);
+                shootWeapon(actor->primary_weapon_id, actor);
             }
 
             if (Game.ActorsById[actor->target_id_primary] == UINT16_MAX && actor->target_id_secondary != UINT16_MAX) // if primary target is dead and a secondary target is available

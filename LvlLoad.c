@@ -192,10 +192,7 @@ void levelLoader(char* level_name, uint8_t load_type)
     char tileset_file[20] = DEFAULT_TILESET;
 
     // actor variables
-    int x, y;
-    double angle;
-    int radius, control, ai_mode, ai_timer, health, trigger_on_death, weapon_id;
-    id_t ai_target;
+    int template_id;
     char texture_filename[20];
     char template_filename[30];
 
@@ -281,22 +278,27 @@ void levelLoader(char* level_name, uint8_t load_type)
             }
             else if (strcmp(buffer, "player") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%s %d %d %lf %d",
-                    template_filename, &x, &y, &angle, &control);
+                Actor_t player = {0};
+                ActorTemplate_t* template;
+                fscanf(level_file, "%s %f %f %lf", template_filename, &player.position.x, &player.position.y, &player.angle);
                 
-                Game.player_id = createActorFromTemplate(template_filename, (float)x, (float)y, angle, control, 0, 0, 0, UINT16_MAX);
+                template_id = loadActorTemplate(template_filename);
+                template = &ActorTemplates[template_id];
+                Game.player_id = createActorFromTemplate(player, template);
                 //Game.player_id = createActor((float)x, (float)y, angle, radius, control, 0, 0, 0, 999, UINT16_MAX, WEAPON_PISTOL, texture_filename);
             }
             else if (strcmp(buffer, "dude") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
-                fscanf(level_file, "%d %d %lf %d %d %d %d %u %d %d %d %s",
-                    &x, &y, &angle, &radius, &control, &ai_mode, &ai_timer, &ai_target, &health, &trigger_on_death, &weapon_id, texture_filename);
-                createActor((float)x, (float)y, angle, radius, control, ai_mode, ai_timer, ai_target, health, trigger_on_death, weapon_id, texture_filename);
+                Actor_t actor = {0};
+                fscanf(level_file, "%f %f %lf %d %d %d %u %d %d %d %s",
+                    &actor.position.x, &actor.position.y, &actor.angle, &actor.radius, &actor.ai_mode, &actor.ai_timer, &actor.target_id_primary,
+                    &actor.health, &actor.trigger_on_death, &actor.primary_weapon_id, texture_filename);
+                createActor(actor, texture_filename);
             }
             else if (strcmp(buffer, "entity") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%d %s", &entity_id, entity_name);
-                entity_type = searchStringList_(entity_name, entity_type_strings, NUM_ENTITYTYPES);
+                entity_type = searchStringArray(entity_name, entity_type_strings, NUM_ENTITYTYPES);
                 if (entity_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
@@ -310,7 +312,7 @@ void levelLoader(char* level_name, uint8_t load_type)
             else if (strcmp(buffer, "item") == 0 && load_type != LOAD_SAVED_LEVEL)
             {
                 fscanf(level_file, "%s %d %d", item_name, &tilemap_location, &state);
-                item_type = searchStringList_(item_name, item_type_strings, NUM_ITEMTYPES);
+                item_type = searchStringArray(item_name, item_type_strings, NUM_ITEMTYPES);
                 if (item_type == RETURN_ERROR)
                 {
                     // replace later with just exit to main menu
@@ -390,7 +392,7 @@ void saveGameState(char* foldername)
     fwrite(&PLAYER_ACTOR.health, 2, 1, save_file);
     fwrite(&PLAYER_ACTOR.position.x, 8, 1, save_file);
     fwrite(&PLAYER_ACTOR.position.y, 8, 1, save_file);
-    fwrite(&PLAYER_ACTOR.primary_weapon->id, 2, 1, save_file);
+    fwrite(&PLAYER_ACTOR.primary_weapon_id, 2, 1, save_file);
     fwrite(&System, sizeof(System_t), 1, save_file);
     fwrite(&Timers, sizeof(Timer_t), 1, save_file);
     fclose(save_file);
@@ -449,7 +451,7 @@ void loadGameState(char* foldername)
         fread(&current_weapon, 2, 1, state_file);
         PLAYER_ACTOR.position.x = player_loc.x;
         PLAYER_ACTOR.position.y = player_loc.y;
-        PLAYER_ACTOR.primary_weapon = &Weapons[current_weapon];
+        PLAYER_ACTOR.primary_weapon_id = current_weapon;
         updateGridLoc(&PLAYER_ACTOR);
         // just in case the player's location in the save file IS on a portal (shouldn't be if level is made correctly)
         if (getEntityTypeAt(PLAYER_ACTOR.grid_loc) == ENT_PORTAL)

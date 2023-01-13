@@ -203,8 +203,8 @@ typedef struct
     int health;
     id_t trigger_on_death; // entity ID to trigger on death
     ticks_t last_shot; // last shot taken
-    Weapon_t* primary_weapon;
-    Weapon_t* secondary_weapon;
+    int primary_weapon_id;
+    int secondary_weapon_id;
     Sprite_t sprite;
     AnimSet_t* animset;
 } Actor_t;

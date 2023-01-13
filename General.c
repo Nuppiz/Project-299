@@ -5,7 +5,7 @@
 
 extern System_t System;
 
-int searchStringList_(char* string, char* string_list[], int num_strings)
+int searchStringArray(char* string, char* string_list[], int num_strings)
 {
     int i;
     for (i = 0; i < num_strings; i++)
@@ -19,7 +19,7 @@ int searchStringList_(char* string, char* string_list[], int num_strings)
 
 int searchStringList(char* string, StringList_t stringlist)
 {
-    return searchStringList_(string, stringlist.list, stringlist.count);
+    return searchStringArray(string, stringlist.list, stringlist.count);
 }
 
 void freeStringList(StringList_t stringlist)

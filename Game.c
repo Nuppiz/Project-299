@@ -63,7 +63,7 @@ void initActorTemplates()
     ActorTemplates[ACT_DEFAULT].name = "DEFAULT.ACT";
     ActorTemplates[ACT_DEFAULT].walk_speed = 1.0; 
     ActorTemplates[ACT_DEFAULT].run_speed = 2.0;
-    ActorTemplates[ACT_DEFAULT].turn_rate = 0.05 ;
+    ActorTemplates[ACT_DEFAULT].turn_rate = 0.05;
     ActorTemplates[ACT_DEFAULT].radius = 5;
     ActorTemplates[ACT_DEFAULT].health = 50;
     ActorTemplates[ACT_DEFAULT].primary_weapon_id = 0; 
@@ -117,7 +117,7 @@ int loadActorTemplate(char* filename)
         if (c == '$')
         {
             fscanf(act_file, "%s", buffer);
-            actor_var_id = searchStringList_(buffer, actor_variable_strings, NUM_ACTOR_VARIABLE_STRINGS);
+            actor_var_id = searchStringArray(buffer, actor_variable_strings, NUM_ACTOR_VARIABLE_STRINGS);
 
             switch (actor_var_id)
             {
@@ -135,7 +135,7 @@ int loadActorTemplate(char* filename)
                     char anim_filename[30];
 
                     fscanf(act_file, "%s", anim_name);
-                    actoranim_type_index = searchStringList_(anim_name, actor_anim_strings, NUM_ACTORANIMS);
+                    actoranim_type_index = searchStringArray(anim_name, actor_anim_strings, NUM_ACTORANIMS);
 
                     if (actoranim_type_index != RETURN_ERROR)
                     {
@@ -159,13 +159,8 @@ int loadActorTemplate(char* filename)
     return actortemplate_id;
 }
 
-id_t createActorFromTemplate(char* template_name, float x, float y, double angle, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, id_t trigger_on_death)
+id_t createActorFromTemplate(Actor_t actor, ActorTemplate_t* template)
 {
-	Vec2 direction; // temporary container for direction value
-    id_t id = getNewId();
-    int actortemplate_id = loadActorTemplate(template_name);
-	direction = getDirVec2(angle);
-
     if (Game.actor_count >= Game.actor_capacity)
     {
         Game.actor_capacity += ACTOR_CHUNK_SIZE;
@@ -173,40 +168,28 @@ id_t createActorFromTemplate(char* template_name, float x, float y, double angle
         // to do later: ensure successful allocation
     }
 
-    Game.ActorsById[id] = Game.actor_count;
+    actor.id = getNewId();
+    actor.direction = getDirVec2(actor.angle);
+    actor.radius = template->radius;
+    actor.target_id_secondary = UINT16_MAX;
+    actor.health = template->health;
+    actor.last_shot = System.ticks;
+    actor.primary_weapon_id = template->primary_weapon_id;
+    actor.animset = &template->animset;
 
-    memset(&Game.Actors[Game.actor_count], 0, sizeof(Actor_t));
-
-    Game.Actors[Game.actor_count].id = id;
-    Game.Actors[Game.actor_count].position.x = x;
-    Game.Actors[Game.actor_count].position.y = y;
-    Game.Actors[Game.actor_count].angle = angle;
-    Game.Actors[Game.actor_count].radius = ActorTemplates[actortemplate_id].radius;
-    Game.Actors[Game.actor_count].control = control;
-    Game.Actors[Game.actor_count].ai_mode = ai_mode;
-    Game.Actors[Game.actor_count].ai_timer = ai_timer;
-    Game.Actors[Game.actor_count].target_id_primary = ai_target;
-    Game.Actors[Game.actor_count].target_id_secondary = UINT16_MAX;
-    Game.Actors[Game.actor_count].health = ActorTemplates[actortemplate_id].health;
-    Game.Actors[Game.actor_count].trigger_on_death = trigger_on_death;
-    Game.Actors[Game.actor_count].primary_weapon = &Weapons[ActorTemplates[actortemplate_id].primary_weapon_id];
-	Game.Actors[Game.actor_count].direction.x = direction.x;
-	Game.Actors[Game.actor_count].direction.y = direction.y;
-    Game.Actors[Game.actor_count].last_shot = System.ticks;
-    Game.Actors[Game.actor_count].animset = &ActorTemplates[actortemplate_id].animset;
+    Game.Actors[Game.actor_count] = actor; // copy loaded and set data to Actors array
+    Game.ActorsById[actor.id] = Game.actor_count;
     ASSERT(Game.Actors[Game.actor_count].animset != NULL);
 
     Game.actor_count++;
     
-    return id;
+    return actor.id;
 }
 
-id_t createActor(float x, float y, double angle, int radius, uint8_t control, uint8_t ai_mode, int ai_timer, id_t ai_target, int health, id_t trigger_on_death, id_t primary_weapon, char* texture_name)
+id_t createActor(Actor_t actor, char* texture_name)
 {
-	Vec2 direction; // temporary container for direction value
-    id_t id = getNewId();
-	direction = getDirVec2(angle);
-
+    // old function, will be deleted when template system is finalised
+    
     if (Game.actor_count >= Game.actor_capacity)
     {
         Game.actor_capacity += ACTOR_CHUNK_SIZE;
@@ -214,32 +197,18 @@ id_t createActor(float x, float y, double angle, int radius, uint8_t control, ui
         // to do later: ensure successful allocation
     }
 
-    Game.ActorsById[id] = Game.actor_count;
+    actor.id = getNewId();
+    actor.direction = getDirVec2(actor.angle);
+    actor.target_id_secondary = UINT16_MAX;
+    actor.last_shot = System.ticks;
+    actor.texture_id = loadTexture(texture_name, &ObjectTextures);
+    actor.animset = NULL;
 
-    memset(&Game.Actors[Game.actor_count], 0, sizeof(Actor_t));
-
-    Game.Actors[Game.actor_count].id = id;
-    Game.Actors[Game.actor_count].position.x = x;
-    Game.Actors[Game.actor_count].position.y = y;
-    Game.Actors[Game.actor_count].angle = angle;
-    Game.Actors[Game.actor_count].radius = radius;
-    Game.Actors[Game.actor_count].control = control;
-    Game.Actors[Game.actor_count].ai_mode = ai_mode;
-    Game.Actors[Game.actor_count].ai_timer = ai_timer;
-    Game.Actors[Game.actor_count].target_id_primary = ai_target;
-    Game.Actors[Game.actor_count].target_id_secondary = UINT16_MAX;
-    Game.Actors[Game.actor_count].health = health;
-    Game.Actors[Game.actor_count].trigger_on_death = trigger_on_death;
-    Game.Actors[Game.actor_count].primary_weapon = &Weapons[primary_weapon];
-    Game.Actors[Game.actor_count].texture_id = loadTexture(texture_name, &ObjectTextures);
-	Game.Actors[Game.actor_count].direction.x = direction.x;
-	Game.Actors[Game.actor_count].direction.y = direction.y;
-    Game.Actors[Game.actor_count].last_shot = System.ticks;
-    Game.Actors[Game.actor_count].animset = NULL;
-
+    Game.Actors[Game.actor_count] = actor;
+    Game.ActorsById[actor.id] = Game.actor_count;
     Game.actor_count++;
     
-    return id;
+    return actor.id;
 }
 
 void deleteActor(id_t id)

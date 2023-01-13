@@ -83,21 +83,21 @@ void playerControl()
         pushState(STATE_PAUSE);
     }
     if (KEY_IS_PRESSED(KEY_SPACEBAR))
-        shootWeapon(PLAYER_ACTOR.primary_weapon, &PLAYER_ACTOR);
+        shootWeapon(PLAYER_ACTOR.primary_weapon_id, &PLAYER_ACTOR);
 
     if (KEY_WAS_HIT(KEY_E))
         useTile(PLAYER_ACTOR.position, PLAYER_ACTOR.direction);
 
     if (KEY_WAS_HIT(KEY_1))
-        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_FIST];
+        PLAYER_ACTOR.primary_weapon_id = WEAPON_FIST;
     if (KEY_WAS_HIT(KEY_2))
-        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_PISTOL];
+        PLAYER_ACTOR.primary_weapon_id = WEAPON_PISTOL;
     if (KEY_WAS_HIT(KEY_3))
-        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_SHOTGUN];
+        PLAYER_ACTOR.primary_weapon_id = WEAPON_SHOTGUN;
     if (KEY_WAS_HIT(KEY_4))
-        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_CHAINGUN];
+        PLAYER_ACTOR.primary_weapon_id = WEAPON_CHAINGUN;
     if (KEY_WAS_HIT(KEY_5))
-        PLAYER_ACTOR.primary_weapon = &Weapons[WEAPON_ROCKET];
+        PLAYER_ACTOR.primary_weapon_id = WEAPON_ROCKET;
 
     #if DEBUG == 1
     d[0] = '\0';

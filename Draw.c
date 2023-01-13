@@ -1131,7 +1131,7 @@ void drawStats()
     char cur_weapon[30];
     char cur_anim[15];
 
-    sprintf(cur_weapon, "%s", PLAYER_ACTOR.primary_weapon->name);
+    sprintf(cur_weapon, "%s", Weapons[PLAYER_ACTOR.primary_weapon_id].name);
     sprintf(cur_anim, "ANIM: %d", PLAYER_ACTOR.sprite.anim_id);
     drawText(2, 170, cur_anim, COLOUR_WHITE);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
@@ -1165,9 +1165,9 @@ void testSetPlayerAnim()
             setActorAnim(&PLAYER_ACTOR, ANIM_WALK);
         //PLAYER_ACTOR.sprite.flags = SPRITE_IS_ANIM;
         else if (KEY_IS_PRESSED(KEY_SPACEBAR))
-            if (PLAYER_ACTOR.primary_weapon == &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_WALK])
+            if (PLAYER_ACTOR.primary_weapon_id == WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_WALK])
                 setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_WALK);
-            else if (PLAYER_ACTOR.primary_weapon != &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
+            else if (PLAYER_ACTOR.primary_weapon_id != WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
                 setActorAnim(&PLAYER_ACTOR, ANIM_SHOOT);
     }
     else if (PLAYER_ACTOR.magnitude == 0.0)
@@ -1175,9 +1175,9 @@ void testSetPlayerAnim()
         if (!KEY_IS_PRESSED(KEY_SPACEBAR))
             setActorAnim(&PLAYER_ACTOR, ANIM_IDLE);
         else
-            if (PLAYER_ACTOR.primary_weapon == &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_STILL])
+            if (PLAYER_ACTOR.primary_weapon_id == WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_STILL])
                 setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_STILL);
-            else if (PLAYER_ACTOR.primary_weapon != &Weapons[WEAPON_FIST] && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
+            else if (PLAYER_ACTOR.primary_weapon_id != WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
                 setActorAnim(&PLAYER_ACTOR, ANIM_SHOOT);
         //PLAYER_ACTOR.sprite.flags = SPRITE_IS_STATIC;
     }
