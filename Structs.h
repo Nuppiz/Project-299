@@ -93,6 +93,7 @@ typedef struct
     char* name;
     int* frame_ids;
     int num_frames;
+    time_t frame_interval;
 } Anim_t;
 
 typedef struct

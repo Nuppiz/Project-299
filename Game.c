@@ -52,7 +52,7 @@ id_t getNewId()
     // no free IDs found; allocate more
     Game.id_capacity += ACTOR_CHUNK_SIZE;
     Game.ActorsById = realloc(Game.ActorsById, Game.id_capacity * sizeof(id_t));
-    memset(&Game.ActorsById[Game.id_capacity - ACTOR_CHUNK_SIZE], UINT8_MAX, ACTOR_CHUNK_SIZE * sizeof(id_t)); // set new ids to -1
+    memset(&Game.ActorsById[Game.id_capacity - ACTOR_CHUNK_SIZE], UINT16_MAX, ACTOR_CHUNK_SIZE * sizeof(id_t)); // set new ids to FFFF
     // to do later: ensure successful allocation
     return id;
 }
