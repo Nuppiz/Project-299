@@ -208,8 +208,10 @@ void otherInit()
 {
     initKeyboard();
 	printf("Keyboard OK\n");
-    //initMouse();
-    printf("Mouse OK\n");
+    if (detectMouse() == TRUE)
+    {
+        printf("Mouse detected\n");
+    }
     initSystem();
     if (!checkDirectoryExists("SAVES"))
     {

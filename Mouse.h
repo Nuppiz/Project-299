@@ -7,7 +7,7 @@
 #define HIDE_MOUSE          0x02
 #define GET_MOUSE_STATUS    0x03
 
-int initMouse();
+int detectMouse();
 void showMouse();
 void playerMouseAim();
 void handleMouseInput();
