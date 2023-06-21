@@ -35,9 +35,9 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
     uint8_t index_y = 0;
     symbol_index = symbol_index * CHARACTER_SIZE; // pixel index of the symbol in the bitmap file
 
-    for (index_y=0;index_y<TILE_HEIGHT;index_y++)
+    for (index_y = 0; index_y < CHARACTER_HEIGHT; index_y++)
     {
-        for (index_x=0;index_x<TILE_WIDTH;index_x++)
+        for (index_x = 0; index_x < CHARACTER_WIDTH; index_x++)
         {
             if (alphabet[symbol_index] != TRANSPARENT_COLOR)
             {
@@ -52,7 +52,7 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
             }
         }
         index_x = 0;
-        x = x - TILE_WIDTH;
+        x = x - CHARACTER_WIDTH;
         y++;
     }
     index_y = 0;
@@ -88,9 +88,9 @@ void drawSymbolVGA(int x, int y, int symbol_index, uint8_t color)
     uint8_t index_y = 0;
     symbol_index = symbol_index * CHARACTER_SIZE; // pixel index of the symbol in the bitmap file
 
-    for (index_y=0;index_y<TILE_HEIGHT;index_y++)
+    for (index_y = 0; index_y < CHARACTER_HEIGHT; index_y++)
     {
-        for (index_x=0;index_x<TILE_WIDTH;index_x++)
+        for (index_x = 0; index_x < CHARACTER_WIDTH; index_x++)
         {
             if (alphabet[symbol_index] != TRANSPARENT_COLOR)
             {
@@ -105,7 +105,7 @@ void drawSymbolVGA(int x, int y, int symbol_index, uint8_t color)
             }
         }
         index_x = 0;
-        x = x - TILE_WIDTH;
+        x = x - CHARACTER_WIDTH;
         y++;
     }
     index_y = 0;
@@ -142,7 +142,7 @@ int drawTextClipped(int x, int y, char* string, uint8_t color)
     int start_x = x;
     char c;
 
-    if (x < 0 || x > SCREEN_WIDTH-10 || y < 0 || y > SCREEN_HEIGHT-10)
+    if (x < 0 || x > SCREEN_WIDTH - 10 || y < 0 || y > SCREEN_HEIGHT - 10)
         return 0;
 
     while ((c = string[i++]) != 0)
@@ -153,7 +153,7 @@ int drawTextClipped(int x, int y, char* string, uint8_t color)
             y += 10;
             newlines++;
             
-            if (y > SCREEN_HEIGHT-10)
+            if (y > SCREEN_HEIGHT - 10)
                 return 0;
 
             continue;

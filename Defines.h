@@ -121,8 +121,8 @@
 #define CHASE_TIMEOUT           200
 #define TURN_THRESHOLD          5.0
 
-#define TILE_WIDTH          8
-#define TILE_HEIGHT         8
+#define CHARACTER_WIDTH     8
+#define CHARACTER_HEIGHT    8
 #define CHARACTER_SIZE      72
 
 #define SPRITE_IS_STATIC    0
