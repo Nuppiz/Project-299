@@ -162,7 +162,7 @@ int drawTextClipped(int x, int y, char* string, uint8_t color)
         {
             continue;
         }
-        drawSymbol(x, y, c - 32, color);
+        drawSymbol(x, y, c - 24, color);
         x += 10;
     }
 

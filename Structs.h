@@ -18,6 +18,7 @@ typedef struct
     int    fps;         // actual measured fps
     float  fps_avg;     // average fps (frames/seconds)
     int    ticks_per_frame; // number of ticks per frame, varies based on frame rate
+    uint8_t debug_mode; // on/off
 } System_t;
 
 typedef struct 

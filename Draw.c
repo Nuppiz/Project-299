@@ -1109,9 +1109,12 @@ void drawActors()
         drawDot(actor);
 
         #if DEBUG == 1
-        str[0] = '\0';
-        sprintf(str, "%u", actor->id);
-        drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
+        if (System.debug_mode == TRUE)
+        {
+            str[0] = '\0';
+            sprintf(str, "%u", actor->id);
+            drawTextClipped(start_x, start_y - 10, str, COLOUR_YELLOW);
+        }
         #endif
     }
 }
@@ -1129,11 +1132,8 @@ void drawHealth()
 void drawStats()
 {
     char cur_weapon[30];
-    char cur_anim[15];
 
     sprintf(cur_weapon, "%s", Weapons[PLAYER_ACTOR.primary_weapon_id].name);
-    sprintf(cur_anim, "ANIM: %d", PLAYER_ACTOR.sprite.anim_id);
-    drawText(2, 170, cur_anim, COLOUR_WHITE);
     drawText(2, 190, cur_weapon, COLOUR_WHITE);
 }
 
@@ -1207,13 +1207,17 @@ void gameDraw()
     drawActors();
     drawHealth();
     drawStats();
-    testFont();
+    //testFont();
     //animTestBlock();
     particleArrayManager();
     tempSpriteArrayManager();
     #if DEBUG == 1
-    sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
-    drawDebug();
+    if (System.debug_mode == TRUE)
+    {
+        sprintf(debug[DEBUG_DRAW], "ANIM: %d", PLAYER_ACTOR.sprite.anim_id);
+        sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
+        drawDebug();
+    }
     #endif
 }
 

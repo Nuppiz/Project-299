@@ -6,6 +6,7 @@
 
 /* Actor_t movement and collision detection */
 
+extern System_t System;
 extern GameData_t Game;
 extern Entity_t Entities[];
 extern flags_t player_control;
@@ -379,6 +380,7 @@ void physics()
     collideAllActors();
 
     #if DEBUG == 1
-    sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PLAYER_ACTOR.velocity.x, PLAYER_ACTOR.velocity.y);
+    if (System.debug_mode == TRUE)
+        sprintf(debug[DEBUG_VELOCITY], "V.X: %f\nV.Y %f", PLAYER_ACTOR.velocity.x, PLAYER_ACTOR.velocity.y);
     #endif
 }

@@ -100,15 +100,18 @@ void playerControl()
         PLAYER_ACTOR.primary_weapon_id = WEAPON_ROCKET;
 
     #if DEBUG == 1
-    d[0] = '\0';
-    if (player_control & CONTROL_UP)            d += sprintf(d, "UP ");
-    if (player_control & CONTROL_DOWN)          d += sprintf(d, "DOWN ");
-    if (player_control & CONTROL_LEFT)          d += sprintf(d, "LEFT ");
-    if (player_control & CONTROL_RIGHT)         d += sprintf(d, "RIGHT ");
-    if (player_control & CONTROL_FAST)          d += sprintf(d, "FAST ");
-    if (player_control & CONTROL_STRAFE_L)      d += sprintf(d, "STRAFE-L ");
-    if (player_control & CONTROL_STRAFE_R)      d += sprintf(d, "STRAFE-R ");
-    if (player_control & CONTROL_STRAFE_MOD)    d += sprintf(d, "STRAFE ");
+    if (System.debug_mode == TRUE)
+    {
+        d[0] = '\0';
+        if (player_control & CONTROL_UP)            d += sprintf(d, "UP ");
+        if (player_control & CONTROL_DOWN)          d += sprintf(d, "DOWN ");
+        if (player_control & CONTROL_LEFT)          d += sprintf(d, "LEFT ");
+        if (player_control & CONTROL_RIGHT)         d += sprintf(d, "RIGHT ");
+        if (player_control & CONTROL_FAST)          d += sprintf(d, "FAST ");
+        if (player_control & CONTROL_STRAFE_L)      d += sprintf(d, "STRAFE-L ");
+        if (player_control & CONTROL_STRAFE_R)      d += sprintf(d, "STRAFE-R ");
+        if (player_control & CONTROL_STRAFE_MOD)    d += sprintf(d, "STRAFE ");
+    }
         
     #endif
 }
@@ -144,6 +147,13 @@ void testButtons()
     if (KEY_WAS_HIT(KEY_F6))
     {
         quickLoad();
+    }
+    if (KEY_WAS_HIT(KEY_Q) && KEY_WAS_HIT(KEY_BACKSPACE))
+    {
+        if (System.debug_mode == FALSE)
+            System.debug_mode = TRUE;
+        else
+            System.debug_mode = FALSE;
     }
 }
 

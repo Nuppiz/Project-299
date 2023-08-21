@@ -86,12 +86,15 @@ void chaseTarget(Actor_t* chaser)
     }
 
     #if DEBUG == 1
-    d = debug[DEBUG_AICHASE];
-    d += sprintf(d, "DISTANCE: %.2f\n", sqrt(distance_sq));
-    d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
-    d += sprintf(d, "CP: %.2f\n", cross_product);
-    d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
-    d += sprintf(d, "DIR-Y: %.2f", chaser->direction.y);
+    if (System.debug_mode == TRUE)
+    {
+        d = debug[DEBUG_AICHASE];
+        d += sprintf(d, "DISTANCE: %.2f\n", sqrt(distance_sq));
+        d += sprintf(d, "ANGLE: %.2lf\n", chaser->angle);
+        d += sprintf(d, "CP: %.2f\n", cross_product);
+        d += sprintf(d, "DIR-X: %.2f\n", chaser->direction.x);
+        d += sprintf(d, "DIR-Y: %.2f", chaser->direction.y);
+    }
     #endif
 }
 

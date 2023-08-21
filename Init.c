@@ -116,6 +116,7 @@ void initSystem()
     System.frame_rate = FRAME_RATE;
     System.fps        = 0;
     System.fps_avg    = 0;
+    System.debug_mode = 0;
 }
 
 void soundInit()

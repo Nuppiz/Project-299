@@ -32,8 +32,9 @@ void quit()
 void updateStats()
 {
     #if DEBUG == 1
-    sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
-        System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
+    if (System.debug_mode == TRUE)
+        sprintf(debug[DEBUG_FPS], "TIME: %ld MINS, %ld SECS\nTICKS: %ld, FRAMES: %ld\nFPS: %d, AVERAGE: %.2f",
+            System.seconds/60, System.seconds%60, System.ticks, System.frames, System.fps, System.fps_avg);
     //sprintf(debug[DEBUG_FPS], "BX=%u RC=%u T=%lu", setTimerBxHookBx, recomputeMidasTickRate, System.time);
     #endif
 }
@@ -119,7 +120,8 @@ void handleFrame()
         System.ticks_per_frame = 0;
 
         #if DEBUG == 1
-        updateStats();
+        if (System.debug_mode == TRUE)
+            updateStats();
         #endif
     }
 }
@@ -144,7 +146,8 @@ void loop()
         handleFrame();
 
         #if DEBUG == 1
-        fpsCount();
+        if (System.debug_mode == TRUE)
+            fpsCount();
         #endif
     }
 }

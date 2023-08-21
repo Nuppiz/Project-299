@@ -82,7 +82,8 @@ void checkForInteractive() // temporary, will be replaced with better system lat
                     actor->health -= 10;
 
                     #if DEBUG == 1
-                    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+                    if (System.debug_mode == TRUE)
+                        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
                     #endif
                 }
             }
@@ -366,8 +367,11 @@ int actorHitLoop(id_t source_id, Vec2 pos, int damage)
                     playSFX(SOUND_HURT_E);
             }
             #if DEBUG == 1
-            sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
-            sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+            if (System.debug_mode == TRUE)
+            {
+                sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", i);
+                sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+            }
             #endif
             return TRUE;
         }
@@ -392,8 +396,11 @@ void actorHit(id_t source_id, int damage, Actor_t* actor)
             playSFX(SOUND_HURT_E);
     }
     #if DEBUG == 1
-    sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", actor->id);
-    sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+    if (System.debug_mode == TRUE)
+    {
+        sprintf(debug[DEBUG_SHOOT], "LAST HIT: %d", actor->id);
+        sprintf(debug[DEBUG_ENTITIES], "TARGET HP: %d", actor->health);
+    }
     #endif
 }
 
@@ -415,7 +422,8 @@ void splashDamage(id_t source_id, Vec2 pos, uint16_t damage, uint16_t radius)
             {
                 actorHit(source_id, damage - splashline, actor);
                 #if DEBUG == 1
-                sprintf(debug[DEBUG_SHOOT], "S: %d", splashline);
+                if (System.debug_mode == TRUE)
+                    sprintf(debug[DEBUG_SHOOT], "S: %d", splashline);
                 #endif
                 break;
             }
@@ -436,6 +444,9 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
 
     for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
+        if (System.debug_mode == TRUE)
+            if (boundaryCheck(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y))) == TRUE)
+                SET_PIXEL_VGA(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y)), COLOUR_WHITE);
         pos.x += dir.x * BULLET_STEP;
         pos.y += dir.y * BULLET_STEP;
 
