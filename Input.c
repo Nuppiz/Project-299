@@ -148,6 +148,7 @@ void testButtons()
     {
         quickLoad();
     }
+    #if DEBUG == 1
     if (KEY_WAS_HIT(KEY_Q) && KEY_WAS_HIT(KEY_BACKSPACE))
     {
         if (System.debug_mode == FALSE)
@@ -155,6 +156,7 @@ void testButtons()
         else
             System.debug_mode = FALSE;
     }
+    #endif
 }
 
 void processKeyEvents(uint8_t text_input, TextInput_t* destination)

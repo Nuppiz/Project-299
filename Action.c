@@ -444,9 +444,10 @@ void hitScan(id_t weapon_id, id_t source_id, Vec2 pos, Vec2 dir, int max_range, 
 
     for (bulletpath = 0; bulletpath < max_range; bulletpath += BULLET_STEP)
     {
-        if (System.debug_mode == TRUE)
-            if (boundaryCheck(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y))) == TRUE)
-                SET_PIXEL_VGA(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y)), COLOUR_WHITE);
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE && boundaryCheck(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y))) == TRUE)
+            SET_PIXEL_VGA(((int)(pos.x - camera_offset.x)), ((int)(pos.y - camera_offset.y)), COLOUR_WHITE);
+        #endif
         pos.x += dir.x * BULLET_STEP;
         pos.y += dir.y * BULLET_STEP;
 
