@@ -94,10 +94,11 @@ int loadActorTemplate(char* filename)
 
     if (act_file == NULL)
     {
+        char actortemplate_error_string[200];
+        sprintf(actortemplate_error_string, "Unable to open actor template file: %s.\n"
+                    "Please check the file actually exists!\n", filename);
         fclose(act_file);
-        quitError("Unable to open actor template file!\n"
-                  "Please check the file actually exists!\n");
-        return 0;
+        quitError(actortemplate_error_string);
     }
 
     if ((actortemplate_id = findActorTemplate(filename)) != 0)
@@ -144,9 +145,11 @@ int loadActorTemplate(char* filename)
                     }
                     else
                     {
+                        char actortemplate_error_string[200];
+                        sprintf(actortemplate_error_string, "Unable to open animset for: %s.\n"
+                                    "Please check the file actually exists!\n", filename);
                         fclose(act_file);
-                        quitError("Error loading animset!\n");
-                        return 0;
+                        quitError(actortemplate_error_string);
                     }
                 }
             }

@@ -8,6 +8,7 @@
 #include "Mouse.h"
 #include "Game.h"
 #include "General.h"
+#include "Video.h"
 
 extern System_t System;
 extern Timer_t Timers;
@@ -146,19 +147,24 @@ void gfxInit()
     extern Palette_t NewPalette;
 
 	printf("Initializing graphics...\n");
-    setVideoMode(VGA_256_COLOR_MODE);
-	printf("Video mode OK\n");
-    loadPalette("Pal.bmp", &NewPalette);
-	printf("Palette loaded\n");
-    setPalette_VGA(&NewPalette);
-	printf("Palette set\n");
+    if ((checkForVGA() == FALSE))
+    {
+        quitError("No VGA adapter detected!\n"
+                  "This game requires a VGA adapter.\n");
+    }
     loadFontNew();
     createErrorTextures();
     loadBaseTextures();
     loadAnimsFromList("ANIMS/ANIMS.TXT");
     makeSprites();
     makeAnimset();
-	printf("Basic textures loaded into memory\n");
+    printf("Basic textures loaded into memory\n");
+    setVideoMode(VGA_256_COLOR_MODE);
+    printf("Video mode OK\n");
+    loadPalette("Pal.bmp", &NewPalette);
+    printf("Palette loaded\n");
+    setPalette_VGA(&NewPalette);
+    printf("Palette set\n");
 }
 
 void initWeapons()
@@ -179,7 +185,7 @@ void initWeapons()
                   "Please check the file actually exists!\n");
         return;
     }
-
+    
     do
     {
         if (c != '\n')
@@ -208,7 +214,7 @@ void initWeapons()
 void otherInit()
 {
     initKeyboard();
-	printf("Keyboard OK\n");
+    printf("Keyboard OK\n");
     if (detectMouse() == TRUE)
     {
         printf("Mouse detected\n");
@@ -219,9 +225,9 @@ void otherInit()
         createDirectory("SAVES");
     }
     initSaveList();
-    initWeapons();
     initActorTemplates();
-	printf("System variables OK\n");
+    initWeapons();
+    printf("System variables OK\n");
     #if DEBUG == 1
     initDebug();
     printf("Debug OK\n");
@@ -234,10 +240,10 @@ void mainInit()
     soundInit();
     // timer
     timerInit();
+    // misc
+    otherInit();
     // gfx
     gfxInit();
-    // the rest
-    otherInit();
 }
 
 void titleInit()
@@ -274,7 +280,6 @@ void ingameMenuInit()
 void deinitClock()
 {
     asm sti;
-    midasClose();
     setTimer(TIMER_18HZ);
     _dos_setvect(TIME_KEEPER_INT, old_Timer_ISR);
     asm cli;

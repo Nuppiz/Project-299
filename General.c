@@ -34,6 +34,7 @@ void freeStringList(StringList_t stringlist)
 void quitError(char* string)
 {
     setVideoMode(TEXT_MODE);
-    printf("%s", string);
+    printf("\nFatal error: %s", string);
     System.running = 0;
+    quit();
 }

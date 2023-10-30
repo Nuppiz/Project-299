@@ -147,9 +147,11 @@ void loadTexturesFromList(char* list_filename, Texture_array* array)
 
     if (tex_list_file == NULL)
     {
+        char tex_list_error_string[200];
+        sprintf(tex_list_error_string, "Unable to open texture list file: %s.\n"
+                    "Please check the file actually exists!\n", list_filename);
         fclose(tex_list_file);
-        quitError("Unable to open texture list file!\n"
-                  "Please check the file actually exists!\n");
+        quitError(tex_list_error_string);
     }
 
     do
@@ -186,10 +188,11 @@ int loadAnimation(char* filename)
 
     if (anim_file == NULL)
     {
+        char anim_error_string[200];
+        sprintf(anim_error_string, "Unable to open animation file: %s.\n"
+                    "Please check the file actually exists!\n", filename);
         fclose(anim_file);
-        quitError("Unable to open animation file!\n"
-                  "Please check the file actually exists!\n");
-        return 0;
+        quitError(anim_error_string);
     }
 
     anim_id = Animations.anim_count;
@@ -230,10 +233,11 @@ void loadAnimsFromList(char* list_filename)
 
     if (anim_list_file == NULL)
     {
+        char animlist_error_string[200];
+        sprintf(animlist_error_string, "Unable to open animation list file: %s.\n"
+                    "Please check the file actually exists!\n", list_filename);
         fclose(anim_list_file);
-        quitError("Unable to open texture list file!\n"
-                  "Please check the file actually exists!\n");
-        return;
+        quitError(animlist_error_string);
     }
 
     do

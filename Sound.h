@@ -8,5 +8,6 @@ void stopMusic();
 void playMusic(char *music);
 void changeMusicVolume(char modifier);
 void initSounds();
+void deInitSounds();
 
 #endif/* SOUND_H */

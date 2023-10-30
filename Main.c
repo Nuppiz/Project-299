@@ -25,6 +25,7 @@ void quit()
 {
     //gameExit();
     deinitClock();
+    deInitSounds();
     deinitKeyboard();
     setVideoMode(TEXT_MODE);
 }

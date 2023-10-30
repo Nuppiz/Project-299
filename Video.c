@@ -7,6 +7,19 @@ uint8_t *VGA=(uint8_t *)0xA0000000L;        /* this points to video memory. */
 uint8_t far screen_buf [64000];             // Double screen buffer
 Palette_t NewPalette;
 
+int checkForVGA()
+{
+    union REGS regs;
+
+    regs.x.ax = 0x1A00;
+	int86(VIDEO_INT, &regs, &regs);
+    
+    if (regs.h.al != 0x1A)
+        return FALSE;
+    else
+        return TRUE;
+}
+
 void setVideoMode(uint8_t mode)
 {
     union REGS regs;

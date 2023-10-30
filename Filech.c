@@ -145,9 +145,11 @@ int countSubdirectories(char* dirname)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open directory!\n");
-
-        return 0;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     while ((dir = readdir(dr)) != NULL)
@@ -173,8 +175,11 @@ int countFiles(char* dirname)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open directory!\n");
-        return 0;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     while ((file = readdir(dr)) != NULL)
@@ -199,8 +204,11 @@ int countFilesByExtension(char* dirname, char* ext)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open directory!\n");
-        return 0;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     while ((file = readdir(dr)) != NULL)
@@ -231,9 +239,11 @@ StringList_t listSubdirectories(char* dirname)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open current directory!\n");
-        
-        return subdirs;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     subdirs.count = countSubdirectories(dirname);
@@ -272,9 +282,11 @@ StringList_t listFiles(char* dirname)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open current directory!\n");
-        
-        return files;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     files.count = countFiles(dirname);
@@ -312,9 +324,11 @@ StringList_t listFilesByExtension(char* dirname, char* ext)
 
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-        quitError("Could not open current directory!\n");
-        
-        return files;
+        char directory_error_string[200];
+        sprintf(directory_error_string, "Could not open folder: %s.\n"
+                    "Please check the file actually exists!\n", dirname);
+        closedir(dr);
+        quitError(directory_error_string);
     }
 
     files.count = countFilesByExtension(dirname, ext);

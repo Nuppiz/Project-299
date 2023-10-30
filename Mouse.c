@@ -12,31 +12,31 @@ Vec2 mouse_location;
 
 int detectMouse()
 {
-  in.x.ax = INIT_MOUSE;
-  int86(MOUSE_INT, &in, &out);
-  return out.x.ax; 
+    in.x.ax = INIT_MOUSE;
+    int86(MOUSE_INT, &in, &out);
+    return out.x.ax; 
 }
 
 void showMouse()
 {
-  in.x.ax = SHOW_MOUSE;
-  int86(MOUSE_INT, &in, &out); 
+    in.x.ax = SHOW_MOUSE;
+    int86(MOUSE_INT, &in, &out); 
 }
 
 void hideMouse()
 {
-  in.x.ax = HIDE_MOUSE;
-  int86(MOUSE_INT, &in, &out); 
+    in.x.ax = HIDE_MOUSE;
+    int86(MOUSE_INT, &in, &out); 
 }
 
 void getMouse(int* x, int* y, int* left, int* right)
 {
-  in.x.ax = GET_MOUSE_STATUS;
-  int86(MOUSE_INT, &in, &out);
-  *x = out.x.cx;
-  *y = out.x.dx; 
-  *left = out.x.bx & 0x1;
-  *right = out.x.bx & 0x2;
+    in.x.ax = GET_MOUSE_STATUS;
+    int86(MOUSE_INT, &in, &out);
+    *x = out.x.cx;
+    *y = out.x.dx; 
+    *left = out.x.bx & 0x1;
+    *right = out.x.bx & 0x2;
 }
 
 void playerMouseAim()

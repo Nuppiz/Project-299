@@ -394,7 +394,7 @@ void generateSFXFileTable()
     if (SFX_list_file == NULL)
     {
         fclose(SFX_list_file);
-        quitError("Unable to open SFX list file!\n"
+        quitError("Unable to open the basic SFX list file!\n"
                   "Please check the file actually exists!\n");
         return;
     }
@@ -438,11 +438,68 @@ void initSounds()
     amplification = defAmplify;
 
     /* Initialize array for sound effect filenames */
-    printf("Generating SFX file name table...\n");
+    printf("Generating base SFX file name table...\n");
     generateSFXFileTable();
     printf("OK!\n");
-    printf("Loading SFX files into memory...\n");
+    printf("Loading base SFX files into memory...\n");
     loadSFX();
     printf("OK!\n");
     free(SFX_filenames);
+}
+
+// midasClose breaks stuff due to the timer, so here's an alternate function without it
+void deInitSounds()
+{
+    /* if music is being played with timer, stop it: */
+    if ( midasTMRMusic )
+    {
+        if ( (error = midasMP->SetUpdRateFunct(NULL)) != OK )
+            midasUninitError(error);
+        if ( (error = tmrStopMusic(midasPlayerNum)) != OK )
+            midasUninitError(error);
+        midasTMRMusic = 0;
+    }
+
+    /* if Module Player is playing, stop it: */
+    if ( midasMPPlay )
+    {
+        if ( (error = midasMP->StopModule()) != OK )
+            midasUninitError(error);
+        midasMPPlay = 0;
+    }
+
+    /* if Module Player has been initialized, uninitialize it: */
+    if ( midasMPInit )
+    {
+        if ( (error = midasMP->Close()) != OK )
+            midasUninitError(error);
+        midasMPInit = 0;
+        midasMP = NULL;
+    }
+
+    /* if Sound Device channels are open, close them: */
+    if ( midasSDChans )
+    {
+        if ( (error = midasSD->CloseChannels()) != OK )
+            midasUninitError(error);
+        midasSDChans = 0;
+        midasChannels = 0;
+    }
+
+    /* if sound is being played, stop it: */
+    if ( midasTMRPlay )
+    {
+        if ( (error = tmrStopSD()) != OK )
+            midasUninitError(error);
+        midasTMRPlay = 0;
+    }
+
+    /* if Sound Device is initialized, uninitialize it: */
+    if ( midasSDInit )
+    {
+        if ( (error = midasSD->Close()) != OK )
+            midasUninitError(error);
+        midasSDInit = 0;
+        midasSD = NULL;
+    }
 }

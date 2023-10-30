@@ -216,12 +216,11 @@ void levelLoader(char* level_name, uint8_t load_type)
     
     if (level_file == NULL)
     {
-        char level_error_string[120];
-        sprintf(level_error_string, "Unable to open file: %s\n"
+        char level_error_string[200];
+        sprintf(level_error_string, "Unable to open level file: %s\n"
                 "Please check the file actually exists!\n", level_name);
         fclose(level_file);
         quitError(level_error_string);
-        return;
     }
 
     if (Entities != NULL || TileTextures.textures != NULL || Game.Actors != NULL)
@@ -301,11 +300,12 @@ void levelLoader(char* level_name, uint8_t load_type)
                 entity_type = searchStringArray(entity_name, entity_type_strings, NUM_ENTITYTYPES);
                 if (entity_type == RETURN_ERROR)
                 {
+                    char level_error_string[200];
                     // replace later with just exit to main menu
+                    sprintf(level_error_string, "Level load error: invalid entity type in %s.\n"
+                              "Please check the level file!\n", level_name);
                     fclose(level_file);
-                    quitError("Level load error: invalid entity type.\n"
-                              "Please check the level file!\n");
-                    return;
+                    quitError(level_error_string);
                 }
                 entityLoader(level_file, entity_id, entity_type);
             }
@@ -315,11 +315,12 @@ void levelLoader(char* level_name, uint8_t load_type)
                 item_type = searchStringArray(item_name, item_type_strings, NUM_ITEMTYPES);
                 if (item_type == RETURN_ERROR)
                 {
+                    char level_error_string[200];
                     // replace later with just exit to main menu
+                    sprintf(level_error_string, "Level load error: invalid item type in %s.\n"
+                              "Please check the level file!\n", level_name);
                     fclose(level_file);
-                    quitError("Level load error: invalid item tile type.\n"
-                              "Please check the level file!\n");
-                    return;
+                    quitError(level_error_string);
                 }
                 Items[Game.item_count].index = tilemap_location;
                 Items[Game.item_count].state = state;
