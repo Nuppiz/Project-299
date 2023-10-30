@@ -2,6 +2,7 @@
 #define TEXT_H
 
 void loadFont();
+void loadFontNew();
 void drawSymbol(int x, int y, int i, uint8_t color);
 int  drawText(int x, int y, char* string, uint8_t color);
 int  drawTextVGA(int x, int y, char* string, uint8_t color);

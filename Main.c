@@ -18,8 +18,8 @@
 System_t System = {0};
 Timer_t Timers = {0};
 extern State_t* Stack[NUM_STATES];
-extern state_count;
-extern stack_top;
+extern int state_count;
+extern int stack_top;
 
 void quit()
 {
