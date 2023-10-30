@@ -9,6 +9,9 @@ Palette_t NewPalette;
 
 int checkForVGA()
 {
+    // uses the VGA/MCGA specific VIDEO_INT function 1A to determine the video adapter
+    // this function is absent in older video systems, so it should return an error anyway
+
     union REGS regs;
 
     regs.x.ax = 0x1A00;
