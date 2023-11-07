@@ -155,7 +155,8 @@ void gfxInit()
     loadFontNew();
     createErrorTextures();
     loadBaseTextures();
-    loadAnimsFromList("ANIMS/ANIMS.TXT");
+    loadAnimsFromList("ANIMS/ERROR.TXT");
+    delay(60000);
     makeSprites();
     makeAnimset();
     printf("Basic textures loaded into memory\n");
@@ -262,6 +263,7 @@ void gameInit()
     {
         createDirectory("SAVES/CURRENT");
     }
+    loadAnimsFromList("ANIMS/ANIMS.TXT");
 }
 
 void pauseInit()

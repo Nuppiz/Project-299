@@ -85,14 +85,28 @@ typedef struct
 
 typedef struct
 {
+    uint8_t* pixels;
+    uint16_t width, height;
+    uint16_t transparent;
+    int offset_x, offset_y;
+} RotatedTexture_t;
+
+typedef struct
+{
     Texture_t* textures;
     int texture_count;
 } Texture_array;
 
 typedef struct
 {
+    int frame_id;
+    RotatedTexture_t* rotations;
+} AnimFrame_t;
+
+typedef struct
+{
     char* name;
-    int* frame_ids;
+    AnimFrame_t* frames;
     int num_frames;
     time_t frame_interval;
 } Anim_t;
@@ -317,7 +331,7 @@ struct SFX_file {
 typedef struct {
     Vec2 pos;
     int life;
-    Texture_t sprite;
+    RotatedTexture_t sprite;
 } Corpse_t;
 
 typedef struct

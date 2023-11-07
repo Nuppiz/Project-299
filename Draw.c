@@ -370,10 +370,44 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
     free(rotated.pixels);
 }
 
-Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
+int calculateRotatedTextureSize(double angle, Texture_t* source)
 {
-    Texture_t rotated;
+    //precalculates the size of a rotated texture for memory allocation
+
+    int width;
+    int height;
+    int rotated_size;
+
+    if (angle > RAD_270)
+        angle -= RAD_360;
+
+    else if (angle < -RAD_270)
+        angle += RAD_360;
+
+    if (angle >= RAD_90)
+    {
+        angle -= RAD_180;
+    }
+
+    else if (angle <= -RAD_90)
+    {
+        angle += RAD_180;
+    }
+
+    width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 5;
+    height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 5;
+
+    rotated_size = width * height;
+
+    return rotated_size;
+}
+
+RotatedTexture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
+{
+    RotatedTexture_t rotated;
     Vec2 sheared;
+    float width_scale = 1.0;
+    float height_scale = 1.0;
     int w;
     int h;
     int w_half;
@@ -401,11 +435,24 @@ Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
         mirror_flip = TRUE;
     }
 
+    if (source->width != source->height)
+    {
+        if (source->width < source->height)
+            width_scale = source->height / source->width;
+
+        else if (source->height < source->width)
+            height_scale = source->width / source->height;
+
+        rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + (7 * height_scale);
+        rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + (7 * width_scale);
+    }
+
+    else
+        rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 5;
+        rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 5;
+
     if (source->transparent == TRUE)
         rotated.transparent = TRUE;
-
-    rotated.width = abs(source->height * sin(angle)) + abs(source->width * cos(angle)) + 5;
-    rotated.height = abs(source->width * sin(angle)) + abs(source->height * cos(angle)) + 5;
 
     rotated.offset_x = (rotated.width - source->width) / 2;
     rotated.offset_y = (rotated.height - source->height) / 2;
@@ -451,7 +498,184 @@ Texture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor)
             }
         }
     }
+
     return rotated;
+}
+
+void drawPrerotatedTexture(int x, int y, RotatedTexture_t* texture)
+{
+    int start_x;
+    int start_y;
+    int end_x;
+    int end_y;
+    int index_x;
+    int index_y;
+    int clip_x;
+    int clip_y;
+    int x_offset = 0;
+    int y_offset = 0;
+
+    int sprite_w = texture->width;
+    int sprite_h = texture->height;
+
+    x -= texture->offset_x;
+    y -= texture->offset_y;
+
+    start_x = x;
+    start_y = y;
+
+    end_x = start_x + sprite_w - 1;
+    end_y = start_y + sprite_h - 1;
+
+    if (start_x >= SCREEN_WIDTH || start_y >= SCREEN_HEIGHT || start_x <= -sprite_w || start_y <= -sprite_h)
+        return;
+    
+    if (start_x < 0)
+    {   
+        x_offset = abs(start_x);
+        start_x = 0;
+    }
+    
+    else if (end_x >= SCREEN_WIDTH)
+        end_x = SCREEN_WIDTH - 1;
+
+    if (start_y < 0)
+    {
+        y_offset = abs(start_y);
+        start_y = 0;
+    }
+    
+    else if (end_y >= SCREEN_HEIGHT)
+        end_y = SCREEN_HEIGHT - 1;
+
+    clip_x = end_x - start_x + 1;
+    clip_y = end_y - start_y + 1;
+
+    if (texture->transparent == TRUE)
+    {
+        for (index_y = 0; index_y < clip_y; index_y++)
+        {
+            for (index_x = 0; index_x < clip_x; index_x++)
+            {
+                if (texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)] != TRANSPARENT_COLOR)
+                    SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+            }
+        }
+    }
+    else
+    {
+        for (index_y = 0; index_y < clip_y; index_y++)
+        {
+            for (index_x = 0; index_x < clip_x; index_x++)
+            {
+                SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+            }
+        }
+    }
+}
+
+void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
+{
+    uint8_t angle_index;
+
+    if (angle >= RAD_345 || angle < RAD_15)
+    {
+        angle_index = 0;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "0", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_15 && angle < RAD_45)
+    {
+        angle_index = 1;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "1", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_45 && angle < RAD_75)
+    {
+        angle_index = 2;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "2", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_75 && angle < RAD_105)
+    {
+        angle_index = 3;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "3", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_105 && angle < RAD_135)
+    {
+        angle_index = 4;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "4", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_135 && angle < RAD_165)
+    {
+        angle_index = 5;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "5", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_165 && angle < RAD_195)
+    {
+        angle_index = 6;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "6", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_195 && angle < RAD_225)
+    {
+        angle_index = 7;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "7", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_225 && angle < RAD_255)
+    {
+        angle_index = 8;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "8", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_255 && angle < RAD_285)
+    {
+        angle_index = 9;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "9", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_285 && angle < RAD_315)
+    {
+        angle_index = 10;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "10", COLOUR_WHITE);
+        #endif
+    }
+    else if (angle >= RAD_315 && angle < RAD_345)
+    {
+        angle_index = 11;
+        #if DEBUG == 1
+        if (System.debug_mode == TRUE)
+            drawText(x, y - 10, "11", COLOUR_WHITE);
+        #endif
+    }
+
+    drawPrerotatedTexture(x, y, &source->rotations[angle_index]);
 }
 
 void drawOctants(int center_x, int offset_x, int center_y, int offset_y, uint8_t color)
@@ -848,8 +1072,8 @@ void corpseArrayManager()
                 continue;
             }
         }
-        if (boundaryCheck(((int)(Corpses[i].pos.x - camera_offset.x)), ((int)(Corpses[i].pos.y - camera_offset.y))) == TRUE)
-            drawTexturePartial(Corpses[i].pos.x - camera_offset.x, Corpses[i].pos.y - camera_offset.y, &Corpses[i].sprite);
+        if (boundaryCheckRadius((int)Corpses[i].pos.x - camera_offset.x, (int)Corpses[i].pos.y - camera_offset.y, CORPSE_DIAMETER) != FULLY_OUT)
+            drawPrerotatedTexture(Corpses[i].pos.x - camera_offset.x, Corpses[i].pos.y - camera_offset.y, &Corpses[i].sprite);
         i++;
         if (i == MAX_CORPSES)
         {
@@ -937,7 +1161,7 @@ void tempSpriteArrayManager()
         TempSprite_t* tempsprite = &TempSprites[i];
         if (tempsprite->status != INACTIVE)
         {
-            Texture_t* texture = &ObjectTextures.textures[Animations.anims[tempsprite->sprite->anim_id].frame_ids[tempsprite->frame]];
+            Texture_t* texture = &ObjectTextures.textures[Animations.anims[tempsprite->sprite->anim_id].frames[tempsprite->frame].frame_id];
 
             if (tempsprite->move_type == STATIC_SPRITE)
             {
@@ -952,15 +1176,12 @@ void tempSpriteArrayManager()
             {
                 tempsprite->pos.x += tempsprite->vel.x * System.ticks_per_frame;
                 tempsprite->pos.y += tempsprite->vel.y * System.ticks_per_frame;
-                if (tempsprite->angle != 0.0)
-                    drawTextureRotated(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
-                                    tempsprite->angle, texture, TRANSPARENT_COLOR);
-                else
-                    drawTexture(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2, texture);
+                drawTextureFromCache(tempsprite->pos.x - camera_offset.x - texture->width/2, tempsprite->pos.y - camera_offset.y - texture->height/2,
+                tempsprite->angle, &Animations.anims[tempsprite->sprite->anim_id].frames[tempsprite->frame]);
             }
 
             tempsprite->frame++;
-            if (tempsprite->frame >= Animations.anims[tempsprite->sprite->anim_id].num_frames)
+            if (tempsprite->frame == Animations.anims[tempsprite->sprite->anim_id].num_frames)
             {
                 if (tempsprite->draw_type == RUN_ONCE)
                 {
@@ -997,7 +1218,7 @@ void drawAnim()
     static int animation_counter = 0;
     static ticks_t last_frame_drawn;
 
-    Texture_t* texture = &ObjectTextures.textures[Animations.anims[animation_counter].frame_ids[frame_counter]];
+    Texture_t* texture = &ObjectTextures.textures[Animations.anims[animation_counter].frames[frame_counter].frame_id];
 
     drawTexture(110, 100, texture);
 
@@ -1023,7 +1244,7 @@ void testDrawAnimFromName(int x, int y, char* name)
 
     if ((i = findAnim(name)) != 0)
     {
-        Texture_t* texture = &ObjectTextures.textures[Animations.anims[i].frame_ids[frame_counter]];
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[i].frames[frame_counter].frame_id];
 
         drawTexture(x, y, texture);
 
@@ -1038,7 +1259,7 @@ void testDrawAnimFromName(int x, int y, char* name)
         }
     }
     else
-        drawTextureClipped(x, y, &ObjectTextures.textures[Animations.anims[TEX_ERROR].frame_ids[TEX_ERROR]]);
+        drawTextureClipped(x, y, &ObjectTextures.textures[Animations.anims[TEX_ERROR].frames[TEX_ERROR].frame_id]);
 }
 
 void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
@@ -1055,7 +1276,7 @@ void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
         }
     }
 
-    texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[sprite->frame]];
+    texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frames[sprite->frame].frame_id];
 
     if (angle != 0.0)
         drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
@@ -1067,10 +1288,10 @@ void drawSprite(int x, int y, double angle, Sprite_t* sprite)
 {
     if (sprite->flags == SPRITE_IS_STATIC)
     {
-        Texture_t* texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frame_ids[0]];
+        Texture_t* texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frames[0].frame_id];
 
         if (angle != 0.0)
-            drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
+            drawTextureFromCache(x, y, angle, &Animations.anims[sprite->anim_id].frames[0]);
         else
             drawTexture(x, y, texture);
     }
@@ -1101,7 +1322,7 @@ void drawActors()
         start_x = actor->position.x - camera_offset.x - texture->width / 2;
         start_y = actor->position.y - camera_offset.y - texture->height / 2;
         
-        if ((i != 0) && boundaryCheckRadius(start_x, start_y, actor->radius) != FULLY_OUT && texture != NULL)
+        if ((i != 0) && boundaryCheckRadius(start_x, start_y, actor->radius * 2) != FULLY_OUT && texture != NULL)
             drawTextureRotated(start_x, start_y, actor->angle, texture, TRANSPARENT_COLOR);
         else if (boundaryCheckRadius(start_x, start_y, actor->radius) != FULLY_OUT)
             drawSprite(start_x, start_y, PLAYER_ACTOR.angle, &PLAYER_ACTOR.sprite);
@@ -1161,9 +1382,9 @@ void testSetPlayerAnim()
 {
     if (PLAYER_ACTOR.magnitude != 0.0)
     {
+        PLAYER_ACTOR.sprite.flags = SPRITE_IS_ANIM;
         if (!KEY_IS_PRESSED(KEY_SPACEBAR) && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_WALK])
             setActorAnim(&PLAYER_ACTOR, ANIM_WALK);
-        //PLAYER_ACTOR.sprite.flags = SPRITE_IS_ANIM;
         else if (KEY_IS_PRESSED(KEY_SPACEBAR))
             if (PLAYER_ACTOR.primary_weapon_id == WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_WALK])
                 setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_WALK);
@@ -1173,13 +1394,15 @@ void testSetPlayerAnim()
     else if (PLAYER_ACTOR.magnitude == 0.0)
     {
         if (!KEY_IS_PRESSED(KEY_SPACEBAR))
+        {
             setActorAnim(&PLAYER_ACTOR, ANIM_IDLE);
+            PLAYER_ACTOR.sprite.flags = SPRITE_IS_STATIC;
+        }
         else
             if (PLAYER_ACTOR.primary_weapon_id == WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_PUNCH_STILL])
                 setActorAnim(&PLAYER_ACTOR, ANIM_PUNCH_STILL);
             else if (PLAYER_ACTOR.primary_weapon_id != WEAPON_FIST && PLAYER_ACTOR.sprite.anim_id != PLAYER_ACTOR.animset->anim_ids[ANIM_SHOOT])
                 setActorAnim(&PLAYER_ACTOR, ANIM_SHOOT);
-        //PLAYER_ACTOR.sprite.flags = SPRITE_IS_STATIC;
     }
 }
 
@@ -1191,6 +1414,22 @@ void animTestBlock()
     testDrawAnimFromName(60, 140, "ANIMS/LOL.ANI");
     testRocketAngle();
     drawSprite(10, 120, 0.0, &Explosion);
+}
+
+void rocketPrecacheTest()
+{
+    int i;
+    int x = 10;
+    int y = 170;
+    double angle = 0.0;
+    int frame = 0;
+
+    for (i = 0; i < NUM_ROTATIONS; i++)
+    {
+        drawTextureFromCache(x, y, angle, &Animations.anims[1].frames[frame]);
+        angle += RAD_30;
+        x += 25;
+    }
 }
 
 void testFont()
@@ -1209,13 +1448,14 @@ void gameDraw()
     drawStats();
     //testFont();
     //animTestBlock();
+    //rocketPrecacheTest();
     particleArrayManager();
     tempSpriteArrayManager();
     #if DEBUG == 1
     if (System.debug_mode == TRUE)
     {
         sprintf(debug[DEBUG_DRAW], "ANIM: %d", PLAYER_ACTOR.sprite.anim_id);
-        sprintf(debug[DEBUG_DRAW], "TS: %d", tempsprite_write);
+        sprintf(debug[DEBUG_DRAW], "TS: %f", TempSprites[tempsprite_write - 1].angle);
         drawDebug();
     }
     #endif

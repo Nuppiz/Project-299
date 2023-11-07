@@ -2,6 +2,7 @@
 #include "Structs.h"
 #include "Exit.h"
 #include "General.h"
+#include "Draw.h"
 
 /* Graphics loading functions */
 
@@ -92,13 +93,12 @@ void createErrorTextures()
 
 int loadTexture(char* filename, Texture_array* array)
 {
-    //loop all textures here to check if it was already loaded,
-    //return id of that texture if it was found.
     int texture_id = 0;
     int filename_length;
     FILE* file_ptr;
 
-    //return 0;
+    //loop all textures here to check if it was already loaded,
+    //return id of that texture if it was found.
 
     if ((texture_id = findTexture(filename, array)) != 0)
         return texture_id;
@@ -107,7 +107,6 @@ int loadTexture(char* filename, Texture_array* array)
     if (file_ptr == NULL)
     {
         printf("Unable to open file %s!\n", filename);
-        delay(60000);
         return 0;
     }
 
@@ -176,6 +175,9 @@ int loadAnimation(char* filename)
     int animation_frame = 0;
     int anim_frame_id;
     int anim_id = 0;
+    int rotation_index;
+    long rotated_frame_size;
+    double rotation_angle;
     char c;
     char texture_filename[20];
 
@@ -208,7 +210,7 @@ int loadAnimation(char* filename)
     }
 
     Animations.anims[anim_id].num_frames = num_frames;
-    Animations.anims[anim_id].frame_ids = malloc(num_frames * sizeof(int));
+    Animations.anims[anim_id].frames = malloc(num_frames * sizeof(AnimFrame_t));
 
     fseek(anim_file, 0, SEEK_SET);
 
@@ -216,7 +218,18 @@ int loadAnimation(char* filename)
     {
         fscanf(anim_file, "%20s", texture_filename);
         anim_frame_id = loadTexture(texture_filename, &ObjectTextures);
-        Animations.anims[anim_id].frame_ids[animation_frame] = anim_frame_id;
+        Animations.anims[anim_id].frames[animation_frame].frame_id = anim_frame_id;
+        if (anim_id == 1 || anim_id == 4)
+        {
+            Animations.anims[anim_id].frames[animation_frame].rotations = malloc(NUM_ROTATIONS * sizeof(RotatedTexture_t));
+            for (rotation_index = 0, rotation_angle = 0.0; rotation_index < NUM_ROTATIONS; rotation_index++, rotation_angle += RAD_30)
+            {
+                rotated_frame_size = calculateRotatedTextureSize(rotation_angle, &ObjectTextures.textures[Animations.anims[anim_id].frames[animation_frame].frame_id]);
+                Animations.anims[anim_id].frames[animation_frame].rotations[rotation_index].pixels = farmalloc(rotated_frame_size);
+                Animations.anims[anim_id].frames[animation_frame].rotations[rotation_index] = 
+                saveRotatedTexture(rotation_angle, &ObjectTextures.textures[Animations.anims[anim_id].frames[animation_frame].frame_id], TRANSPARENT_COLOR);
+            }
+        }
     }
 
     fclose(anim_file);

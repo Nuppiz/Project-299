@@ -522,7 +522,7 @@ void createProjectile(id_t weapon_id, id_t source_id, Vec2 pos, double angle, Ve
     projectile->damage = Weapons[weapon_id].damage;
     projectile->effect_id = Weapons[weapon_id].effect_id;
     projectile->state = TRUE;
-    projectile->sprite_id = spawnTempSprite(KILL_COMMAND, STATIC_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Rocket);
+    projectile->sprite_id = spawnTempSprite(KILL_COMMAND, MOVING_SPRITE, projectile->position, projectile->velocity, projectile->angle, &Rocket);
 
     increaseProjectileWrite();
     num_projectiles++;

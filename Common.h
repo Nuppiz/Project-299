@@ -12,6 +12,7 @@
 #include <math.h>
 #include <conio.h>
 #include <string.h>
+#include <ALLOC.H>
 
 #include "Debug.h"
 #include "Defines.h"

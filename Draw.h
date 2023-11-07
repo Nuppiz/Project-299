@@ -5,6 +5,8 @@
 
 int boundaryCheck(int x, int y);
 void drawTexture(int x, int y, Texture_t* texture);
+int calculateRotatedTextureSize(double angle, Texture_t* source);
+RotatedTexture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgcolor);
 void drawRectangle(int x, int y, int w, int h, uint8_t color);
 void particleFx(Vec2 pos, Vec2 dir, uint8_t fx_type);
 void spawnCorpse(Vec2 pos, double angle, int8_t life);
