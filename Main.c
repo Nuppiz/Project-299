@@ -14,6 +14,7 @@
 #include "Video.h"
 #include "State.h"
 #include "Exit.h"
+#include "General.h"
 
 System_t System = {0};
 Timer_t Timers = {0};
@@ -155,8 +156,18 @@ void loop()
 
 void main()
 {
-    mainInit();
-    pushState(STATE_TITLE);
-    loop();
+    // throw out immediately if no VGA adapter is detected
+    if ((checkForVGA() == FALSE))
+    {
+        printf("No VGA adapter detected!\n"
+                  "This game requires a VGA adapter.\n");
+        delay(500);
+    }
+    else
+    {
+        mainInit();
+        pushState(STATE_TITLE);
+        loop();
+    }
     quit();
 }

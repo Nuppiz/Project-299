@@ -147,16 +147,10 @@ void gfxInit()
     extern Palette_t NewPalette;
 
 	printf("Initializing graphics...\n");
-    if ((checkForVGA() == FALSE))
-    {
-        quitError("No VGA adapter detected!\n"
-                  "This game requires a VGA adapter.\n");
-    }
     loadFontNew();
     createErrorTextures();
     loadBaseTextures();
     loadAnimsFromList("ANIMS/ERROR.TXT");
-    delay(60000);
     makeSprites();
     makeAnimset();
     printf("Basic textures loaded into memory\n");

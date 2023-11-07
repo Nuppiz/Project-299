@@ -11,16 +11,17 @@ int checkForVGA()
 {
     // uses the VGA/MCGA specific VIDEO_INT function 1A to determine the video adapter
     // this function is absent in older video systems, so it should return an error anyway
+    // finally, the regs.h.bl check also filters out MCGA (the game resolution is screwed up in MCGA)
 
     union REGS regs;
 
     regs.x.ax = 0x1A00;
 	int86(VIDEO_INT, &regs, &regs);
     
-    if (regs.h.al != 0x1A)
-        return FALSE;
-    else
+    if (regs.h.al == 0x1A && regs.h.bl > 6 && regs.h.bl < 9)
         return TRUE;
+    else
+        return FALSE;
 }
 
 void setVideoMode(uint8_t mode)
