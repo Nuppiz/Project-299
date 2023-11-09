@@ -219,7 +219,7 @@ int loadAnimation(char* filename)
         fscanf(anim_file, "%20s", texture_filename);
         anim_frame_id = loadTexture(texture_filename, &ObjectTextures);
         Animations.anims[anim_id].frames[animation_frame].frame_id = anim_frame_id;
-        if (anim_id == 1 || anim_id == 4)
+        if (anim_id == 1 || anim_id > 3)
         {
             Animations.anims[anim_id].frames[animation_frame].rotations = malloc(NUM_ROTATIONS * sizeof(RotatedTexture_t));
             for (rotation_index = 0, rotation_angle = 0.0; rotation_index < NUM_ROTATIONS; rotation_index++, rotation_angle += RAD_30)

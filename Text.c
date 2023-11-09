@@ -7,7 +7,6 @@
 
 /* Text input, output and drawing functions */
 
-extern uint8_t far screen_buf [];
 extern Menu_t* current_menu;
 extern Keyboard_t Keyboard;
 uint8_t alphabet [FONT_FILE_SIZE]; // Array to hold the typeface graphics
