@@ -104,7 +104,10 @@ void drawStates()
 void renderFrame()
 {
     drawStates();
-    render();
+    if (System.unchained_mode == FALSE)
+        render();
+    else
+        renderUnchained(0);
 
     System.frames++;
     Timers.frame_count++;
@@ -154,8 +157,17 @@ void loop()
     }
 }
 
-void main()
+void main(int argc, char* argv[])
 {
+    uint8_t unchained_mode = FALSE;
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "-u") == 0)
+        {
+            printf("Attempting to run in unchained mode\n");
+            unchained_mode = TRUE;
+        }
+    }
     // throw out immediately if no VGA adapter is detected
     if ((checkForVGA() == FALSE))
     {
@@ -165,7 +177,7 @@ void main()
     }
     else
     {
-        mainInit();
+        mainInit(unchained_mode);
         pushState(STATE_TITLE);
         loop();
     }

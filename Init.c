@@ -103,7 +103,7 @@ void initDebug()
 }
 #endif
 
-void initSystem()
+void initSystem(uint8_t unchained_mode)
 {
     System.running    = 1;
     System.paused     = 0;
@@ -118,6 +118,7 @@ void initSystem()
     System.fps        = 0;
     System.fps_avg    = 0;
     System.debug_mode = 0;
+    System.unchained_mode = unchained_mode;
 }
 
 void soundInit()
@@ -160,6 +161,8 @@ void gfxInit()
     printf("Palette loaded\n");
     setPalette_VGA(&NewPalette);
     printf("Palette set\n");
+    if (System.unchained_mode == TRUE)
+        setUnchainedMode();
 }
 
 void initWeapons()
@@ -206,7 +209,7 @@ void initWeapons()
     fclose(weapon_file);
 }
 
-void otherInit()
+void otherInit(uint8_t unchained_mode)
 {
     initKeyboard();
     printf("Keyboard OK\n");
@@ -214,7 +217,7 @@ void otherInit()
     {
         printf("Mouse detected\n");
     }
-    initSystem();
+    initSystem(unchained_mode);
     if (!checkDirectoryExists("SAVES"))
     {
         createDirectory("SAVES");
@@ -229,14 +232,14 @@ void otherInit()
     #endif
 }
 
-void mainInit()
+void mainInit(uint8_t unchained_mode)
 {
     // sound
     soundInit();
     // timer
     timerInit();
     // misc
-    otherInit();
+    otherInit(unchained_mode);
     // gfx
     gfxInit();
 }

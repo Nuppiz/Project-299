@@ -8,6 +8,7 @@
 #include "Menu.h"
 #include "Text.h"
 #include "Mouse.h"
+#include "Video.h" // For testing
 
 flags_t player_control = 0;
 extern System_t System;
@@ -147,6 +148,24 @@ void testButtons()
     if (KEY_WAS_HIT(KEY_F6))
     {
         quickLoad();
+    }
+    if (KEY_WAS_HIT(KEY_LCTRL) && KEY_WAS_HIT(KEY_U))
+    {
+        extern Palette_t NewPalette;
+        if (System.unchained_mode == FALSE)
+        {
+            System.unchained_mode = TRUE;
+            setUnchainedMode();
+            loadPalette("Pal.bmp", &NewPalette);
+            setPalette_VGA(&NewPalette);
+        }
+        else
+        {
+            System.unchained_mode = FALSE;
+            setVideoMode(VGA_256_COLOR_MODE);
+            loadPalette("Pal.bmp", &NewPalette);
+            setPalette_VGA(&NewPalette);
+        }
     }
     #if DEBUG == 1
     if (KEY_WAS_HIT(KEY_Q) && KEY_WAS_HIT(KEY_BACKSPACE))

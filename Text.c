@@ -7,9 +7,9 @@
 
 /* Text input, output and drawing functions */
 
-extern uint8_t far screen_buf [];
 extern Menu_t* current_menu;
 extern Keyboard_t Keyboard;
+extern System_t System;
 uint8_t alphabet [FONT_FILE_SIZE]; // Array to hold the typeface graphics
 
 void loadFont()
@@ -41,7 +41,14 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
         {
             if (alphabet[symbol_index] != TRANSPARENT_COLOR)
             {
-                SET_PIXEL(x, y, alphabet[symbol_index] + color);
+                if (System.unchained_mode == FALSE)
+                    SET_PIXEL(x, y, alphabet[symbol_index] + color);
+                else
+                {
+                    outp(SC_INDEX, MAP_MASK);
+                    outp(SC_DATA,  1 << (x&3) );
+                    VGA[non_visible_page+(y<<6)+(y<<4)+(x>>2)] = (alphabet[symbol_index] + color);
+                }
                 symbol_index++;
                 x++;
             }
@@ -94,7 +101,14 @@ void drawSymbolVGA(int x, int y, int symbol_index, uint8_t color)
         {
             if (alphabet[symbol_index] != TRANSPARENT_COLOR)
             {
-                SET_PIXEL_VGA(x, y, alphabet[symbol_index] + color);
+                if (System.unchained_mode == FALSE)
+                    SET_PIXEL_VGA(x, y, alphabet[symbol_index] + color);
+                else
+                {
+                    outp(SC_INDEX, MAP_MASK);
+                    outp(SC_DATA,  1 << (x&3) );
+                    VGA[visible_page+(y<<6)+(y<<4)+(x>>2)] = alphabet[symbol_index] + color;
+                }
                 symbol_index++;
                 x++;
             }
@@ -158,7 +172,7 @@ int drawTextClipped(int x, int y, char* string, uint8_t color)
 
             continue;
         }
-        if (x > SCREEN_WIDTH-10)
+        if (x > SCREEN_WIDTH - 10)
         {
             continue;
         }

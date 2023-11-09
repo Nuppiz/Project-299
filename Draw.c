@@ -12,7 +12,6 @@
 extern System_t System;
 extern GameData_t Game;
 
-extern uint8_t far screen_buf[];
 extern Texture_array ObjectTextures;
 extern Texture_array TileTextures;
 extern Anim_array Animations;
@@ -116,9 +115,21 @@ void drawTexture(int x, int y, Texture_t* texture)
     {
         for (index_y = 0; index_y < texture->height; index_y++)
         {
-            memcpy(&screen_buf[pix_y * SCREEN_WIDTH + pix_x],
-                   &texture->pixels[(index_y + index_y) * texture->width],
-                   texture->width);
+            if (System.unchained_mode == FALSE)
+                memcpy(&screen_buf[pix_y * SCREEN_WIDTH + pix_x],
+                    &texture->pixels[(index_y) * texture->width],
+                    texture->width);
+            else
+            {
+                for (index_x = 0; index_x < texture->width; index_x++)
+                {
+                    outp(SC_INDEX, MAP_MASK);
+                    outp(SC_DATA,  1 << ((pix_x) &3) );
+                    VGA[non_visible_page+((pix_y)<<6)+((pix_y)<<4)+((pix_x)>>2)] = texture->pixels[i];
+                    i++;
+                    pix_x++;
+                }
+            }
         }
     }
 }
@@ -170,8 +181,13 @@ void drawTextureClipped(int x, int y, Texture_t* texture)
     clip_y = end_y - start_y + 1;
 
     for (index_y = 0; index_y < clip_y; index_y++)
-    {
-        memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
+    {   
+        if (System.unchained_mode == FALSE)
+            memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
+        else
+        {
+            memcpy(&VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+(start_x>>2)], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x >> 2);
+        }
     }
 }
 
@@ -231,7 +247,14 @@ void drawTexturePartial(int x, int y, Texture_t* texture)
             for (index_x = 0; index_x < clip_x; index_x++)
             {
                 if (texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)] != TRANSPARENT_COLOR)
-                    SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+                    if (System.unchained_mode == FALSE)
+                        SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);
+                    else
+                    {
+                        outp(SC_INDEX, MAP_MASK);
+                        outp(SC_DATA,  1 << ((start_x + index_x) &3) );
+                        VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
+                    }
             }
         }
     }
@@ -239,9 +262,16 @@ void drawTexturePartial(int x, int y, Texture_t* texture)
     {
         for (index_y = 0; index_y < clip_y; index_y++)
         {
-            for (index_x = 0; index_x < clip_x; index_x++)
+            if (System.unchained_mode == FALSE)
+                memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
+            else
             {
-                SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+                for (index_x = 0; index_x < clip_y; index_x++)
+                {
+                    outp(SC_INDEX, MAP_MASK);
+                    outp(SC_DATA,  1 << ((start_x + index_x) &3) );
+                    VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
+                }
             }
         }
     }
@@ -558,7 +588,16 @@ void drawPrerotatedTexture(int x, int y, RotatedTexture_t* texture)
             for (index_x = 0; index_x < clip_x; index_x++)
             {
                 if (texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)] != TRANSPARENT_COLOR)
-                    SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+                {
+                    if (System.unchained_mode == FALSE)
+                        SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);
+                    else
+                    {
+                        outp(SC_INDEX, MAP_MASK);
+                        outp(SC_DATA,  1 << ((start_x + index_x) &3) );
+                        VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
+                    }
+                }
             }
         }
     }
@@ -566,9 +605,16 @@ void drawPrerotatedTexture(int x, int y, RotatedTexture_t* texture)
     {
         for (index_y = 0; index_y < clip_y; index_y++)
         {
-            for (index_x = 0; index_x < clip_x; index_x++)
+            if (System.unchained_mode == FALSE)
+                memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
+            else
             {
-                SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);    
+                for (index_x = 0; index_x < clip_y; index_x++)
+                {
+                    outp(SC_INDEX, MAP_MASK);
+                    outp(SC_DATA,  1 << ((start_x + index_x) &3) );
+                    VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
+                }
             }
         }
     }
@@ -576,6 +622,8 @@ void drawPrerotatedTexture(int x, int y, RotatedTexture_t* texture)
 
 void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
 {
+    // this is ugly af and needs to be redone
+
     uint8_t angle_index;
 
     if (angle >= RAD_345 || angle < RAD_15)
@@ -583,7 +631,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 0;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "0", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "0", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_15 && angle < RAD_45)
@@ -591,7 +639,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 1;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "1", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "1", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_45 && angle < RAD_75)
@@ -599,7 +647,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 2;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "2", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "2", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_75 && angle < RAD_105)
@@ -607,7 +655,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 3;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "3", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "3", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_105 && angle < RAD_135)
@@ -615,7 +663,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 4;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "4", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "4", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_135 && angle < RAD_165)
@@ -623,7 +671,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 5;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "5", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "5", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_165 && angle < RAD_195)
@@ -631,7 +679,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 6;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "6", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "6", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_195 && angle < RAD_225)
@@ -639,7 +687,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 7;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "7", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "7", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_225 && angle < RAD_255)
@@ -647,7 +695,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 8;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "8", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "8", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_255 && angle < RAD_285)
@@ -655,7 +703,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 9;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "9", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "9", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_285 && angle < RAD_315)
@@ -663,7 +711,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 10;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "10", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "10", COLOUR_WHITE);
         #endif
     }
     else if (angle >= RAD_315 && angle < RAD_345)
@@ -671,7 +719,7 @@ void drawTextureFromCache(int x, int y, double angle, AnimFrame_t* source)
         angle_index = 11;
         #if DEBUG == 1
         if (System.debug_mode == TRUE)
-            drawText(x, y - 10, "11", COLOUR_WHITE);
+            drawTextClipped(x, y - 10, "11", COLOUR_WHITE);
         #endif
     }
 
@@ -733,7 +781,14 @@ void drawRectangle(int x, int y, int w, int h, uint8_t color)
     {
         for (index_x = 0; index_x < w;index_x++)
         {
-            SET_PIXEL(x, y, color);
+            if (System.unchained_mode == FALSE)
+                SET_PIXEL(x, y, color);
+            else
+            {
+                outp(SC_INDEX, MAP_MASK);
+                outp(SC_DATA,  1 << (x&3) );
+                VGA[non_visible_page+(y<<6)+(y<<4)+(x>>2)] = color;
+            }
             x++;
         }
         index_x = 0;
@@ -877,7 +932,14 @@ void drawDot(Actor_t* actor)
 
     if (boundaryCheck_X(pos_x) == TRUE && boundaryCheck_Y(pos_y) == TRUE)
     {
-        SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
+        if (System.unchained_mode == FALSE)
+            SET_PIXEL(pos_x, pos_y, COLOUR_WHITE);
+        else
+        {
+            outp(SC_INDEX, MAP_MASK);
+            outp(SC_DATA,  1 << (pos_x&3) );
+            VGA[non_visible_page+(pos_y<<6)+(pos_y<<4)+(pos_x>>2)] = COLOUR_WHITE;
+        }
     }
 }
 
@@ -983,7 +1045,16 @@ void drawParticle(Vec2* pos, Vec2 vel, uint8_t color)
     pos->x += vel.x * System.ticks_per_frame;
     pos->y += vel.y * System.ticks_per_frame;
     if (boundaryCheck(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y))) == TRUE)
-        SET_PIXEL(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y)), color);
+    {
+        if (System.unchained_mode == FALSE)
+            SET_PIXEL(((int)(pos->x - camera_offset.x)), ((int)(pos->y - camera_offset.y)), color);
+        else
+        {
+            outp(SC_INDEX, MAP_MASK);
+            outp(SC_DATA,  1 << ((int)(pos->x - camera_offset.x) &3) );
+            VGA[non_visible_page+((int)(pos->y - camera_offset.y) <<6)+((int)(pos->y - camera_offset.y) <<4) + ((int)(pos->x - camera_offset.x) >>2)] = color;
+        }
+    }
 }
 
 void particleArrayManager()
@@ -1279,7 +1350,7 @@ void drawAnimFromSprite(int x, int y, double angle, Sprite_t* sprite)
     texture = &ObjectTextures.textures[Animations.anims[sprite->anim_id].frames[sprite->frame].frame_id];
 
     if (angle != 0.0)
-        drawTextureRotated(x, y, angle, texture, TRANSPARENT_COLOR);
+        drawTextureFromCache(x, y, angle, &Animations.anims[sprite->anim_id].frames[sprite->frame]);
     else
         drawTexturePartial(x, y, texture);
 }
