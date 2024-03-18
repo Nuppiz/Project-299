@@ -81,20 +81,19 @@ void createErrorTextures()
     TileTextures.textures[0].filename = "ERROR.7UP";
     TileTextures.textures[0].width = 20;
     TileTextures.textures[0].height = 20;
-    TileTextures.textures[0].pixels = error_pixels;
     TileTextures.texture_count++;
     ObjectTextures.textures = malloc(sizeof(Texture_t));
     ObjectTextures.textures[0].filename = "ERROR.7UP";
     ObjectTextures.textures[0].width = 20;
     ObjectTextures.textures[0].height = 20;
-    ObjectTextures.textures[0].pixels = error_pixels;
     ObjectTextures.texture_count++;;
 }
 
 int loadTexture(char* filename, Texture_array* array)
 {
     int texture_id = 0;
-    int filename_length;
+    int filename_length, plane, x;
+    long index;
     FILE* file_ptr;
 
     //loop all textures here to check if it was already loaded,
@@ -127,8 +126,20 @@ int loadTexture(char* filename, Texture_array* array)
     fseek(file_ptr, 6, SEEK_SET);
     fread(&array->textures[texture_id].transparent, 2, 1, file_ptr);
 	fseek(file_ptr, 8, SEEK_SET);
-    array->textures[texture_id].pixels = malloc(array->textures[texture_id].width * array->textures[texture_id].height);
-    fread(array->textures[texture_id].pixels, 1, array->textures[texture_id].width * array->textures[texture_id].height, file_ptr);
+    //array->textures[texture_id].pixels = malloc(array->textures[texture_id].width * array->textures[texture_id].height);
+    // allocate memory
+    for (plane = 0; plane < 4; plane++)
+    {
+        array->textures[texture_id].pixels[plane] = (uint8_t *) malloc((uint16_t)((array->textures[texture_id].width * array->textures[texture_id].height)>>2));
+    }
+    // read data in planar form
+    for (index = (array->textures[texture_id].height - 1) * array->textures[texture_id].width; index >= 0; index -= array->textures[texture_id].width)
+    {
+        for (x = 0; x < array->textures[texture_id].width; x++)
+        {
+            array->textures[texture_id].pixels[x&3][(int)((index + x)>>2)] = (uint8_t)fgetc(file_ptr);
+        }
+    }
     array->textures[texture_id].offset_x = 0;
     array->textures[texture_id].offset_y = 0;
 

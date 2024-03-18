@@ -107,7 +107,8 @@ void renderFrame()
     if (System.unchained_mode == FALSE)
         render();
     else
-        renderUnchained(0);
+        render();
+        //renderUnchained(0);
 
     System.frames++;
     Timers.frame_count++;

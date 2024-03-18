@@ -77,7 +77,7 @@ typedef struct
 typedef struct
 {
     char* filename;
-    uint8_t* pixels;
+    uint8_t* pixels[4];
     uint16_t width, height;
     uint16_t transparent;
     uint8_t material_type;

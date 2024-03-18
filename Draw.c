@@ -75,61 +75,39 @@ int boundaryCheck_Y(int y)
 
 void drawTexture(int x, int y, Texture_t* texture)
 {
-    int pix_x = x;
-    int pix_y = y;
-    int index_x;
-    int index_y;
-    int i = 0;
+    int index_y, index_x, plane;
+    uint16_t screen_offset;
+    uint16_t bitmap_offset;
 
-    if (texture->transparent == TRUE)
+    for (plane = 0; plane < 4; plane++)
     {
-        for (index_y = 0; index_y < texture->height; index_y++)
+        outp(SC_INDEX, MAP_MASK);          /* select plane */
+        outp(SC_DATA,  1 << ((plane + x)&3));
+        bitmap_offset = 0;
+        screen_offset = ((long)y * SCREEN_WIDTH + x + plane) >> 2;
+        if (texture->transparent == TRUE)
         {
-            for (index_x = 0; index_x < texture->width; index_x++)
+            for (index_y = 0; index_y < texture->height; index_y++)
             {
-                if (texture->pixels[i] != TRANSPARENT_COLOR)
-                {
-                    if (pix_x < SCREEN_WIDTH && pix_y < SCREEN_HEIGHT)
+                    for (index_x = 0; index_x < texture->width; index_x++)
                     {
-                        SET_PIXEL(pix_x, pix_y, texture->pixels[i]);
-                        i++;
-                        pix_x++;
+                        if (texture->pixels[plane][bitmap_offset] != TRANSPARENT_COLOR)
+                            VGA[screen_offset + index_x] = texture->pixels[plane][bitmap_offset + index_x];
                     }
-                    else
-                    {
-                        i++;
-                        pix_x++;
-                    }
-                }
-                else
-                {
-                    i++;
-                    pix_x++;
-                }
             }
-            pix_x = x;
-            pix_y++;
         }
-    }
-    else
-    {
-        for (index_y = 0; index_y < texture->height; index_y++)
+        else
         {
-            if (System.unchained_mode == FALSE)
-                memcpy(&screen_buf[pix_y * SCREEN_WIDTH + pix_x],
-                    &texture->pixels[(index_y) * texture->width],
-                    texture->width);
-            else
+            for (index_y = 0; index_y < texture->height; index_y++)
             {
-                for (index_x = 0; index_x < texture->width; index_x++)
-                {
-                    outp(SC_INDEX, MAP_MASK);
-                    outp(SC_DATA,  1 << ((pix_x) &3) );
-                    VGA[non_visible_page+((pix_y)<<6)+((pix_y)<<4)+((pix_x)>>2)] = texture->pixels[i];
-                    i++;
-                    pix_x++;
-                }
+                memcpy(&VGA[screen_offset], &texture->pixels[plane][bitmap_offset], (texture->width >> 2));
+
+                bitmap_offset += texture->width >>2;
+                screen_offset += SCREEN_WIDTH >>2;
             }
+
+            bitmap_offset += texture->width >> 2;
+            screen_offset += SCREEN_WIDTH >> 2;
         }
     }
 }
@@ -146,6 +124,9 @@ void drawTextureClipped(int x, int y, Texture_t* texture)
     int clip_y;
     int x_offset = 0;
     int y_offset = 0;
+    int plane;
+    uint16_t screen_offset;
+    uint16_t bitmap_offset;
 
     int sprite_w = texture->width;
     int sprite_h = texture->height;
@@ -180,13 +161,18 @@ void drawTextureClipped(int x, int y, Texture_t* texture)
     clip_x = end_x - start_x + 1;
     clip_y = end_y - start_y + 1;
 
-    for (index_y = 0; index_y < clip_y; index_y++)
-    {   
-        if (System.unchained_mode == FALSE)
-            memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
-        else
+    for (plane = 0; plane < 4; plane++)
+    {
+        outp(SC_INDEX, MAP_MASK);          /* select plane */
+        outp(SC_DATA,  1 << ((plane + x)&3));
+        bitmap_offset = 0;
+        screen_offset = ((long)y * SCREEN_WIDTH + x + plane) >> 2;
+        for (index_y = 0; index_y < clip_y; index_y++)
         {
-            memcpy(&VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+(start_x>>2)], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x >> 2);
+            memcpy(&VGA[screen_offset], &texture->pixels[plane][bitmap_offset], clip_x);
+
+            bitmap_offset += texture->width >>2;
+            screen_offset += SCREEN_WIDTH >>2;
         }
     }
 }
@@ -203,6 +189,10 @@ void drawTexturePartial(int x, int y, Texture_t* texture)
     int clip_y;
     int x_offset = 0;
     int y_offset = 0;
+
+    int plane;
+    uint16_t screen_offset;
+    uint16_t bitmap_offset;
 
     int sprite_w = texture->width;
     int sprite_h = texture->height;
@@ -240,39 +230,35 @@ void drawTexturePartial(int x, int y, Texture_t* texture)
     clip_x = end_x - start_x + 1;
     clip_y = end_y - start_y + 1;
 
-    if (texture->transparent == TRUE)
+    for (plane = 0; plane < 4; plane++)
     {
-        for (index_y = 0; index_y < clip_y; index_y++)
+        outp(SC_INDEX, MAP_MASK);          /* select plane */
+        outp(SC_DATA,  1 << ((plane + x)&3));
+        bitmap_offset = 0;
+        screen_offset = ((long)y * SCREEN_WIDTH + x + plane) >> 2;
+        if (texture->transparent == TRUE)
         {
-            for (index_x = 0; index_x < clip_x; index_x++)
+            for (index_y = 0; index_y < clip_y; index_y++)
             {
-                if (texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)] != TRANSPARENT_COLOR)
-                    if (System.unchained_mode == FALSE)
-                        SET_PIXEL(start_x + index_x, start_y + index_y, texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)]);
-                    else
+                    for (index_x = 0; index_x < clip_x; index_x++)
                     {
-                        outp(SC_INDEX, MAP_MASK);
-                        outp(SC_DATA,  1 << ((start_x + index_x) &3) );
-                        VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
+                        if (texture->pixels[plane][bitmap_offset] != TRANSPARENT_COLOR)
+                            VGA[screen_offset + index_x] = texture->pixels[plane][bitmap_offset + index_x];
                     }
             }
         }
-    }
-    else
-    {
-        for (index_y = 0; index_y < clip_y; index_y++)
+        else
         {
-            if (System.unchained_mode == FALSE)
-                memcpy(&screen_buf[(start_y + index_y) * SCREEN_WIDTH + start_x], &texture->pixels[(index_y + y_offset) * texture->width + x_offset], clip_x);
-            else
+            for (index_y = 0; index_y < clip_y; index_y++)
             {
-                for (index_x = 0; index_x < clip_y; index_x++)
-                {
-                    outp(SC_INDEX, MAP_MASK);
-                    outp(SC_DATA,  1 << ((start_x + index_x) &3) );
-                    VGA[non_visible_page+((start_y + index_y)<<6)+((start_y + index_y)<<4)+((start_x + index_x)>>2)] = texture->pixels[(index_y + y_offset) * texture->width + (x_offset + index_x)];
-                }
+                memcpy(&VGA[screen_offset], &texture->pixels[plane][bitmap_offset], (texture->width >> 2));
+
+                bitmap_offset += texture->width >>2;
+                screen_offset += SCREEN_WIDTH >>2;
             }
+
+            bitmap_offset += texture->width >> 2;
+            screen_offset += SCREEN_WIDTH >> 2;
         }
     }
 }
@@ -313,6 +299,8 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
     float rot_i;
     int rotated_size;
     uint8_t mirror_flip = FALSE;
+
+    int plane;
 
     if (angle > RAD_270)
         angle -= RAD_360;
@@ -358,7 +346,10 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
     h_half = source->height / 2;
 
     rotated_size = rotated.width * rotated.height;
-    rotated.pixels = malloc(rotated_size);
+    for (plane = 0; plane < 4; plane++)
+    {
+        rotated.pixels[plane] = (uint8_t *) malloc((uint16_t)(rotated_size >>2));
+    }
     memset(rotated.pixels, bgcolor, rotated_size);
 
     if (mirror_flip == TRUE)
@@ -373,7 +364,7 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
                 rot_i = ((rotated.height - ((int)sheared.y + rotated.offset_y + h_half))) * rotated.width + (rotated.width - (sheared.x + rotated.offset_x + w_half));
-                rotated.pixels[(int)rot_i] = source->pixels[i];
+                rotated.pixels[w&3][(int)(rot_i)>>2] = source->pixels[w&3][i>>2];
                 i++;
             }
         }
@@ -390,7 +381,7 @@ void drawTextureRotated(int x, int y, double angle, Texture_t* source, uint8_t b
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
                 rot_i = ((int)sheared.y + rotated.offset_y + h_half) * rotated.width + (sheared.x + rotated.offset_x + w_half);
-                rotated.pixels[(int)rot_i] = source->pixels[i];
+                rotated.pixels[w&3][(int)(rot_i)>>2] = source->pixels[w&3][i>>2];
                 i++;
             }
         }
@@ -506,7 +497,7 @@ RotatedTexture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgc
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
                 rot_i = ((rotated.height - ((int)sheared.y + rotated.offset_y + h_half))) * rotated.width + (rotated.width - (sheared.x + rotated.offset_x + w_half));
-                rotated.pixels[(int)rot_i] = source->pixels[i];
+                rotated.pixels[(int)rot_i] = source->pixels[w&3][i>>2];
                 i++;
             }
         }
@@ -523,7 +514,7 @@ RotatedTexture_t saveRotatedTexture(double angle, Texture_t* source, uint8_t bgc
                 sheared.y = rotateShearY(sheared, angle);
                 sheared.x = rotateShearX(sheared, angle);
                 rot_i = ((int)sheared.y + rotated.offset_y + h_half) * rotated.width + (sheared.x + rotated.offset_x + w_half);
-                rotated.pixels[(int)rot_i] = source->pixels[i];
+                rotated.pixels[(int)rot_i] = source->pixels[w&3][i>>2];
                 i++;
             }
         }
@@ -1514,7 +1505,7 @@ void gameDraw()
     drawMap();
     corpseArrayManager();
     testSetPlayerAnim();
-    drawActors();
+    //drawActors();
     drawHealth();
     drawStats();
     //testFont();

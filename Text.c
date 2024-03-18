@@ -47,7 +47,7 @@ void drawSymbol(int x, int y, int symbol_index, uint8_t color)
                 {
                     outp(SC_INDEX, MAP_MASK);
                     outp(SC_DATA,  1 << (x&3) );
-                    VGA[non_visible_page+(y<<6)+(y<<4)+(x>>2)] = (alphabet[symbol_index] + color);
+                    VGA[(y<<6)+(y<<4)+(x>>2)] = (alphabet[symbol_index] + color);
                 }
                 symbol_index++;
                 x++;

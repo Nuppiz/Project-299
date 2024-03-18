@@ -142,6 +142,6 @@ void renderWithoutClear()
 
 void renderUnchained(uint8_t color)
 {
-    pageFlip(&visible_page, &non_visible_page);
-    clearScreen(color);
+    //pageFlip(&visible_page, &non_visible_page);
+    //clearScreen(color);
 }
